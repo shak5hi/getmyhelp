@@ -6,8 +6,11 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { phoneStyles as styles } from "../styles/phone.styles";
+import { useRouter } from "expo-router";
 
 export default function PhoneScreen() {
+  const router = useRouter(); // ✅ CORRECT PLACE
+
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
 
@@ -30,7 +33,9 @@ export default function PhoneScreen() {
     }
 
     setError("");
-    console.log("Sending OTP to:", phone);
+
+    // ✅ NAVIGATE TO OTP SCREEN
+    router.push("/otp");
   };
 
   return (
@@ -40,7 +45,7 @@ export default function PhoneScreen() {
         We’ll send you an OTP to continue.
       </Text>
 
-      {/* ✅ ERROR ABOVE INPUT */}
+      {/* ERROR ABOVE INPUT */}
       {error ? (
         <Text style={styles.errorText}>{error}</Text>
       ) : null}

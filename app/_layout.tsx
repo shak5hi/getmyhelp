@@ -44,13 +44,14 @@ export default function RootLayout() {
             backgroundColor: "transparent",
           },
 
-         headerLeft: () => (
+        headerLeft: () => (
           <View style={styles.systemBubble}>
             <Ionicons
               name="chevron-back"
               size={20}
               color="#2E3A46"
               onPress={() => router.back()}
+              style={{ marginLeft: -2 }} // 👈 optical centering
             />
           </View>
         ),
@@ -66,6 +67,42 @@ export default function RootLayout() {
         ),
         }}
       />
+      <Stack.Screen
+        name="otp"
+        options={{
+          headerTitle: "GetMyHelp",
+          headerBackVisible: false,
+
+          headerLeftContainerStyle: {
+            paddingLeft: 16,
+          },
+          headerRightContainerStyle: {
+            paddingRight: 16,
+          },
+
+          headerLeft: () => (
+          <View style={styles.systemBubble}>
+            <Ionicons
+              name="chevron-back"
+              size={20}
+              color="#2E3A46"
+              onPress={() => router.back()}
+              style={{ marginLeft: -2 }} // 👈 optical centering
+            />
+          </View>
+          ),
+
+          headerRight: () => (
+            <View style={styles.iconBubble}>
+              <Ionicons
+                name="help-circle-outline"
+                size={20}
+                color="#2E3A46"
+              />
+            </View>
+          ),
+        }}
+      />
     </Stack>
   );
 }
@@ -79,3 +116,39 @@ const styles = {
     alignItems: "center",
   },
 };
+<Stack.Screen
+  name="location"
+  options={{
+    headerTitle: "GetMyHelp",
+    headerBackVisible: false,
+
+    headerLeftContainerStyle: {
+      paddingLeft: 16,
+    },
+    headerRightContainerStyle: {
+      paddingRight: 16,
+    },
+
+    headerLeft: () => (
+      <View style={styles.systemBubble}>
+        <Ionicons
+          name="chevron-back"
+          size={20}
+          color="#2E3A46"
+          onPress={() => router.back()}
+          style={{ marginLeft: -2 }} // optical centering
+        />
+      </View>
+    ),
+
+    headerRight: () => (
+      <View style={styles.systemBubble}>
+        <Ionicons
+          name="help-circle-outline"
+          size={20}
+          color="#2E3A46"
+        />
+      </View>
+    ),
+  }}
+/>
