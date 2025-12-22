@@ -1,6 +1,6 @@
 import { Stack, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
-import { TouchableOpacity, View } from "react-native";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function RootLayout() {
@@ -19,6 +19,10 @@ export default function RootLayout() {
         headerShadowVisible: false,
         headerTitleAlign: "center",
         headerBackTitleVisible: false,
+
+        // 🔥 KILLS THE GHOST BUBBLE COMPLETELY
+        headerPressColor: "transparent",
+        headerPressOpacity: 1,
       }}
     >
       {/* Landing */}
@@ -29,52 +33,48 @@ export default function RootLayout() {
         name="phone"
         options={{
           headerTitle: "GetMyHelp",
-
-          // 🚫 disable default iOS back button completely
           headerBackVisible: false,
 
-          // 🚫 remove default paddings that create ghost bubbles
-          headerLeftContainerStyle: { padding: 0 },
-          headerRightContainerStyle: { padding: 0 },
+          headerLeftContainerStyle: {
+            paddingLeft: 16,
+            backgroundColor: "transparent",
+          },
+          headerRightContainerStyle: {
+            paddingRight: 16,
+            backgroundColor: "transparent",
+          },
 
-          headerLeft: () => (
-            <TouchableOpacity
+         headerLeft: () => (
+          <View style={styles.systemBubble}>
+            <Ionicons
+              name="chevron-back"
+              size={20}
+              color="#2E3A46"
               onPress={() => router.back()}
-              style={{ marginLeft: 16 }}
-              hitSlop={10}
-            >
-              <View style={styles.iconBubble}>
-                <Ionicons name="chevron-back" size={20} color="#2E3A46" />
-              </View>
-            </TouchableOpacity>
-          ),
+            />
+          </View>
+        ),
 
-          headerRight: () => (
-            <TouchableOpacity
-              style={{ marginRight: 16 }}
-              hitSlop={10}
-            >
-              <View style={styles.iconBubble}>
-                <Ionicons
-                  name="help-circle-outline"
-                  size={20}
-                  color="#2E3A46"
-                />
-              </View>
-            </TouchableOpacity>
-          ),
+        headerRight: () => (
+          <View style={styles.systemBubble}>
+            <Ionicons
+              name="help-circle-outline"
+              size={20}
+              color="#2E3A46"
+            />
+          </View>
+        ),
         }}
       />
-
     </Stack>
   );
 }
 const styles = {
-  iconBubble: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#F5F7F9",
+  systemBubble: {
+    width: 32,            // 🔑 smaller than system hit area
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0)", // 🔑 blends layers
     justifyContent: "center",
     alignItems: "center",
   },

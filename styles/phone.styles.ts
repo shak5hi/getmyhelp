@@ -63,4 +63,22 @@ export const phoneStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  buttonDisabled: {
+  backgroundColor: "#E5E7EB", // greyed out
+  },
+
+  buttonTextDisabled: {
+    color: "#9CA3AF",
+  },
+  inputError: {
+  borderColor: "#EF4444",
+  borderWidth: 1,
+  },
+
+  errorText: {
+    color: "#EF4444",
+    fontSize: 12,
+    marginTop: 6,
+    marginBottom: 6,
+  },
 });
