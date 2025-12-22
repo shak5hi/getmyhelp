@@ -5,7 +5,7 @@ export const phoneStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingTop: 40,
   },
 
   appName: {
@@ -16,9 +16,11 @@ export const phoneStyles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 22,
     fontWeight: "600",
     marginBottom: 6,
+    fontFamily: "Newsreader-SemiBold",
+    fontSize: 24,
+    color: "#2E3A46",
   },
 
   subtitle: {
@@ -31,7 +33,7 @@ export const phoneStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#d1d1d1ff",
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 52,

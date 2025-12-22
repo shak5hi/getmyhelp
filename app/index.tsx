@@ -1,13 +1,13 @@
 import { Image, Text, View } from "react-native";
 import PrimaryButton from "../components/PrimaryButton";
 import { homeStyles as styles } from "../styles/home.styles";
-import { router } from "expo-router";
-
+import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
-
       <View style={styles.textBlock}>
         <Text style={styles.title}>GetMyHelp</Text>
         <Text style={styles.subtitle}>
@@ -21,9 +21,12 @@ export default function HomeScreen() {
       />
 
       <View style={styles.buttonBlock}>
-        <PrimaryButton title="Get Started" />
+        <PrimaryButton
+          title="Get Started"
+          onPress={() => router.push("/phone")}
+        />
       </View>
-
     </View>
   );
 }
+

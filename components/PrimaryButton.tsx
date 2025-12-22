@@ -14,3 +14,18 @@ export default function PrimaryButton({
   );
 }
 
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: "#2E3A46",
+    height: 52,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  text: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
+
