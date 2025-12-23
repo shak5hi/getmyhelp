@@ -103,4 +103,10 @@ export const locationStyles = StyleSheet.create({
     fontSize: 14,
     color: "#2E3A46",
     },
+    detectedLocation: {
+  marginTop: 8,
+  marginBottom: 12,
+  fontSize: 13,
+  color: "#2E3A46",
+},
 });

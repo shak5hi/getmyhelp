@@ -19,45 +19,30 @@ export default function RootLayout() {
         headerShadowVisible: false,
         headerTitleAlign: "center",
         headerBackTitleVisible: false,
-
-        // 🔥 KILLS THE GHOST BUBBLE COMPLETELY
         headerPressColor: "transparent",
         headerPressOpacity: 1,
-      }}
-    >
-      {/* Landing */}
-      <Stack.Screen name="index" options={{ headerShown: false }} />
 
-      {/* Phone screen */}
-      <Stack.Screen
-        name="phone"
-        options={{
-          headerTitle: "GetMyHelp",
-          headerBackVisible: false,
+        // ✅ SHARED HEADER
+        headerTitle: "GetMyHelp",
+        headerBackVisible: false,
 
-          headerLeftContainerStyle: {
-            paddingLeft: 16,
-            backgroundColor: "transparent",
-          },
-          headerRightContainerStyle: {
-            paddingRight: 16,
-            backgroundColor: "transparent",
-          },
+        headerLeftContainerStyle: { paddingLeft: 16 },
+        headerRightContainerStyle: { paddingRight: 16 },
 
         headerLeft: () => (
-          <View style={styles.systemBubble}>
+          <View style={styles.headerBubble}>
             <Ionicons
               name="chevron-back"
               size={20}
               color="#2E3A46"
               onPress={() => router.back()}
-              style={{ marginLeft: -2 }} // 👈 optical centering
+              style={{ marginLeft: -2 }}
             />
           </View>
         ),
 
         headerRight: () => (
-          <View style={styles.systemBubble}>
+          <View style={styles.headerBubble}>
             <Ionicons
               name="help-circle-outline"
               size={20}
@@ -65,90 +50,24 @@ export default function RootLayout() {
             />
           </View>
         ),
-        }}
-      />
-      <Stack.Screen
-        name="otp"
-        options={{
-          headerTitle: "GetMyHelp",
-          headerBackVisible: false,
-
-          headerLeftContainerStyle: {
-            paddingLeft: 16,
-          },
-          headerRightContainerStyle: {
-            paddingRight: 16,
-          },
-
-          headerLeft: () => (
-          <View style={styles.systemBubble}>
-            <Ionicons
-              name="chevron-back"
-              size={20}
-              color="#2E3A46"
-              onPress={() => router.back()}
-              style={{ marginLeft: -2 }} // 👈 optical centering
-            />
-          </View>
-          ),
-
-          headerRight: () => (
-            <View style={styles.iconBubble}>
-              <Ionicons
-                name="help-circle-outline"
-                size={20}
-                color="#2E3A46"
-              />
-            </View>
-          ),
-        }}
-      />
+      }}
+    >
+      {/* Screens */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="phone" />
+      <Stack.Screen name="otp" />
+      <Stack.Screen name="location" />
     </Stack>
   );
 }
+
 const styles = {
-  systemBubble: {
-    width: 32,            // 🔑 smaller than system hit area
+  headerBubble: {
+    width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(255, 255, 255, 0)", // 🔑 blends layers
+    backgroundColor: "rgba(255,255,255,0)",
     justifyContent: "center",
     alignItems: "center",
   },
 };
-<Stack.Screen
-  name="location"
-  options={{
-    headerTitle: "GetMyHelp",
-    headerBackVisible: false,
-
-    headerLeftContainerStyle: {
-      paddingLeft: 16,
-    },
-    headerRightContainerStyle: {
-      paddingRight: 16,
-    },
-
-    headerLeft: () => (
-      <View style={styles.systemBubble}>
-        <Ionicons
-          name="chevron-back"
-          size={20}
-          color="#2E3A46"
-          onPress={() => router.back()}
-          style={{ marginLeft: -2 }} // optical centering
-        />
-      </View>
-    ),
-
-    headerRight: () => (
-      <View style={styles.systemBubble}>
-        <Ionicons
-          name="help-circle-outline"
-          size={20}
-          color="#2E3A46"
-        />
-      </View>
-    ),
-  }}
-/>

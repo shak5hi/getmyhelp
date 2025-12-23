@@ -163,29 +163,25 @@ export default function LocationScreen() {
             : "Use my current location"}
         </Text>
       </Pressable>
-
       {/* Continue */}
       <TouchableOpacity
         style={[
-          styles.button,
-          !isLocationSelected && styles.buttonDisabled,
+            styles.button,
+            !isLocationSelected && styles.buttonDisabled,
         ]}
         disabled={!isLocationSelected}
-        onPress={() => {
-          console.log("Area:", area);
-          console.log("Society:", society);
-          // router.push("/step-2");
-        }}
-      >
+        onPress={() => router.push("/tower")}
+        >
         <Text
-          style={[
+            style={[
             styles.buttonText,
             !isLocationSelected && styles.buttonTextDisabled,
-          ]}
+            ]}
         >
-          Continue
+            Continue
         </Text>
-      </TouchableOpacity>
+    </TouchableOpacity>
+
     </View>
   );
 }
