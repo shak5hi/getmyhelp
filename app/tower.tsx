@@ -8,7 +8,6 @@ export default function TowerScreen() {
   const [selectedTower, setSelectedTower] = useState("");
   const [showAll, setShowAll] = useState(false);
 
-  // 🔹 25 dummy towers
   const allTowers = [
     "A1","A2","A3","A4","A5",
     "B1","B2","B3","B4","B5",
@@ -23,7 +22,7 @@ export default function TowerScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.step}>Step 2 of 2</Text>
+      <Text style={styles.step}>Step 2 of 3</Text>
 
       <Text style={styles.title}>Which tower or wing?</Text>
       <Text style={styles.subtitle}>
@@ -38,12 +37,9 @@ export default function TowerScreen() {
           return (
             <Animated.View
               key={tower}
-              style={[
-                styles.bubbleWrapper,
-                {
-                  transform: [{ scale: isSelected ? 1.05 : 1 }],
-                },
-              ]}
+              style={{
+                transform: [{ scale: isSelected ? 1.05 : 1 }],
+              }}
             >
               <Pressable
                 onPress={() => setSelectedTower(tower)}
@@ -82,6 +78,7 @@ export default function TowerScreen() {
         disabled={!selectedTower}
         onPress={() => {
           console.log("Selected tower:", selectedTower);
+          router.push("/house"); // ✅ ONLY HERE
         }}
       >
         <Text
@@ -96,4 +93,3 @@ export default function TowerScreen() {
     </View>
   );
 }
-

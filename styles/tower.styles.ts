@@ -24,37 +24,33 @@ export const towerStyles = {
     marginBottom: 20,
   },
 
+  /* ✅ FLEX BUBBLE LAYOUT */
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 12,
+    gap: 12,
   },
 
-  // 🔑 wrapper controls spacing — NOT the bubble itself
-  bubbleWrapper: {
-    width: "30%",
-    marginBottom: 12,
-  },
-
-  // 🫧 REAL bubble
+  /* 🫧 TRUE BUBBLE */
   bubble: {
+    paddingHorizontal: 18,
     height: 44,
+    minWidth: 60,
+
     borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
 
-    backgroundColor: "rgba(255, 255, 255, 0.35)",
-
+    backgroundColor: "rgba(255, 255, 255, 0.55)",
     borderWidth: 1,
-    borderColor: "rgba(46, 58, 70, 0.12)",
+    borderColor: "rgba(46, 58, 70, 0.15)",
 
     shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
 
-    elevation: 3,
+    elevation: 2,
   },
 
   bubbleSelected: {
@@ -75,8 +71,8 @@ export const towerStyles = {
   seeMore: {
     fontSize: 13,
     color: "#6B7280",
+    marginTop: 10,
     alignSelf: "flex-end",
-    marginBottom: 24,
   },
 
   button: {
@@ -102,3 +98,4 @@ export const towerStyles = {
     color: "#9CA3AF",
   },
 };
+

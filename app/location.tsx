@@ -90,7 +90,7 @@ export default function LocationScreen() {
   return (
     <View style={styles.container}>
       {/* Step Indicator */}
-      <Text style={styles.step}>Step 1 of 2</Text>
+      <Text style={styles.step}>Step 1 of 3</Text>
 
       {/* Title */}
       <Text style={styles.title}>Where do you live?</Text>
