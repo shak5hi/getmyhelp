@@ -19,7 +19,8 @@ export default function HouseScreen() {
     setError("");
     console.log("House number:", houseNumber);
 
-    // later → router.replace("/home");
+    // ✅ NAVIGATE TO SUBSCRIPTION
+    router.replace("/subscription");
   };
 
   return (
