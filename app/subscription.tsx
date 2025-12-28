@@ -2,28 +2,23 @@ import { View, Text, Pressable } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { subscriptionStyles as styles } from "../styles/subscription.styles";
+import i18n from "../src/i18n";
+import { useLanguage } from "../src/LanguageContext";
 
 const PLANS = ["Basic", "Standard", "Gold", "Platinum"];
 
 export default function SubscriptionScreen() {
+  useLanguage();
   const router = useRouter();
 
   const [activePlan, setActivePlan] = useState("Gold");
   const [expanded, setExpanded] = useState(false);
 
-  const handleGetPlan = () => {
-    // 👉 After subscription selection, go to dashboard
-    router.replace("/dashboard");
-  };
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Select your plan</Text>
-      <Text style={styles.subtitle}>
-        Choose a membership that fits your home
-      </Text>
+      <Text style={styles.title}>{i18n.t("selectPlan")}</Text>
+      <Text style={styles.subtitle}>{i18n.t("planSubtitle")}</Text>
 
-      {/* SLIDER */}
       <View style={styles.slider}>
         {PLANS.map((plan) => {
           const isActive = activePlan === plan;
@@ -33,7 +28,7 @@ export default function SubscriptionScreen() {
               key={plan}
               onPress={() => {
                 setActivePlan(plan);
-                setExpanded(false); // reset expansion on plan change
+                setExpanded(false);
               }}
               style={[
                 styles.sliderItemWrapper,
@@ -53,44 +48,36 @@ export default function SubscriptionScreen() {
         })}
       </View>
 
-      {/* CARD */}
       <View style={styles.card}>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>Most Popular</Text>
+          <Text style={styles.badgeText}>
+            {i18n.t("mostPopular")}
+          </Text>
         </View>
 
         <Text style={styles.planTitle}>{activePlan}</Text>
-        <Text style={styles.price}>₹699 / month</Text>
+        <Text style={styles.price}>
+          ₹699 {i18n.t("perMonth")}
+        </Text>
 
         <Text style={styles.feature}>• 24/7 customer support</Text>
         <Text style={styles.feature}>• Priority service scheduling</Text>
         <Text style={styles.feature}>• Exclusive discounts</Text>
 
         {expanded && (
-          <>
-            <Text style={styles.feature}>
-              • Extended warranty on repairs
+          <Pressable
+            style={styles.button}
+            onPress={() => router.replace("/dashboard")}
+          >
+            <Text style={styles.buttonText}>
+              {i18n.t("getPlan")} {activePlan}
             </Text>
-            <Text style={styles.feature}>
-              • Access to premium service providers
-            </Text>
-            <Text style={styles.feature}>
-              • Personalized service recommendations
-            </Text>
-
-            {/* CTA */}
-            <Pressable style={styles.button} onPress={handleGetPlan}>
-              <Text style={styles.buttonText}>
-                Get {activePlan} Plan
-              </Text>
-            </Pressable>
-          </>
+          </Pressable>
         )}
 
-        {/* SEE MORE */}
         <Pressable onPress={() => setExpanded(!expanded)}>
           <Text style={styles.seeMore}>
-            {expanded ? "Show less" : "See more"}
+            {expanded ? i18n.t("showLess") : i18n.t("seeMore")}
           </Text>
         </Pressable>
       </View>

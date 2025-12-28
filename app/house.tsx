@@ -2,9 +2,13 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { houseStyles as styles } from "../styles/house.styles";
+import i18n from "../src/i18n";
+import { useLanguage } from "../src/LanguageContext";
 
 export default function HouseScreen() {
+  useLanguage();
   const router = useRouter();
+
   const [houseNumber, setHouseNumber] = useState("");
   const [error, setError] = useState("");
 
@@ -12,48 +16,34 @@ export default function HouseScreen() {
 
   const handleContinue = () => {
     if (!isValid) {
-      setError("Please enter your house number");
+      setError(i18n.t("houseError"));
       return;
     }
 
     setError("");
-    console.log("House number:", houseNumber);
-
-    // ✅ NAVIGATE TO SUBSCRIPTION
     router.replace("/subscription");
   };
 
   return (
     <View style={styles.container}>
-      {/* Step */}
-      <Text style={styles.step}>Step 3 of 3</Text>
+      <Text style={styles.step}>{i18n.t("step3")}</Text>
 
-      {/* Title */}
-      <Text style={styles.title}>What’s your house number?</Text>
-      <Text style={styles.subtitle}>
-        Enter your exact house number
-      </Text>
+      <Text style={styles.title}>{i18n.t("houseTitle")}</Text>
+      <Text style={styles.subtitle}>{i18n.t("houseSubtitle")}</Text>
 
-      {/* Error */}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      {/* Input */}
       <TextInput
-        placeholder="e.g. 116C"
-        placeholderTextColor="#9CA3AF"
+        placeholder={i18n.t("housePlaceholder")}
         value={houseNumber}
         onChangeText={(text) => {
           setHouseNumber(text);
           if (text.trim()) setError("");
         }}
-        style={[
-          styles.input,
-          error && styles.inputError,
-        ]}
+        style={[styles.input, error && styles.inputError]}
         autoCapitalize="characters"
       />
 
-      {/* Continue */}
       <TouchableOpacity
         style={[
           styles.button,
@@ -68,7 +58,7 @@ export default function HouseScreen() {
             !isValid && styles.buttonTextDisabled,
           ]}
         >
-          Continue
+          {i18n.t("continue")}
         </Text>
       </TouchableOpacity>
     </View>

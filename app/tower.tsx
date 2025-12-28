@@ -1,10 +1,20 @@
-import { View, Text, TouchableOpacity, Pressable, Animated } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  Animated,
+} from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import { towerStyles as styles } from "../styles/tower.styles";
+import i18n from "../src/i18n";
+import { useLanguage } from "../src/LanguageContext";
 
 export default function TowerScreen() {
+  useLanguage(); // 🔁 re-render on language change
   const router = useRouter();
+
   const [selectedTower, setSelectedTower] = useState("");
   const [showAll, setShowAll] = useState(false);
 
@@ -16,20 +26,15 @@ export default function TowerScreen() {
     "E1","E2","E3","E4","E5",
   ];
 
-  const visibleTowers = showAll
-    ? allTowers
-    : allTowers.slice(0, 6);
+  const visibleTowers = showAll ? allTowers : allTowers.slice(0, 6);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.step}>Step 2 of 3</Text>
+      <Text style={styles.step}>{i18n.t("step2")}</Text>
 
-      <Text style={styles.title}>Which tower or wing?</Text>
-      <Text style={styles.subtitle}>
-        Select your exact building in your society.
-      </Text>
+      <Text style={styles.title}>{i18n.t("selectTower")}</Text>
+      <Text style={styles.subtitle}>{i18n.t("towerSubtitle")}</Text>
 
-      {/* GRID */}
       <View style={styles.grid}>
         {visibleTowers.map((tower) => {
           const isSelected = selectedTower === tower;
@@ -37,9 +42,7 @@ export default function TowerScreen() {
           return (
             <Animated.View
               key={tower}
-              style={{
-                transform: [{ scale: isSelected ? 1.05 : 1 }],
-              }}
+              style={{ transform: [{ scale: isSelected ? 1.05 : 1 }] }}
             >
               <Pressable
                 onPress={() => setSelectedTower(tower)}
@@ -62,24 +65,19 @@ export default function TowerScreen() {
         })}
       </View>
 
-      {/* SEE MORE / LESS */}
       <Pressable onPress={() => setShowAll(!showAll)}>
         <Text style={styles.seeMore}>
-          {showAll ? "Show less" : "See more"}
+          {showAll ? i18n.t("showLess") : i18n.t("seeMore")}
         </Text>
       </Pressable>
 
-      {/* CONTINUE */}
       <TouchableOpacity
         style={[
           styles.button,
           !selectedTower && styles.buttonDisabled,
         ]}
         disabled={!selectedTower}
-        onPress={() => {
-          console.log("Selected tower:", selectedTower);
-          router.push("/house"); // ✅ ONLY HERE
-        }}
+        onPress={() => router.push("/house")}
       >
         <Text
           style={[
@@ -87,7 +85,7 @@ export default function TowerScreen() {
             !selectedTower && styles.buttonTextDisabled,
           ]}
         >
-          Continue
+          {i18n.t("continue")}
         </Text>
       </TouchableOpacity>
     </View>

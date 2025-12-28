@@ -2,6 +2,7 @@ import { Stack, useRouter } from "expo-router";
 import { useFonts } from "expo-font";
 import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LanguageProvider } from "../src/LanguageContext";
 
 export default function RootLayout() {
   const router = useRouter();
@@ -14,50 +15,54 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <Stack
-      screenOptions={{
-        headerShadowVisible: false,
-        headerTitleAlign: "center",
-        headerBackTitleVisible: false,
-        headerPressColor: "transparent",
-        headerPressOpacity: 1,
+    <LanguageProvider>
+      <Stack
+        screenOptions={{
+          headerShadowVisible: false,
+          headerTitleAlign: "center",
+          headerBackTitleVisible: false,
+          headerPressColor: "transparent",
+          headerPressOpacity: 1,
 
-        // ✅ SHARED HEADER
-        headerTitle: "GetMyHelp",
-        headerBackVisible: false,
+          headerTitle: "GetMyHelp",
+          headerBackVisible: false,
 
-        headerLeftContainerStyle: { paddingLeft: 16 },
-        headerRightContainerStyle: { paddingRight: 16 },
+          headerLeftContainerStyle: { paddingLeft: 16 },
+          headerRightContainerStyle: { paddingRight: 16 },
 
-        headerLeft: () => (
-          <View style={styles.headerBubble}>
-            <Ionicons
-              name="chevron-back"
-              size={20}
-              color="#2E3A46"
-              onPress={() => router.back()}
-              style={{ marginLeft: -2 }}
-            />
-          </View>
-        ),
+          headerLeft: () => (
+            <View style={styles.headerBubble}>
+              <Ionicons
+                name="chevron-back"
+                size={20}
+                color="#2E3A46"
+                onPress={() => router.back()}
+                style={{ marginLeft: -2 }}
+              />
+            </View>
+          ),
 
-        headerRight: () => (
-          <View style={styles.headerBubble}>
-            <Ionicons
-              name="help-circle-outline"
-              size={20}
-              color="#2E3A46"
-            />
-          </View>
-        ),
-      }}
-    >
-      {/* Screens */}
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="phone" />
-      <Stack.Screen name="otp" />
-      <Stack.Screen name="location" />
-    </Stack>
+          headerRight: () => (
+            <View style={styles.headerBubble}>
+              <Ionicons
+                name="help-circle-outline"
+                size={20}
+                color="#2E3A46"
+              />
+            </View>
+          ),
+        }}
+      >
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="phone" />
+        <Stack.Screen name="otp" />
+        <Stack.Screen name="location" />
+        <Stack.Screen name="tower" />
+        <Stack.Screen name="house" />
+        <Stack.Screen name="subscription" />
+        <Stack.Screen name="dashboard" />
+      </Stack>
+    </LanguageProvider>
   );
 }
 

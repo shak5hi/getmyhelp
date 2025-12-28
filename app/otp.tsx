@@ -8,8 +8,12 @@ import {
 import { useState, useRef } from "react";
 import { useRouter } from "expo-router";
 import { otpStyles as styles } from "../styles/otp.styles";
+import i18n from "../src/i18n";
+import { useLanguage } from "../src/LanguageContext";
 
 export default function OtpScreen() {
+  useLanguage(); // 🔥 forces re-render on language change
+
   const router = useRouter();
   const inputRef = useRef<TextInput>(null);
 
@@ -21,33 +25,24 @@ export default function OtpScreen() {
     const trimmed = digitsOnly.slice(0, 6);
     setOtp(trimmed);
 
-    if (trimmed.length === 6) {
-      setError("");
-    }
+    if (trimmed.length === 6) setError("");
   };
 
-  const isOtpValid = otp.length === 6;
-
   const handleVerify = () => {
-    if (!isOtpValid) {
-      setError("Please enter the 6-digit OTP");
+    if (otp.length !== 6) {
+      setError(i18n.t("otpError"));
       return;
     }
 
     setError("");
-
-    // TEMP: go to location screen
     router.push("/location");
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Enter OTP</Text>
-      <Text style={styles.subtitle}>
-        We've sent a 6-digit code to your phone.
-      </Text>
+      <Text style={styles.title}>{i18n.t("otpTitle")}</Text>
+      <Text style={styles.subtitle}>{i18n.t("otpSubtitle")}</Text>
 
-      {/* OTP BOXES */}
       <Pressable
         style={styles.otpContainer}
         onPress={() => inputRef.current?.focus()}
@@ -61,14 +56,11 @@ export default function OtpScreen() {
               error && styles.otpBoxError,
             ]}
           >
-            <Text style={styles.otpText}>
-              {otp[index] || ""}
-            </Text>
+            <Text style={styles.otpText}>{otp[index] || ""}</Text>
           </View>
         ))}
       </Pressable>
 
-      {/* Hidden Input */}
       <TextInput
         ref={inputRef}
         value={otp}
@@ -79,31 +71,30 @@ export default function OtpScreen() {
         style={styles.hiddenInput}
       />
 
-      {/* ERROR */}
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      {/* VERIFY BUTTON */}
       <TouchableOpacity
         style={[
           styles.button,
-          !isOtpValid && styles.buttonDisabled,
+          otp.length !== 6 && styles.buttonDisabled,
         ]}
         onPress={handleVerify}
       >
         <Text
           style={[
             styles.buttonText,
-            !isOtpValid && styles.buttonTextDisabled,
+            otp.length !== 6 && styles.buttonTextDisabled,
           ]}
         >
-          Verify & Continue
+          {i18n.t("verifyContinue")}
         </Text>
       </TouchableOpacity>
 
-      {/* RESEND */}
       <Text style={styles.resendText}>
-        Didn’t receive the code?{" "}
-        <Text style={styles.resendLink}>Resend</Text>
+        {i18n.t("didntReceive")}{" "}
+        <Text style={styles.resendLink}>
+          {i18n.t("resend")}
+        </Text>
       </Text>
     </View>
   );
