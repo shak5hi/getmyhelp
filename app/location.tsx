@@ -15,7 +15,7 @@ import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
 
 export default function LocationScreen() {
-  useLanguage(); // 🔁 force re-render on language change
+  useLanguage(); // re-render on language change
   const router = useRouter();
 
   const [loadingLocation, setLoadingLocation] = useState(false);
@@ -26,7 +26,7 @@ export default function LocationScreen() {
       setLoadingLocation(true);
       setError("");
 
-      // 1️⃣ Ask permission
+      // Ask permission
       const { status, canAskAgain } =
         await Location.requestForegroundPermissionsAsync();
 
@@ -38,14 +38,14 @@ export default function LocationScreen() {
         return;
       }
 
-      // 2️⃣ Get coordinates
+      // Get coordinates
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
 
       const { latitude, longitude } = location.coords;
 
-      // 3️⃣ Reverse geocode
+      // Reverse geocode
       const address = await Location.reverseGeocodeAsync({
         latitude,
         longitude,
@@ -59,7 +59,7 @@ export default function LocationScreen() {
         place?.neighborhood ||
         "Your area";
 
-      // 4️⃣ Navigate (Urban Company style)
+      // Navigate to next step
       router.push({
         pathname: "/select-society",
         params: {
@@ -77,45 +77,30 @@ export default function LocationScreen() {
 
   return (
   <View style={styles.container}>
-    {/* HEADER */}
-    <View style={styles.header}>
-      <Ionicons name="chevron-back" size={22} />
-      <Text style={styles.headerTitle}>GetMyHelp</Text>
-      <Ionicons name="help-circle-outline" size={22} />
-    </View>
-
     {/* TOP CONTENT */}
-    <View style={styles.content}>
-      <Text style={styles.step}>{i18n.t("step1")}</Text>
+    <View style={styles.topContent}>
+      <View style={styles.iconWrapper}>
+        <Ionicons
+          name="location-outline"
+          size={40}
+          color="#2E3A46"
+        />
+      </View>
 
-      <Text style={styles.title}>
+      <Text style={styles.centerTitle}>
         {i18n.t("whereDoYouLive")}
       </Text>
-
-      <Text style={styles.subtitle}>
-        {i18n.t("locationSubtitle")}
-      </Text>
     </View>
 
-    {/* BOTTOM ACTIONS (THIS CREATES UC FLOW) */}
-    <View style={styles.bottomActions}>
-      {error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : null}
-
+    {/* BOTTOM BUTTONS */}
+    <View style={styles.bottomButtons}>
       <Pressable
         style={styles.primaryButton}
         onPress={handleUseCurrentLocation}
         disabled={loadingLocation}
       >
-        <Ionicons
-          name="location-outline"
-          size={18}
-          color="#fff"
-        />
-
         {loadingLocation ? (
-          <ActivityIndicator size="small" color="#fff" />
+          <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.primaryButtonText}>
             {i18n.t("useCurrentLocation")}
@@ -123,13 +108,14 @@ export default function LocationScreen() {
         )}
       </Pressable>
 
-      <TouchableOpacity>
-        <Text style={styles.secondaryAction}>
+      <TouchableOpacity style={styles.secondaryButton}>
+        <Text style={styles.secondaryButtonText}>
           {i18n.t("enterLocationManually")}
         </Text>
       </TouchableOpacity>
     </View>
   </View>
 );
+
 
 }

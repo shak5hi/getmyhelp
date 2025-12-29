@@ -157,5 +157,73 @@ secondaryAction: {
   color: "#6C5CE7",
   fontSize: 14,
 },
+containerCentered: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  paddingHorizontal: 24,
+  backgroundColor: "#fff",
+},
+
+iconWrapper: {
+  marginBottom: 24,
+},
+
+centerTitle: {
+  fontSize: 22,
+  fontWeight: "600",
+  marginBottom: 24,
+  color: "#111827",
+  textAlign: "center",
+},
+
+/* 🔥 YOUR BRAND COLOR */
+container: {
+  flex: 1,
+  backgroundColor: "#fff",
+  paddingHorizontal: 24,
+},
+
+topContent: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+bottomButtons: {
+  marginTop: "auto", // 🔥 pushes buttons to bottom
+  paddingBottom: 30,
+},
+
+primaryButton: {
+  width: "100%",
+  backgroundColor: "#2E3A46",
+  paddingVertical: 14,
+  borderRadius: 10,
+  alignItems: "center",
+  marginBottom: 12,
+},
+
+primaryButtonText: {
+  color: "#fff",
+  fontSize: 15,
+  fontWeight: "600",
+},
+
+secondaryButton: {
+  width: "100%",
+  borderWidth: 1,
+  borderColor: "#2E3A46",
+  paddingVertical: 14,
+  borderRadius: 10,
+  alignItems: "center",
+},
+
+secondaryButtonText: {
+  color: "#2E3A46",
+  fontSize: 14,
+  fontWeight: "500",
+},
+
 
 });
