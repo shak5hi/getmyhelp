@@ -126,18 +126,6 @@ const i18n = new I18n({
     // LANGUAGE
     chooseLanguage: "भाषा चुनें",
   },
-
-  mr: {
-    appName: "GetMyHelp",
-    tagline: "तुमच्या घरासाठी विश्वासार्ह मदत",
-    getStarted: "सुरू करा",
-  },
-
-  ta: {
-    appName: "GetMyHelp",
-    tagline: "உங்கள் வீட்டிற்கான நம்பகமான உதவி",
-    getStarted: "தொடங்குங்கள்",
-  },
 });
 
 // SAFE locale detection

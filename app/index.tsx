@@ -9,8 +9,6 @@ import { useRouter } from "expo-router";
 const LANGUAGES = [
   { code: "en", label: "English" },
   { code: "hi", label: "हिंदी" },
-  { code: "mr", label: "मराठी" },
-  { code: "ta", label: "தமிழ்" },
 ];
 
 export default function HomeScreen() {
