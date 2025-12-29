@@ -35,6 +35,7 @@ const i18n = new I18n({
       "Location access is required to detect nearby societies.",
     locationFetchError: "Unable to fetch current location",
     continue: "Continue",
+    enterLocationManually: "Enter location manually",
 
 
     // TOWER

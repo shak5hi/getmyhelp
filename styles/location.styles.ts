@@ -109,4 +109,53 @@ export const locationStyles = StyleSheet.create({
   fontSize: 13,
   color: "#2E3A46",
 },
+loading: {
+  marginLeft: 8,
+  fontSize: 14,
+  color: "#2E3A46",
+},
+header: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  paddingVertical: 12,
+},
+
+headerTitle: {
+  fontSize: 16,
+  fontWeight: "600",
+},
+
+content: {
+  marginTop: 40,
+},
+
+bottomActions: {
+  marginTop: "auto", // ⭐ THIS IS THE MAGIC
+  paddingBottom: 30,
+},
+
+primaryButton: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: "#6C5CE7",
+  paddingVertical: 16,
+  borderRadius: 12,
+  gap: 8,
+},
+
+primaryButtonText: {
+  color: "#fff",
+  fontSize: 16,
+  fontWeight: "600",
+},
+
+secondaryAction: {
+  marginTop: 16,
+  textAlign: "center",
+  color: "#6C5CE7",
+  fontSize: 14,
+},
+
 });
