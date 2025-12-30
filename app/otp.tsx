@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import { otpStyles as styles } from "../styles/otp.styles";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
+import { useLocalSearchParams } from "expo-router";
 
 export default function OtpScreen() {
   useLanguage(); // 🔥 forces re-render on language change
@@ -19,6 +20,9 @@ export default function OtpScreen() {
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
+  const { phone } = useLocalSearchParams<{ phone: string }>();
+  const [loading, setLoading] = useState(false);
+
 
   const handleOtpChange = (text: string) => {
     const digitsOnly = text.replace(/[^0-9]/g, "");
@@ -28,15 +32,43 @@ export default function OtpScreen() {
     if (trimmed.length === 6) setError("");
   };
 
-  const handleVerify = () => {
-    if (otp.length !== 6) {
-      setError(i18n.t("otpError"));
+  const handleVerify = async () => {
+  if (otp.length !== 6) {
+    setError(i18n.t("otpError"));
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const response = await fetch("https://your-server.com/verify-otp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        phone,
+        otp,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setError(data.message || "Invalid OTP");
       return;
     }
 
+    // ✅ OTP verified successfully
     setError("");
     router.push("/location");
-  };
+  } catch (err) {
+    setError("Something went wrong. Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <View style={styles.container}>
@@ -74,21 +106,23 @@ export default function OtpScreen() {
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <TouchableOpacity
+        disabled={otp.length !== 6 || loading}
         style={[
           styles.button,
-          otp.length !== 6 && styles.buttonDisabled,
+          (otp.length !== 6 || loading) && styles.buttonDisabled,
         ]}
         onPress={handleVerify}
       >
         <Text
           style={[
             styles.buttonText,
-            otp.length !== 6 && styles.buttonTextDisabled,
+            (otp.length !== 6 || loading) && styles.buttonTextDisabled,
           ]}
         >
-          {i18n.t("verifyContinue")}
+          {loading ? "Verifying..." : i18n.t("verifyContinue")}
         </Text>
       </TouchableOpacity>
+
 
       <Text style={styles.resendText}>
         {i18n.t("didntReceive")}{" "}
