@@ -14,23 +14,46 @@ export default function PhoneScreen() {
 
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handlePhoneChange = (text: string) => {
-    // allow only numbers
     const digitsOnly = text.replace(/[^0-9]/g, "");
     setPhone(digitsOnly);
 
-    // clear error while typing
     if (error) setError("");
   };
 
-  const handleGetOtp = () => {
+  const handleGetOtp = async () => {
     if (phone.length !== 10) {
       setError(i18n.t("phoneError"));
       return;
     }
 
-    router.push("/otp");
+    try {
+      setLoading(true);
+
+      await fetch("https://your-server.com/auth/init", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: "+91" + phone,
+        }),
+      });
+
+      // ✅ navigate to otp.tsx
+      router.push({
+        pathname: "/otp",
+        params: {
+          phone: "+91" + phone,
+        },
+      });
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -50,7 +73,6 @@ export default function PhoneScreen() {
         />
       </View>
 
-      {/* 🔴 ERROR MESSAGE */}
       {error ? (
         <Text style={{ color: "red", marginTop: 8, fontSize: 13 }}>
           {error}
@@ -58,14 +80,15 @@ export default function PhoneScreen() {
       ) : null}
 
       <TouchableOpacity
+        disabled={loading || phone.length !== 10}
         style={[
           styles.button,
-          phone.length !== 10 && styles.buttonDisabled,
+          (phone.length !== 10 || loading) && styles.buttonDisabled,
         ]}
         onPress={handleGetOtp}
       >
         <Text style={styles.buttonText}>
-          {i18n.t("getOtp")}
+          {loading ? "Please wait..." : i18n.t("getOtp")}
         </Text>
       </TouchableOpacity>
     </View>
