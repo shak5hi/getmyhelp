@@ -5,70 +5,102 @@ import {
   TouchableOpacity,
   Pressable,
 } from "react-native";
-import { useState, useRef } from "react";
-import { useRouter } from "expo-router";
+import { useState, useRef, useEffect } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { otpStyles as styles } from "../styles/otp.styles";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
-import { useLocalSearchParams } from "expo-router";
 
 export default function OtpScreen() {
-  useLanguage(); // 🔥 forces re-render on language change
+  useLanguage();
 
   const router = useRouter();
+  const { phone } = useLocalSearchParams<{ phone: string }>();
   const inputRef = useRef<TextInput>(null);
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
-  const { phone } = useLocalSearchParams<{ phone: string }>();
   const [loading, setLoading] = useState(false);
 
+  // 🔐 Resend / timer state
+  const [resendActive, setResendActive] = useState(false);
+  const [timer, setTimer] = useState(0);
+
+  // ⏱️ Timer logic
+  useEffect(() => {
+    if (!resendActive) return;
+
+    const interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setResendActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [resendActive]);
+
+  // 🧹 Cleanup OTP state (called on success)
+  const cleanupOtpState = () => {
+    setResendActive(false);
+    setTimer(0);
+    setOtp("");
+    setError("");
+  };
 
   const handleOtpChange = (text: string) => {
     const digitsOnly = text.replace(/[^0-9]/g, "");
-    const trimmed = digitsOnly.slice(0, 6);
-    setOtp(trimmed);
-
-    if (trimmed.length === 6) setError("");
+    setOtp(digitsOnly.slice(0, 6));
+    if (error) setError("");
   };
 
-  const handleVerify = async () => {
-  if (otp.length !== 6) {
-    setError(i18n.t("otpError"));
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const response = await fetch("https://your-server.com/verify-otp", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        phone,
-        otp,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      setError(data.message || "Invalid OTP");
+  // ✅ Verify OTP (frontend mock)
+  const handleVerify = () => {
+    if (otp.length !== 6) {
+      setError(i18n.t("otpError"));
       return;
     }
 
-    // ✅ OTP verified successfully
-    setError("");
-    router.push("/location");
-  } catch (err) {
-    setError("Something went wrong. Try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+    /**
+     * 🔥 BACKEND INTEGRATION POINT
+     * POST /verify-otp
+     * body: { phone, otp }
+     */
 
+    // Resent OTP valid for 20 sec
+    if (resendActive && otp === "123456") {
+      cleanupOtpState();
+      router.push("/location");
+      return;
+    }
+
+    // Default OTP
+    if (!resendActive && otp === "143506") {
+      cleanupOtpState();
+      router.push("/location");
+      return;
+    }
+
+    setError("Invalid or expired OTP");
+  };
+
+  // 🔁 Resend OTP (frontend mock)
+  const handleResend = () => {
+    /**
+     * 🔥 BACKEND INTEGRATION POINT
+     * POST /resend-otp
+     * body: { phone }
+     */
+
+    setOtp("");
+    setError("");
+    setResendActive(true);
+    setTimer(20);
+  };
 
   return (
     <View style={styles.container}>
@@ -123,12 +155,17 @@ export default function OtpScreen() {
         </Text>
       </TouchableOpacity>
 
-
       <Text style={styles.resendText}>
         {i18n.t("didntReceive")}{" "}
-        <Text style={styles.resendLink}>
-          {i18n.t("resend")}
-        </Text>
+        {resendActive ? (
+          <Text style={[styles.resendLink, { opacity: 0.6 }]}>
+            Resend in {timer}s
+          </Text>
+        ) : (
+          <Text style={styles.resendLink} onPress={handleResend}>
+            {i18n.t("resend")}
+          </Text>
+        )}
       </Text>
     </View>
   );
