@@ -10,78 +10,69 @@ import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { locationStyles as styles } from "../styles/location.styles";
 
-const MOCK_SOCIETIES = [
-  { name: "Gulmohur Greens", lat: 28.6862, lng: 77.3734 },
-  { name: "Saviour Park", lat: 28.6666, lng: 77.3589 },
-  { name: "Shalimar City", lat: 28.6753, lng: 77.4049 },
-];
-
-const isNearby = (
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number
-) => {
-  const threshold = 0.01;
-  return (
-    Math.abs(lat1 - lat2) < threshold &&
-    Math.abs(lng1 - lng2) < threshold
-  );
-};
-
 export default function LocationScreen() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loadingLocation, setLoadingLocation] = useState(false);
   const [error, setError] = useState("");
 
   const handleUseCurrentLocation = async () => {
     try {
-      setLoading(true);
+      setLoadingLocation(true);
       setError("");
 
+      // 1️⃣ Ask permission
       const { status } =
         await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
         setError("Location permission denied");
-        setLoading(false);
+        setLoadingLocation(false);
         return;
       }
 
+      // 2️⃣ Get GPS coordinates
       const location =
-        await Location.getCurrentPositionAsync({});
+        await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
 
       const { latitude, longitude } = location.coords;
 
-      // 🔍 Print for testing
-      console.log("LAT:", latitude);
-      console.log("LNG:", longitude);
+      // 🔍 PRINT FOR TESTING
+      console.log("📍 LAT:", latitude);
+      console.log("📍 LNG:", longitude);
 
-      const society = MOCK_SOCIETIES.find((s) =>
-        isNearby(latitude, longitude, s.lat, s.lng)
+      // 3️⃣ OpenStreetMap Reverse Geocoding
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
       );
 
-      if (!society) {
-        setError(
-          "We’re sorry, but your society is not registered with us yet."
-        );
-        setLoading(false);
+      const data = await res.json();
+
+      if (!data || !data.display_name) {
+        setError("Unable to detect address");
+        setLoadingLocation(false);
         return;
       }
 
-      // 👉 MOVE TO NEXT PAGE
+      const address = data.display_name;
+
+      console.log("🏠 ADDRESS:", address);
+
+      // 4️⃣ Navigate to DIFFERENT page
       router.push({
         pathname: "/society-detected",
         params: {
-          society: society.name,
+          address,
           lat: latitude.toString(),
           lng: longitude.toString(),
         },
       });
-    } catch {
-      setError("Failed to get location");
+    } catch (err) {
+      console.log("❌ ERROR:", err);
+      setError("Failed to fetch location");
     } finally {
-      setLoading(false);
+      setLoadingLocation(false);
     }
   };
 
@@ -90,9 +81,9 @@ export default function LocationScreen() {
       <Pressable
         style={styles.primaryButton}
         onPress={handleUseCurrentLocation}
-        disabled={loading}
+        disabled={loadingLocation}
       >
-        {loading ? (
+        {loadingLocation ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.primaryButtonText}>
@@ -101,10 +92,7 @@ export default function LocationScreen() {
         )}
       </Pressable>
 
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => router.push("/manual-location")}
-      >
+      <TouchableOpacity style={styles.secondaryButton}>
         <Text style={styles.secondaryButtonText}>
           Enter location manually
         </Text>

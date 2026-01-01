@@ -2,11 +2,11 @@ import { View, Text } from "react-native";
 import { useEffect } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
-export default function SocietyDetectedScreen() {
+export default function LocationDetectedScreen() {
   const router = useRouter();
-  const { society, lat, lng } =
+  const { address, lat, lng } =
     useLocalSearchParams<{
-      society: string;
+      address: string;
       lat: string;
       lng: string;
     }>();
@@ -28,13 +28,22 @@ export default function SocietyDetectedScreen() {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
+        paddingHorizontal: 24,
       }}
     >
       <Text style={{ fontSize: 18, fontWeight: "600" }}>
-        Society detected
+        Location detected
       </Text>
-      <Text style={{ marginTop: 8, fontSize: 16 }}>
-        {society}
+
+      <Text
+        style={{
+          marginTop: 8,
+          fontSize: 15,
+          color: "#444",
+          textAlign: "center",
+        }}
+      >
+        {address}
       </Text>
     </View>
   );
