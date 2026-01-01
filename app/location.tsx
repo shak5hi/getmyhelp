@@ -1,121 +1,120 @@
 import {
   View,
   Text,
-  TouchableOpacity,
   Pressable,
-  Linking,
+  TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { locationStyles as styles } from "../styles/location.styles";
-import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import i18n from "../src/i18n";
-import { useLanguage } from "../src/LanguageContext";
+import { locationStyles as styles } from "../styles/location.styles";
+
+const MOCK_SOCIETIES = [
+  { name: "Gulmohur Greens", lat: 28.6862, lng: 77.3734 },
+  { name: "Saviour Park", lat: 28.6666, lng: 77.3589 },
+  { name: "Shalimar City", lat: 28.6753, lng: 77.4049 },
+];
+
+const isNearby = (
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+) => {
+  const threshold = 0.01;
+  return (
+    Math.abs(lat1 - lat2) < threshold &&
+    Math.abs(lng1 - lng2) < threshold
+  );
+};
 
 export default function LocationScreen() {
-  useLanguage(); // re-render on language change
   const router = useRouter();
-
-  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleUseCurrentLocation = async () => {
     try {
-      setLoadingLocation(true);
+      setLoading(true);
       setError("");
 
-      // Ask permission
-      const { status, canAskAgain } =
+      const { status } =
         await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
-        if (!canAskAgain) {
-          Linking.openURL("app-settings:");
-        }
-        setError(i18n.t("locationPermissionError"));
+        setError("Location permission denied");
+        setLoading(false);
         return;
       }
 
-      // Get coordinates
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
+      const location =
+        await Location.getCurrentPositionAsync({});
 
       const { latitude, longitude } = location.coords;
 
-      // Reverse geocode
-      const address = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
+      // 🔍 Print for testing
+      console.log("LAT:", latitude);
+      console.log("LNG:", longitude);
 
-      const place = address[0];
+      const society = MOCK_SOCIETIES.find((s) =>
+        isNearby(latitude, longitude, s.lat, s.lng)
+      );
 
-      const detectedArea =
-        place?.district ||
-        place?.subregion ||
-        place?.neighborhood ||
-        "Your area";
+      if (!society) {
+        setError(
+          "We’re sorry, but your society is not registered with us yet."
+        );
+        setLoading(false);
+        return;
+      }
 
-      // Navigate to next step
+      // 👉 MOVE TO NEXT PAGE
       router.push({
-        pathname: "/select-society",
+        pathname: "/society-detected",
         params: {
-          area: detectedArea,
+          society: society.name,
           lat: latitude.toString(),
           lng: longitude.toString(),
         },
       });
     } catch {
-      setError(i18n.t("locationFetchError"));
+      setError("Failed to get location");
     } finally {
-      setLoadingLocation(false);
+      setLoading(false);
     }
   };
 
   return (
-  <View style={styles.container}>
-    {/* TOP CONTENT */}
-    <View style={styles.topContent}>
-      <View style={styles.iconWrapper}>
-        <Ionicons
-          name="location-outline"
-          size={40}
-          color="#2E3A46"
-        />
-      </View>
-
-      <Text style={styles.centerTitle}>
-        {i18n.t("whereDoYouLive")}
-      </Text>
-    </View>
-
-    {/* BOTTOM BUTTONS */}
-    <View style={styles.bottomButtons}>
+    <View style={styles.container}>
       <Pressable
         style={styles.primaryButton}
         onPress={handleUseCurrentLocation}
-        disabled={loadingLocation}
+        disabled={loading}
       >
-        {loadingLocation ? (
+        {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.primaryButtonText}>
-            {i18n.t("useCurrentLocation")}
+            Use my current location
           </Text>
         )}
       </Pressable>
 
-      <TouchableOpacity style={styles.secondaryButton}>
+      <TouchableOpacity
+        style={styles.secondaryButton}
+        onPress={() => router.push("/manual-location")}
+      >
         <Text style={styles.secondaryButtonText}>
-          {i18n.t("enterLocationManually")}
+          Enter location manually
         </Text>
       </TouchableOpacity>
+
+      {error ? (
+        <Text style={{ marginTop: 16, color: "red" }}>
+          {error}
+        </Text>
+      ) : null}
     </View>
-  </View>
-);
-
-
+  );
 }
