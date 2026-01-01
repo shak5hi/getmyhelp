@@ -1,13 +1,14 @@
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
-  View,
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
-import { useState } from "react";
-import { phoneStyles as styles } from "../styles/phone.styles";
-import { useRouter } from "expo-router";
 import i18n from "../src/i18n";
+import config from "../src/config";
+import { phoneStyles as styles } from "../styles/phone.styles";
 
 export default function PhoneScreen() {
   const router = useRouter();
@@ -31,8 +32,13 @@ export default function PhoneScreen() {
 
     try {
       setLoading(true);
+      setError("");
 
-      await fetch("https://your-server.com/auth/init", {
+      const apiUrl = `${config.apiUrl}/customer/login`;
+      console.log("🔄 Sending OTP request to:", apiUrl);
+      console.log("📱 Phone number:", "+91" + phone);
+
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,15 +48,52 @@ export default function PhoneScreen() {
         }),
       });
 
-      // ✅ navigate to otp.tsx
+      console.log("📊 Response status:", response.status);
+      console.log("✅ Response ok:", response.ok);
+
+      const data = await response.json();
+      console.log("📦 Response data:", JSON.stringify(data, null, 2));
+
+      if (!response.ok) {
+        // Handle different error response formats
+        let errorMessage = "Unable to send OTP";
+        
+        if (data.detail) {
+          // FastAPI validation error format
+          if (Array.isArray(data.detail)) {
+            errorMessage = data.detail[0]?.msg || errorMessage;
+          } else if (typeof data.detail === 'string') {
+            errorMessage = data.detail;
+          }
+        } else if (data.message) {
+          errorMessage = data.message;
+        }
+        
+        setError(errorMessage);
+        return;
+      }
+
+      // ✅ OTP sent successfully
+      console.log("✅ OTP sent successfully");
       router.push({
         pathname: "/otp",
-        params: {
-          phone: "+91" + phone,
-        },
+        params: { phone: "+91" + phone },
       });
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
+    } catch (err: any) {
+      console.error("❌ Fetch error:", err);
+      console.error("Error name:", err.name);
+      console.error("Error message:", err.message);
+      
+      // Provide more specific error messages
+      if (err.message.includes("Network request failed")) {
+        setError("Cannot reach server. Please check your internet connection.");
+      } else if (err.message.includes("timeout")) {
+        setError("Request timeout. Server is taking too long to respond.");
+      } else if (err.message.includes("JSON")) {
+        setError("Invalid response from server. Please try again.");
+      } else {
+        setError("Network error. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

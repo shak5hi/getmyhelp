@@ -10,6 +10,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { otpStyles as styles } from "../styles/otp.styles";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
+import config from "../src/config";
 
 export default function OtpScreen() {
   useLanguage();
@@ -22,9 +23,9 @@ export default function OtpScreen() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔐 Resend / timer state
-  const [resendActive, setResendActive] = useState(false);
-  const [timer, setTimer] = useState(0);
+  // 🔁 Resend + timer
+  const [resendActive, setResendActive] = useState(true);
+  const [timer, setTimer] = useState(40);
 
   // ⏱️ Timer logic
   useEffect(() => {
@@ -44,12 +45,11 @@ export default function OtpScreen() {
     return () => clearInterval(interval);
   }, [resendActive]);
 
-  // 🧹 Cleanup OTP state (called on success)
   const cleanupOtpState = () => {
-    setResendActive(false);
-    setTimer(0);
     setOtp("");
     setError("");
+    setResendActive(false);
+    setTimer(0);
   };
 
   const handleOtpChange = (text: string) => {
@@ -58,48 +58,70 @@ export default function OtpScreen() {
     if (error) setError("");
   };
 
-  // ✅ Verify OTP (frontend mock)
-  const handleVerify = () => {
+  // ✅ VERIFY OTP (BACKEND)
+  const handleVerify = async () => {
     if (otp.length !== 6) {
       setError(i18n.t("otpError"));
       return;
     }
 
-    /**
-     * 🔥 BACKEND INTEGRATION POINT
-     * POST /verify-otp
-     * body: { phone, otp }
-     */
+    try {
+      setLoading(true);
+      setError("");
 
-    // Resent OTP valid for 20 sec
-    if (resendActive && otp === "123456") {
+      const response = await fetch(
+        `${config.apiUrl}/customer/verify-otp`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            phone,
+            otp,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Invalid or expired OTP");
+        return;
+      }
+
+      // ✅ VERIFIED
       cleanupOtpState();
-      router.push("/location");
-      return;
+      router.replace("/location");
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    // Default OTP
-    if (!resendActive && otp === "143506") {
-      cleanupOtpState();
-      router.push("/location");
-      return;
-    }
-
-    setError("Invalid or expired OTP");
   };
 
-  // 🔁 Resend OTP (frontend mock)
-  const handleResend = () => {
-    /**
-     * 🔥 BACKEND INTEGRATION POINT
-     * POST /resend-otp
-     * body: { phone }
-     */
+  // 🔁 RESEND OTP
+  const handleResend = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-    setOtp("");
-    setError("");
-    setResendActive(true);
-    setTimer(20);
+      await fetch(`${config.apiUrl}/customer/resend-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phone }),
+      });
+
+      setOtp("");
+      setResendActive(true);
+      setTimer(40);
+    } catch (err) {
+      setError("Failed to resend OTP");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -155,6 +177,7 @@ export default function OtpScreen() {
         </Text>
       </TouchableOpacity>
 
+      {/* 🔁 RESEND */}
       <Text style={styles.resendText}>
         {i18n.t("didntReceive")}{" "}
         {resendActive ? (
