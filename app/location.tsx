@@ -140,15 +140,16 @@ export default function LocationScreen() {
         return;
       }
 
-      // 7️⃣ Store data in AsyncStorage BEFORE navigation
-      console.log("💾 Storing data in AsyncStorage...");
-      await AsyncStorage.setItem("user_address", address);
-      await AsyncStorage.setItem("societies_data", JSON.stringify(societies));
-      console.log("✅ Data stored successfully");
-
-      // 8️⃣ Navigate to society detected screen
-      console.log("🚀 Navigating to society-detected...");
-      router.push("/society-detected");
+      // 7️⃣ Navigate with societies data directly in params
+      console.log("🚀 Navigating with data...");
+      
+      router.push({
+        pathname: "/society-detected",
+        params: {
+          address: address,
+          societiesData: JSON.stringify(societies),
+        },
+      });
 
     } catch (err) {
       console.log("❌ ERROR:", err);
