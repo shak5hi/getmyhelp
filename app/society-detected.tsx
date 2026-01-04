@@ -1,50 +1,209 @@
-import { View, Text } from "react-native";
-import { useEffect } from "react";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { societyDetectedStyles as styles } from "../styles/society-detected.styles";
 
-export default function LocationDetectedScreen() {
+type Society = {
+  id: string;
+  name: string;
+  address: string;
+  pincode: string;
+  locality?: string;
+  locality_id?: string;
+  city_id?: string;
+};
+
+export default function SocietyDetectedScreen() {
+  console.log("✅ SOCIETYDETECTED SCREEN LOADED");
+  
   const router = useRouter();
-  const { address, lat, lng } =
-    useLocalSearchParams<{
-      address: string;
-      lat: string;
-      lng: string;
-    }>();
+  const params = useLocalSearchParams<{ 
+    address?: string;
+    societiesData?: string;
+  }>();
+  
+  const [address, setAddress] = useState<string>("");
+  const [societies, setSocieties] = useState<Society[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSociety, setSelectedSociety] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
+  // 🔥 LOAD SOCIETIES FROM PARAMS
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace({
-        pathname: "/tower",
-        params: { lat, lng },
-      });
-    }, 1000);
+    const loadSocieties = () => {
+      try {
+        console.log("========================================");
+        console.log("🔄 Loading societies from params...");
+        console.log("📍 Address param:", params.address ? "EXISTS" : "MISSING");
+        console.log("📦 Societies param:", params.societiesData ? "EXISTS" : "MISSING");
+        
+        // Get address from params
+        if (params.address) {
+          setAddress(params.address);
+          console.log("✅ Address set:", params.address.substring(0, 50) + "...");
+        }
+        
+        // Get societies from params
+        if (!params.societiesData) {
+          console.log("❌ No societies data in params");
+          setError("No societies data found. Please try again.");
+          setLoading(false);
+          return;
+        }
 
-    return () => clearTimeout(timer);
-  }, []);
+        console.log("🔄 Parsing societies data...");
+        const societiesData = JSON.parse(params.societiesData);
+        console.log("✅ Societies parsed:", societiesData.length, "societies");
+        
+        if (societiesData.length === 0) {
+          setError("No societies found in your area");
+        } else {
+          console.log("📋 First society:", societiesData[0]?.name);
+        }
+        
+        setSocieties(societiesData);
+        console.log("========================================");
+      } catch (err: any) {
+        console.log("❌ Load societies error:", err);
+        console.log("❌ Error details:", err.message);
+        setError(err.message || "Unable to load societies");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSocieties();
+  }, [params.address, params.societiesData]);
+
+  const handleContinue = async () => {
+    if (!selectedSociety) return;
+
+    console.log("✅ Selected society:", selectedSociety);
+
+    // Save selected society to storage for later use
+    await AsyncStorage.setItem("selected_society_id", selectedSociety);
+
+    router.push({
+      pathname: "/tower",
+      params: { societyId: selectedSociety },
+    });
+  };
+
+  // ⏳ LOADING STATE
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#1E293B" />
+        <Text style={styles.loadingText}>Finding nearby societies...</Text>
+      </View>
+    );
+  }
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 24,
-      }}
-    >
-      <Text style={{ fontSize: 18, fontWeight: "600" }}>
-        Location detected
-      </Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.step}>Step 1 of 3</Text>
+        <Text style={styles.title}>Which society do you live in?</Text>
+        <Text style={styles.subtitle}>
+          Nearby societies for:{"\n"}
+          {address || "your location"}
+        </Text>
+      </View>
 
-      <Text
-        style={{
-          marginTop: 8,
-          fontSize: 15,
-          color: "#444",
-          textAlign: "center",
-        }}
-      >
-        {address}
-      </Text>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      {societies.length === 0 && !error ? (
+        <View style={styles.center}>
+          <Text style={styles.noDataText}>
+            No societies found in this area
+          </Text>
+          <Pressable style={styles.retryButton} onPress={() => router.back()}>
+            <Text style={styles.retryButtonText}>Try Different Location</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            style={styles.scrollView}
+          >
+            <View style={styles.grid}>
+              {societies.map((society) => {
+                const isSelected = selectedSociety === society.id;
+
+                return (
+                  <Pressable
+                    key={society.id}
+                    onPress={() => {
+                      console.log("🏘️ Selected society:", society.name);
+                      setSelectedSociety(society.id);
+                    }}
+                    style={[styles.card, isSelected && styles.cardSelected]}
+                  >
+                    <Text
+                      style={[
+                        styles.societyName,
+                        isSelected && styles.societyNameSelected,
+                      ]}
+                    >
+                      {society.name}
+                    </Text>
+
+                    <Text
+                      style={[
+                        styles.societyAddress,
+                        isSelected && styles.societyAddressSelected,
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {society.address}
+                    </Text>
+
+                    {society.pincode && (
+                      <Text
+                        style={[
+                          styles.pincode,
+                          isSelected && styles.pincodeSelected,
+                        ]}
+                      >
+                        PIN: {society.pincode}
+                      </Text>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          <View style={styles.footer}>
+            <Pressable
+              disabled={!selectedSociety}
+              onPress={handleContinue}
+              style={[
+                styles.continueButton,
+                !selectedSociety && styles.continueButtonDisabled,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.continueButtonText,
+                  !selectedSociety && styles.continueButtonTextDisabled,
+                ]}
+              >
+                Continue
+              </Text>
+            </Pressable>
+          </View>
+        </>
+      )}
     </View>
   );
 }

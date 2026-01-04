@@ -1,16 +1,17 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
-  View,
+  Pressable,
   Text,
   TextInput,
   TouchableOpacity,
-  Pressable,
+  View,
 } from "react-native";
-import { useState, useRef, useEffect } from "react";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { otpStyles as styles } from "../styles/otp.styles";
+import config from "../src/config";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
-import config from "../src/config";
+import { otpStyles as styles } from "../styles/otp.styles";
 
 export default function OtpScreen() {
   useLanguage();
@@ -23,11 +24,9 @@ export default function OtpScreen() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔁 Resend + timer
   const [resendActive, setResendActive] = useState(true);
   const [timer, setTimer] = useState(40);
 
-  // ⏱️ Timer logic
   useEffect(() => {
     if (!resendActive) return;
 
@@ -58,8 +57,9 @@ export default function OtpScreen() {
     if (error) setError("");
   };
 
-  // ✅ VERIFY OTP (BACKEND)
+  // ✅ VERIFY OTP + SAVE ACCESS TOKEN
   const handleVerify = async () => {
+    console.log("INSIDE handleVerify🔍 VERIFYING OTP:", otp, "FOR PHONE:", phone);
     if (otp.length !== 6) {
       setError(i18n.t("otpError"));
       return;
@@ -84,16 +84,41 @@ export default function OtpScreen() {
       );
 
       const data = await response.json();
+      console.log("🔍 FULL VERIFY OTP RESPONSE:", data);
 
       if (!response.ok) {
         setError(data.message || "Invalid or expired OTP");
         return;
       }
 
-      // ✅ VERIFIED
+      // ✅ CORRECT TOKEN PATH
+      const accessToken = data?.data?.access_token;
+      const customer = data?.data?.customer;
+
+      if (!accessToken) {
+        setError("Login failed: No access token received");
+        console.log("❌ No access token in response:", data);
+        return;
+      }
+
+      // ✅ STORE TOKEN
+      await AsyncStorage.setItem("access_token", accessToken);
+
+      // (optional) store customer data
+      if (customer) {
+        await AsyncStorage.setItem(
+          "user",
+          JSON.stringify(customer)
+        );
+      }
+
+      console.log("🔐 ACCESS TOKEN SAVED:", accessToken);
+
+      // ✅ VERIFIED → MOVE TO LOCATION
       cleanupOtpState();
       router.replace("/location");
     } catch (err) {
+      console.log("❌ OTP VERIFY ERROR:", err);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -177,7 +202,6 @@ export default function OtpScreen() {
         </Text>
       </TouchableOpacity>
 
-      {/* 🔁 RESEND */}
       <Text style={styles.resendText}>
         {i18n.t("didntReceive")}{" "}
         {resendActive ? (

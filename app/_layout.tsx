@@ -1,7 +1,7 @@
-import { Stack, useRouter } from "expo-router";
-import { useFonts } from "expo-font";
-import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
+import { Stack, useRouter } from "expo-router";
+import { View } from "react-native";
 import { LanguageProvider } from "../src/LanguageContext";
 
 export default function RootLayout() {
@@ -57,6 +57,7 @@ export default function RootLayout() {
         <Stack.Screen name="phone" />
         <Stack.Screen name="otp" />
         <Stack.Screen name="location" />
+        <Stack.Screen name="society-detected" />
         <Stack.Screen name="tower" />
         <Stack.Screen name="house" />
         <Stack.Screen name="subscription" />
