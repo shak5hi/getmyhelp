@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -8,7 +8,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { societyDetectedStyles as styles } from "../styles/society-detected.styles";
+
+import styles from "../styles/societyDetectedStyles";
 
 type Society = {
   id: string;
@@ -24,10 +25,6 @@ export default function SocietyDetectedScreen() {
   console.log("✅ SOCIETYDETECTED SCREEN LOADED");
   
   const router = useRouter();
-  const params = useLocalSearchParams<{ 
-    address?: string;
-    societiesData?: string;
-  }>();
   
   const [address, setAddress] = useState<string>("");
   const [societies, setSocieties] = useState<Society[]>([]);
@@ -35,44 +32,39 @@ export default function SocietyDetectedScreen() {
   const [selectedSociety, setSelectedSociety] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  // 🔥 LOAD SOCIETIES FROM PARAMS
+  // 🔥 LOAD SOCIETIES FROM STORAGE
   useEffect(() => {
-    const loadSocieties = () => {
+    const loadSocieties = async () => {
       try {
-        console.log("========================================");
-        console.log("🔄 Loading societies from params...");
-        console.log("📍 Address param:", params.address ? "EXISTS" : "MISSING");
-        console.log("📦 Societies param:", params.societiesData ? "EXISTS" : "MISSING");
+        console.log("🔄 Loading societies from storage...");
         
-        // Get address from params
-        if (params.address) {
-          setAddress(params.address);
-          console.log("✅ Address set:", params.address.substring(0, 50) + "...");
+        // Get address from AsyncStorage
+        const storedAddress = await AsyncStorage.getItem("user_address");
+        if (storedAddress) {
+          setAddress(storedAddress);
+          console.log("📍 Retrieved address:", storedAddress);
         }
         
-        // Get societies from params
-        if (!params.societiesData) {
-          console.log("❌ No societies data in params");
+        // Get societies from AsyncStorage
+        const societiesJson = await AsyncStorage.getItem("societies_data");
+        
+        if (!societiesJson) {
           setError("No societies data found. Please try again.");
+          console.log("❌ No societies data in storage");
           setLoading(false);
           return;
         }
 
-        console.log("🔄 Parsing societies data...");
-        const societiesData = JSON.parse(params.societiesData);
-        console.log("✅ Societies parsed:", societiesData.length, "societies");
+        const societiesData = JSON.parse(societiesJson);
+        console.log("✅ Societies loaded:", societiesData.length, "societies");
         
         if (societiesData.length === 0) {
           setError("No societies found in your area");
-        } else {
-          console.log("📋 First society:", societiesData[0]?.name);
         }
         
         setSocieties(societiesData);
-        console.log("========================================");
       } catch (err: any) {
         console.log("❌ Load societies error:", err);
-        console.log("❌ Error details:", err.message);
         setError(err.message || "Unable to load societies");
       } finally {
         setLoading(false);
@@ -80,7 +72,7 @@ export default function SocietyDetectedScreen() {
     };
 
     loadSocieties();
-  }, [params.address, params.societiesData]);
+  }, []);
 
   const handleContinue = async () => {
     if (!selectedSociety) return;
