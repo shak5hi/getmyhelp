@@ -4,29 +4,91 @@ import {
   TouchableOpacity,
   Pressable,
   Animated,
+  ActivityIndicator,
 } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { towerStyles as styles } from "../styles/tower.styles";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
+import config from "../src/config";
+
+type Tower = {
+  id: string;
+  name: string;
+};
 
 export default function TowerScreen() {
-  useLanguage(); // 🔁 re-render on language change
+  useLanguage();
   const router = useRouter();
 
-  const [selectedTower, setSelectedTower] = useState("");
+  const [towers, setTowers] = useState<Tower[]>([]);
+  const [selectedTower, setSelectedTower] = useState<string>("");
   const [showAll, setShowAll] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const allTowers = [
-    "A1","A2","A3","A4","A5",
-    "B1","B2","B3","B4","B5",
-    "C1","C2","C3","C4","C5",
-    "D1","D2","D3","D4","D5",
-    "E1","E2","E3","E4","E5",
-  ];
+  /* ---------------------------------------
+     FETCH TOWERS USING society_id
+  --------------------------------------- */
+  useEffect(() => {
+  const fetchTowers = async () => {
+    try {
+      const societyId = await AsyncStorage.getItem("selected_society_id");
+      const token = await AsyncStorage.getItem("access_token");
 
-  const visibleTowers = showAll ? allTowers : allTowers.slice(0, 6);
+      if (!societyId || !token) {
+        setError("Missing society information");
+        return;
+      }
+
+      const response = await fetch(
+        `${config.apiUrl}/customer/societies/${societyId}/towers`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      // 🔥 THIS IS THE IMPORTANT LINE
+      setTowers(result?.data || []);
+    } catch (err) {
+      setError("Failed to load towers");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchTowers();
+}, []);
+
+
+  const visibleTowers = showAll ? towers : towers.slice(0, 6);
+
+  /* ---------------------------------------
+     UI STATES
+  --------------------------------------- */
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" />
+        <Text>{i18n.t("loading")}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -35,17 +97,18 @@ export default function TowerScreen() {
       <Text style={styles.title}>{i18n.t("selectTower")}</Text>
       <Text style={styles.subtitle}>{i18n.t("towerSubtitle")}</Text>
 
+      {/* TOWERS GRID */}
       <View style={styles.grid}>
         {visibleTowers.map((tower) => {
-          const isSelected = selectedTower === tower;
+          const isSelected = selectedTower === tower.id;
 
           return (
             <Animated.View
-              key={tower}
+              key={tower.id}
               style={{ transform: [{ scale: isSelected ? 1.05 : 1 }] }}
             >
               <Pressable
-                onPress={() => setSelectedTower(tower)}
+                onPress={() => setSelectedTower(tower.id)}
                 style={[
                   styles.bubble,
                   isSelected && styles.bubbleSelected,
@@ -57,7 +120,7 @@ export default function TowerScreen() {
                     isSelected && styles.bubbleTextSelected,
                   ]}
                 >
-                  {tower}
+                  {tower.name}
                 </Text>
               </Pressable>
             </Animated.View>
@@ -65,19 +128,26 @@ export default function TowerScreen() {
         })}
       </View>
 
-      <Pressable onPress={() => setShowAll(!showAll)}>
-        <Text style={styles.seeMore}>
-          {showAll ? i18n.t("showLess") : i18n.t("seeMore")}
-        </Text>
-      </Pressable>
+      {/* SEE MORE */}
+      {towers.length > 6 && (
+        <Pressable onPress={() => setShowAll(!showAll)}>
+          <Text style={styles.seeMore}>
+            {showAll ? i18n.t("showLess") : i18n.t("seeMore")}
+          </Text>
+        </Pressable>
+      )}
 
+      {/* CONTINUE */}
       <TouchableOpacity
         style={[
           styles.button,
           !selectedTower && styles.buttonDisabled,
         ]}
         disabled={!selectedTower}
-        onPress={() => router.push("/house")}
+        onPress={async () => {
+          await AsyncStorage.setItem("selected_tower_id", selectedTower);
+          router.push("/house");
+        }}
       >
         <Text
           style={[

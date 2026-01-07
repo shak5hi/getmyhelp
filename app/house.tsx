@@ -1,9 +1,18 @@
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { houseStyles as styles } from "../styles/house.styles";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
+import config from "../src/config";
 
 export default function HouseScreen() {
   useLanguage();
@@ -11,17 +20,69 @@ export default function HouseScreen() {
 
   const [houseNumber, setHouseNumber] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const isValid = houseNumber.trim().length > 0;
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!isValid) {
       setError(i18n.t("houseError"));
       return;
     }
 
-    setError("");
-    router.replace("/subscription");
+    try {
+      setLoading(true);
+      setError("");
+
+      const societyId = await AsyncStorage.getItem("selected_society_id");
+      const towerId = await AsyncStorage.getItem("selected_tower_id");
+      const token = await AsyncStorage.getItem("access_token");
+
+      if (!societyId || !towerId || !token) {
+        setError("Missing society or tower information");
+        return;
+      }
+
+      const response = await fetch(
+        `${config.apiUrl}/customer/validate-tower-number`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            society_id: societyId,
+            tower_id: towerId,
+            flat_number: houseNumber.trim(),
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      /**
+       * API behavior:
+       * - If customer exists → result.data.customer_info present
+       * - If flat is free → success message, no data
+       */
+      if (result?.data?.customer_info) {
+        setError(i18n.t("flatAlreadyExists"));
+        return;
+      }
+
+      // ✅ Flat available → continue
+      await AsyncStorage.setItem(
+        "flat_number",
+        houseNumber.trim()
+      );
+
+      router.replace("/subscription");
+    } catch (err) {
+      setError("Failed to validate flat number");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,19 +108,23 @@ export default function HouseScreen() {
       <TouchableOpacity
         style={[
           styles.button,
-          !isValid && styles.buttonDisabled,
+          (!isValid || loading) && styles.buttonDisabled,
         ]}
-        disabled={!isValid}
+        disabled={!isValid || loading}
         onPress={handleContinue}
       >
-        <Text
-          style={[
-            styles.buttonText,
-            !isValid && styles.buttonTextDisabled,
-          ]}
-        >
-          {i18n.t("continue")}
-        </Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text
+            style={[
+              styles.buttonText,
+              !isValid && styles.buttonTextDisabled,
+            ]}
+          >
+            {i18n.t("continue")}
+          </Text>
+        )}
       </TouchableOpacity>
     </View>
   );
