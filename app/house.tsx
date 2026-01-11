@@ -77,7 +77,7 @@ export default function HouseScreen() {
         houseNumber.trim()
       );
 
-      router.replace("/subscription");
+      router.replace("/dashboard");
     } catch (err) {
       setError("Failed to validate flat number");
     } finally {
