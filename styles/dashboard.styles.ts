@@ -7,7 +7,7 @@ export const dashboardStyles = StyleSheet.create({
   },
   content: {
     padding: 24,
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
 
   // SUBSCRIPTION SECTION
@@ -371,5 +371,136 @@ export const dashboardStyles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "600",
     fontSize: 16,
+  },
+
+  // FLOATING CHAT BUTTON
+  chatButton: {
+    position: "absolute",
+    bottom: 30,
+    right: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#1F2937",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  chatButtonText: {
+    fontSize: 28,
+  },
+
+  // CHAT MODAL
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  chatContainer: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: "85%",
+    paddingTop: 0,
+  },
+  chatHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+    backgroundColor: "#1F2937",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  chatHeaderTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  chatHeaderSubtitle: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    marginTop: 2,
+  },
+  closeButton: {
+    fontSize: 28,
+    color: "#FFFFFF",
+    fontWeight: "300",
+  },
+  messagesList: {
+    padding: 20,
+    paddingBottom: 10,
+  },
+  messageBubble: {
+    maxWidth: "80%",
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 12,
+  },
+  botMessage: {
+    backgroundColor: "#F3F4F6",
+    alignSelf: "flex-start",
+    borderBottomLeftRadius: 4,
+  },
+  userMessage: {
+    backgroundColor: "#1F2937",
+    alignSelf: "flex-end",
+    borderBottomRightRadius: 4,
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  botMessageText: {
+    color: "#111827",
+  },
+  userMessageText: {
+    color: "#FFFFFF",
+  },
+  typingIndicator: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  typingText: {
+    fontSize: 13,
+    color: "#6B7280",
+    fontStyle: "italic",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    padding: 16,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+    alignItems: "flex-end",
+    gap: 12,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    maxHeight: 100,
+    color: "#111827",
+  },
+  sendButton: {
+    backgroundColor: "#1F2937",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sendButtonText: {
+    fontSize: 20,
+    color: "#FFFFFF",
   },
 });
