@@ -54,7 +54,7 @@ export default function LocationScreen() {
         }
 
         const response = await fetch(
-          `${config.apiUrl}/customer/all-societies`,
+          `${config.apiUrl}/customer/societies`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
