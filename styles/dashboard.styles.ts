@@ -11,25 +11,33 @@ export const dashboardStyles = StyleSheet.create({
     gap: 24,
   },
 
+  /* HEADER */
   header: {
     paddingTop: 50,
     paddingHorizontal: 20,
-    paddingBottom: 10,
-    backgroundColor: "#fff",
-    alignItems: "flex-end",
+    paddingBottom: 14,
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },
-
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#111827",
+  },
   profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: "#EEF2FF",
     justifyContent: "center",
     alignItems: "center",
   },
 
+  /* GREETING */
   greeting: {
     fontSize: 28,
     fontWeight: "800",
@@ -38,9 +46,9 @@ export const dashboardStyles = StyleSheet.create({
   subGreeting: {
     fontSize: 16,
     color: "#6B7280",
-    marginTop: 4,
   },
 
+  /* HERO */
   heroCard: {
     backgroundColor: "#111827",
     borderRadius: 22,
@@ -52,13 +60,13 @@ export const dashboardStyles = StyleSheet.create({
   heroLabel: {
     color: "#9CA3AF",
     fontSize: 12,
-    marginBottom: 6,
     textTransform: "uppercase",
+    marginBottom: 6,
   },
   heroName: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#fff",
+    color: "#FFFFFF",
   },
   heroRole: {
     color: "#D1D5DB",
@@ -69,9 +77,9 @@ export const dashboardStyles = StyleSheet.create({
     marginVertical: 10,
   },
   heroButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     borderRadius: 14,
     alignSelf: "flex-start",
   },
@@ -85,8 +93,9 @@ export const dashboardStyles = StyleSheet.create({
     marginLeft: 16,
   },
 
+  /* SUBSCRIPTION */
   subscriptionCard: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
@@ -116,6 +125,20 @@ export const dashboardStyles = StyleSheet.create({
     color: "#6B7280",
   },
 
+  updatePlanButton: {
+    marginTop: 12,
+    backgroundColor: "#EEF2FF",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    alignSelf: "flex-start",
+  },
+  updatePlanButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#6366F1",
+  },
+
   planDetailsContainer: {
     marginTop: 16,
     gap: 12,
@@ -139,13 +162,8 @@ export const dashboardStyles = StyleSheet.create({
     fontWeight: "800",
     color: "#6366F1",
   },
-  popularBadge: {
-    color: "#10B981",
-    fontSize: 12,
-    fontWeight: "700",
-    marginBottom: 6,
-  },
 
+  /* CHAT */
   chatButton: {
     position: "absolute",
     bottom: 28,
@@ -154,76 +172,6 @@ export const dashboardStyles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     backgroundColor: "#6366F1",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  chatContainer: {
-    backgroundColor: "#fff",
-    height: "85%",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
-  chatHeader: {
-    backgroundColor: "#6366F1",
-    padding: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  chatHeaderTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  messagesList: {
-    padding: 20,
-  },
-  messageBubble: {
-    maxWidth: "80%",
-    padding: 14,
-    borderRadius: 16,
-    marginBottom: 10,
-  },
-  botMessage: {
-    backgroundColor: "#F3F4F6",
-    alignSelf: "flex-start",
-  },
-  userMessage: {
-    backgroundColor: "#6366F1",
-    alignSelf: "flex-end",
-  },
-  messageText: {
-    fontSize: 15,
-  },
-  botMessageText: {
-    color: "#111827",
-  },
-  userMessageText: {
-    color: "#fff",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    padding: 16,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-  },
-  input: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-  },
-  sendButton: {
-    backgroundColor: "#6366F1",
-    width: 44,
-    height: 44,
-    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
   },
