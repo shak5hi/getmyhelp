@@ -1,6 +1,7 @@
- import { View, Text, ScrollView, Pressable, Image, Modal, TextInput, KeyboardAvoidingView, Platform, FlatList } from "react-native";
+import { View, Text, ScrollView, Pressable, Image, Modal, TextInput, KeyboardAvoidingView, Platform, FlatList } from "react-native";
 import { useState } from "react";
 import { dashboardStyles as styles } from "../styles/dashboard.styles";
+import { Ionicons } from '@expo/vector-icons';
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
 
@@ -47,43 +48,44 @@ export default function DashboardScreen() {
     const userMessage = {
       id: Date.now().toString(),
       text: inputText,
-      isBot: false
+      isBot: false,
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputText('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputText("");
     setIsTyping(true);
 
     try {
-      // Call Dialogflow API here
-      const response = await fetch('YOUR_DIALOGFLOW_WEBHOOK_URL', {
-        method: 'POST',
+      const response = await fetch("YOUR_BACKEND_URL_HERE", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: inputText,
-          sessionId: 'user-session-123' // Use unique session ID per user
-        })
+          text: userMessage.text,
+        }),
       });
 
       const data = await response.json();
-      
+
       const botMessage = {
         id: (Date.now() + 1).toString(),
-        text: data.fulfillmentText || data.response || 'Sorry, I did not understand that.',
-        isBot: true
+        text: data.text || "No response from bot",
+        isBot: true,
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error('Dialogflow error:', error);
-      const errorMessage = {
-        id: (Date.now() + 1).toString(),
-        text: 'Sorry, I am having trouble connecting. Please try again.',
-        isBot: true
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      console.log("Chatbot error:", error);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          text: "Unable to reach assistant. Please try again.",
+          isBot: true,
+        },
+      ]);
     } finally {
       setIsTyping(false);
     }
@@ -105,6 +107,14 @@ export default function DashboardScreen() {
 
   return (
     <>
+      {/* HEADER WITH PROFILE */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>GetMyHelp</Text>
+        <Pressable style={styles.profileButton}>
+          <Ionicons name="person-circle-outline" size={32} color="#111827" />
+        </Pressable>
+      </View>
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -223,74 +233,6 @@ export default function DashboardScreen() {
             style={styles.heroImage}
           />
         </View>
-
-        {/* BACKUP CARD */}
-        <View style={styles.backupCard}>
-          <Text style={styles.backupNumber}>12</Text>
-          <View>
-            <Text style={styles.backupLabel}>Backup days left</Text>
-            <Pressable>
-              <Text style={styles.backupAction}>Request Backup</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* ACTIVE MAIDS */}
-        <Text style={styles.sectionTitle}>Active Maids</Text>
-
-        <View style={styles.activeMaidsCard}>
-          {[
-            { name: "Anjali", role: "Househelp" },
-            { name: "Sunita", role: "Cook" },
-          ].map((maid) => (
-            <Pressable key={maid.name} style={styles.maidRow}>
-              <Image
-                source={{ uri: `https://i.pravatar.cc/150?img=${maid.name === 'Anjali' ? '12' : '25'}` }}
-                style={styles.maidAvatar}
-              />
-              <View>
-                <Text style={styles.maidName}>{maid.name}</Text>
-                <Text style={styles.maidRole}>{maid.role}</Text>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-
-        {/* TIMELINE */}
-        <Text style={styles.sectionTitle}>Today's Timeline</Text>
-
-        <View style={styles.timelineCard}>
-          <View style={styles.timelineItem}>
-            <Text style={styles.timelineTime}>09:02 AM</Text>
-            <Text style={styles.timelineText}>
-              Anjali (Househelp) Entered
-            </Text>
-          </View>
-
-          <View style={styles.timelineItem}>
-            <Text style={styles.timelineTime}>08:30 AM</Text>
-            <Text style={styles.timelineText}>
-              Society Alert: Water Supply
-            </Text>
-          </View>
-        </View>
-
-        {/* QUICK ACTIONS */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-
-        <View style={styles.quickActions}>
-          <Pressable style={styles.actionButton}>
-            <Text style={styles.actionText}>Add New Maid</Text>
-          </Pressable>
-
-          <Pressable style={styles.actionButton}>
-            <Text style={styles.actionText}>Request Replacement</Text>
-          </Pressable>
-        </View>
-
-        <Pressable style={styles.emergencyButton}>
-          <Text style={styles.emergencyText}>Emergency Help</Text>
-        </Pressable>
       </ScrollView>
 
       {/* FLOATING CHAT BUTTON */}

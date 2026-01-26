@@ -1,6 +1,37 @@
 import { StyleSheet } from "react-native";
 
 export const dashboardStyles = StyleSheet.create({
+  // HEADER
+  header: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    paddingTop: 50,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  profileButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
@@ -167,7 +198,6 @@ export const dashboardStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -218,159 +248,6 @@ export const dashboardStyles = StyleSheet.create({
     borderWidth: 4,
     borderColor: "#374151",
     marginLeft: 16,
-  },
-
-  // BACKUP CARD
-  backupCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  backupNumber: {
-    fontSize: 48,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  backupLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 8,
-  },
-  backupAction: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#111827",
-    textDecorationLine: "underline",
-  },
-
-  // SECTION TITLE
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 16,
-  },
-
-  // ACTIVE MAIDS
-  activeMaidsCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    gap: 16,
-  },
-  maidRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  maidAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#E5E7EB",
-  },
-  maidName: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 2,
-  },
-  maidRole: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-
-  // TIMELINE
-  timelineCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    gap: 20,
-  },
-  timelineItem: {
-    gap: 4,
-  },
-  timelineTime: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#111827",
-  },
-  timelineText: {
-    fontSize: 15,
-    color: "#6B7280",
-  },
-
-  // QUICK ACTIONS
-  quickActions: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    gap: 12,
-  },
-  actionButton: {
-    backgroundColor: "#F3F4F6",
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-  actionText: {
-    color: "#111827",
-    fontWeight: "500",
-    fontSize: 15,
-  },
-
-  // EMERGENCY BUTTON
-  emergencyButton: {
-    backgroundColor: "#1F2937",
-    paddingVertical: 20,
-    borderRadius: 24,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  emergencyText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    fontSize: 16,
   },
 
   // FLOATING CHAT BUTTON
