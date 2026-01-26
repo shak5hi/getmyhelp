@@ -1,105 +1,68 @@
-import { View, Text, ScrollView, Pressable, Image, Modal, TextInput, KeyboardAvoidingView, Platform, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  Image,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  FlatList,
+} from "react-native";
 import { useState } from "react";
 import { dashboardStyles as styles } from "../styles/dashboard.styles";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
 
 const PLANS = [
-  { 
-    name: "Basic", 
-    price: 499, 
-    features: ["Standard support", "Basic scheduling", "1 maid"]
+  { name: "Basic", price: 499, features: ["Standard support", "1 maid"] },
+  {
+    name: "Standard",
+    price: 599,
+    features: ["Priority support", "2 maids"],
   },
-  { 
-    name: "Standard", 
-    price: 599, 
-    features: ["Priority support", "Advanced scheduling", "2 maids", "Weekly reports"]
+  {
+    name: "Gold",
+    price: 699,
+    features: ["24/7 support", "Unlimited scheduling"],
+    popular: true,
   },
-  { 
-    name: "Gold", 
-    price: 699, 
-    features: ["24/7 customer support", "Priority service scheduling", "Exclusive discounts"],
-    popular: true
+  {
+    name: "Platinum",
+    price: 899,
+    features: ["Dedicated manager", "Unlimited maids"],
   },
-  { 
-    name: "Platinum", 
-    price: 899, 
-    features: ["Dedicated manager", "Instant scheduling", "Unlimited maids", "Premium discounts"]
-  }
 ];
 
 export default function DashboardScreen() {
   useLanguage();
+
   const [activePlan, setActivePlan] = useState("Gold");
   const [showPlanDetails, setShowPlanDetails] = useState(false);
   const [chatVisible, setChatVisible] = useState(false);
   const [messages, setMessages] = useState([
-    { id: '1', text: 'Hi! How can I help you today?', isBot: true }
+    { id: "1", text: "Hi! How can I help you today?", isBot: true },
   ]);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  const currentPlan = PLANS.find(p => p.name === activePlan);
+  const currentPlan = PLANS.find((p) => p.name === activePlan)!;
 
-  const sendMessage = async () => {
-    if (!inputText.trim()) return;
-
-    const userMessage = {
-      id: Date.now().toString(),
-      text: inputText,
-      isBot: false,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputText("");
-    setIsTyping(true);
-
-    try {
-      const response = await fetch("YOUR_BACKEND_URL_HERE", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: userMessage.text,
-        }),
-      });
-
-      const data = await response.json();
-
-      const botMessage = {
-        id: (Date.now() + 1).toString(),
-        text: data.text || "No response from bot",
-        isBot: true,
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.log("Chatbot error:", error);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          text: "Unable to reach assistant. Please try again.",
-          isBot: true,
-        },
-      ]);
-    } finally {
-      setIsTyping(false);
-    }
-  };
-
-  const renderMessage = ({ item }) => (
-    <View style={[
-      styles.messageBubble,
-      item.isBot ? styles.botMessage : styles.userMessage
-    ]}>
-      <Text style={[
-        styles.messageText,
-        item.isBot ? styles.botMessageText : styles.userMessageText
-      ]}>
+  const renderMessage = ({ item }: any) => (
+    <View
+      style={[
+        styles.messageBubble,
+        item.isBot ? styles.botMessage : styles.userMessage,
+      ]}
+    >
+      <Text
+        style={[
+          styles.messageText,
+          item.isBot ? styles.botMessageText : styles.userMessageText,
+        ]}
+      >
         {item.text}
       </Text>
     </View>
@@ -107,11 +70,10 @@ export default function DashboardScreen() {
 
   return (
     <>
-      {/* HEADER WITH PROFILE */}
+      {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>GetMyHelp</Text>
         <Pressable style={styles.profileButton}>
-          <Ionicons name="person-circle-outline" size={32} color="#111827" />
+          <Ionicons name="person-outline" size={22} color="#6366F1" />
         </Pressable>
       </View>
 
@@ -120,108 +82,21 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* SUBSCRIPTION SECTION */}
-        <Pressable 
-          style={styles.subscriptionCard}
-          onPress={() => setShowPlanDetails(!showPlanDetails)}
-        >
-          <View style={styles.subscriptionHeader}>
-            <View>
-              <View style={styles.currentPlanBadge}>
-                <Text style={styles.currentPlanText}>
-                  {i18n.t("currentPlan") || "Current Plan"}
-                </Text>
-              </View>
-              <Text style={styles.planName}>{activePlan}</Text>
-              <Text style={styles.planPrice}>
-                ₹{currentPlan.price}
-                <Text style={styles.planPriceMonth}>
-                  {i18n.t("perMonth") || "/month"}
-                </Text>
-              </Text>
-            </View>
-            <Text style={styles.chevron}>{showPlanDetails ? "▲" : "▼"}</Text>
-          </View>
-
-          {/* Plan Pills */}
-          <View style={styles.planPills}>
-            {PLANS.map((plan) => (
-              <Pressable
-                key={plan.name}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  setActivePlan(plan.name);
-                }}
-                style={[
-                  styles.planPill,
-                  activePlan === plan.name && styles.planPillActive
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.planPillText,
-                    activePlan === plan.name && styles.planPillTextActive
-                  ]}
-                >
-                  {plan.name}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Expanded Plan Details */}
-          {showPlanDetails && (
-            <View style={styles.planDetailsContainer}>
-              {PLANS.map((plan) => (
-                <Pressable
-                  key={plan.name}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    setActivePlan(plan.name);
-                  }}
-                  style={[
-                    styles.planDetailCard,
-                    activePlan === plan.name && styles.planDetailCardActive
-                  ]}
-                >
-                  {plan.popular && (
-                    <View style={styles.popularBadge}>
-                      <Text style={styles.popularBadgeText}>
-                        {i18n.t("mostPopular") || "Most Popular"}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={styles.planDetailName}>{plan.name}</Text>
-                  <Text style={styles.planDetailPrice}>₹{plan.price}</Text>
-                  {plan.features.map((feature, idx) => (
-                    <Text key={idx} style={styles.planFeature}>
-                      • {feature}
-                    </Text>
-                  ))}
-                </Pressable>
-              ))}
-              <Pressable style={styles.getPlanButton}>
-                <Text style={styles.getPlanButtonText}>
-                  {i18n.t("getPlan") || "Get"} {activePlan} {i18n.t("plan") || "Plan"}
-                </Text>
-              </Pressable>
-            </View>
-          )}
-        </Pressable>
-
         {/* GREETING */}
-        <Text style={styles.greeting}>Good Morning, Shakshi!</Text>
-        <Text style={styles.subGreeting}>
-          Here's your home help overview.
-        </Text>
+        <View>
+          <Text style={styles.greeting}>Good Morning, Shakshi 👋</Text>
+          <Text style={styles.subGreeting}>
+            Here’s a quick overview of your service
+          </Text>
+        </View>
 
         {/* HERO CARD */}
         <View style={styles.heroCard}>
           <View style={styles.heroText}>
             <Text style={styles.heroLabel}>Your Maid</Text>
             <Text style={styles.heroName}>Aaradhya Singh</Text>
-            <Text style={styles.heroRole}>Everyday Maid</Text>
-            <Text style={styles.heroDate}>Entry: 07 Jul 2024</Text>
+            <Text style={styles.heroRole}>Daily Help</Text>
+            <Text style={styles.heroDate}>Since 07 Jul 2024</Text>
 
             <Pressable style={styles.heroButton}>
               <Text style={styles.heroButtonText}>View Details</Text>
@@ -233,71 +108,93 @@ export default function DashboardScreen() {
             style={styles.heroImage}
           />
         </View>
+
+        {/* SUBSCRIPTION */}
+        <Pressable
+          style={styles.subscriptionCard}
+          onPress={() => setShowPlanDetails(!showPlanDetails)}
+        >
+          <View style={styles.subscriptionHeader}>
+            <View>
+              <Text style={styles.currentPlanText}>Current Plan</Text>
+              <Text style={styles.planName}>{activePlan}</Text>
+              <Text style={styles.planPrice}>
+                ₹{currentPlan.price}
+                <Text style={styles.planPriceMonth}> /month</Text>
+              </Text>
+            </View>
+
+            <Ionicons
+              name={showPlanDetails ? "chevron-up" : "chevron-down"}
+              size={22}
+              color="#6366F1"
+            />
+          </View>
+
+          {showPlanDetails && (
+            <View style={styles.planDetailsContainer}>
+              {PLANS.map((plan) => (
+                <Pressable
+                  key={plan.name}
+                  style={[
+                    styles.planDetailCard,
+                    activePlan === plan.name &&
+                      styles.planDetailCardActive,
+                  ]}
+                  onPress={() => setActivePlan(plan.name)}
+                >
+                  {plan.popular && (
+                    <Text style={styles.popularBadge}>Most Popular</Text>
+                  )}
+                  <Text style={styles.planDetailName}>{plan.name}</Text>
+                  <Text style={styles.planDetailPrice}>₹{plan.price}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </Pressable>
       </ScrollView>
 
-      {/* FLOATING CHAT BUTTON */}
-      <Pressable 
+      {/* CHAT BUTTON */}
+      <Pressable
         style={styles.chatButton}
         onPress={() => setChatVisible(true)}
       >
-        <Text style={styles.chatButtonText}>💬</Text>
+        <Ionicons name="chatbubble-ellipses" size={26} color="#fff" />
       </Pressable>
 
       {/* CHAT MODAL */}
-      <Modal
-        visible={chatVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setChatVisible(false)}
-      >
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <Modal visible={chatVisible} transparent animationType="slide">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.modalContainer}
         >
           <View style={styles.chatContainer}>
-            {/* Chat Header */}
             <View style={styles.chatHeader}>
-              <View>
-                <Text style={styles.chatHeaderTitle}>GetMyHelp Assistant</Text>
-                <Text style={styles.chatHeaderSubtitle}>Online</Text>
-              </View>
+              <Text style={styles.chatHeaderTitle}>
+                GetMyHelp Assistant
+              </Text>
               <Pressable onPress={() => setChatVisible(false)}>
-                <Text style={styles.closeButton}>✕</Text>
+                <Ionicons name="close" size={26} color="#fff" />
               </Pressable>
             </View>
 
-            {/* Messages List */}
             <FlatList
               data={messages}
               renderItem={renderMessage}
-              keyExtractor={item => item.id}
+              keyExtractor={(item) => item.id}
               contentContainerStyle={styles.messagesList}
-              showsVerticalScrollIndicator={false}
             />
 
-            {/* Typing Indicator */}
-            {isTyping && (
-              <View style={styles.typingIndicator}>
-                <Text style={styles.typingText}>Assistant is typing...</Text>
-              </View>
-            )}
-
-            {/* Input Area */}
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
                 value={inputText}
                 onChangeText={setInputText}
                 placeholder="Type your message..."
-                placeholderTextColor="#9CA3AF"
-                multiline
-                maxLength={500}
               />
-              <Pressable 
-                style={styles.sendButton}
-                onPress={sendMessage}
-              >
-                <Text style={styles.sendButtonText}>➤</Text>
+              <Pressable style={styles.sendButton}>
+                <Ionicons name="send" size={20} color="#fff" />
               </Pressable>
             </View>
           </View>
