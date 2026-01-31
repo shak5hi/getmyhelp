@@ -52,6 +52,7 @@ export default function DashboardScreen() {
 
   const [activePlan, setActivePlan] = useState("Basic");
   const [showPlanDetails, setShowPlanDetails] = useState(false);
+  const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
   const [chatVisible, setChatVisible] = useState(false);
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [flowState, setFlowState] = useState<FlowState>("main");
@@ -597,54 +598,39 @@ export default function DashboardScreen() {
         </View>
 
         {/* SUBSCRIPTION CARD */}
-        <Pressable
+        <Pressable 
           style={styles.subscriptionCard}
-          onPress={() => setShowPlanDetails(!showPlanDetails)}
+          onPress={() => setSubscriptionModalVisible(true)}
         >
-          <View style={styles.subscriptionHeader}>
-            <View>
-              <Text style={styles.currentPlanText}>Current Plan</Text>
-              <Text style={styles.planName}>{activePlan}</Text>
-              <Text style={styles.planPrice}>
-                ₹{currentPlan.price}
-                <Text style={styles.planPriceMonth}> /month</Text>
-              </Text>
+          <View style={styles.subscriptionGradientBorder}>
+            <View style={styles.subscriptionContent}>
+              <View style={styles.subscriptionHeader}>
+                <View style={styles.subscriptionIconContainer}>
+                  <Ionicons name="diamond" size={24} color="#6366F1" />
+                </View>
+                <Text style={styles.currentPlanLabel}>CURRENT PLAN</Text>
+              </View>
 
-              {/* UPDATE SUBSCRIPTION */}
-              <Pressable
-                style={styles.updatePlanButton}
-                onPress={handleUpdateSubscription}
-              >
-                <Text style={styles.updatePlanButtonText}>
-                  Update Subscription
-                </Text>
-              </Pressable>
+              <View style={styles.subscriptionInfo}>
+                <View style={styles.subscriptionLeft}>
+                  <Text style={styles.planName}>{activePlan}</Text>
+                  <Text style={styles.planPrice}>
+                    ₹{currentPlan.price}
+                    <Text style={styles.planPriceMonth}> /month</Text>
+                  </Text>
+                </View>
+                <View style={styles.subscriptionRight}>
+                  <Text style={styles.daysLeftNumber}>23</Text>
+                  <Text style={styles.daysLeftText}>days left</Text>
+                </View>
+              </View>
+
+              <View style={styles.subscriptionFooter}>
+                <Text style={styles.tapToManageText}>Tap to manage subscription</Text>
+                <Ionicons name="chevron-forward" size={20} color="#6366F1" />
+              </View>
             </View>
-
-            <Ionicons
-              name={showPlanDetails ? "chevron-up" : "chevron-down"}
-              size={22}
-              color="#6366F1"
-            />
           </View>
-
-          {showPlanDetails && (
-            <View style={styles.planDetailsContainer}>
-              {PLANS.map((plan) => (
-                <Pressable
-                  key={plan.name}
-                  style={[
-                    styles.planDetailCard,
-                    activePlan === plan.name && styles.planDetailCardActive,
-                  ]}
-                  onPress={() => setActivePlan(plan.name)}
-                >
-                  <Text style={styles.planDetailName}>{plan.name}</Text>
-                  <Text style={styles.planDetailPrice}>₹{plan.price}</Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
         </Pressable>
       </ScrollView>
 
@@ -652,6 +638,147 @@ export default function DashboardScreen() {
       <Pressable style={styles.chatButton} onPress={openChat}>
         <Ionicons name="chatbubble-ellipses" size={26} color="#fff" />
       </Pressable>
+
+      {/* SUBSCRIPTION MODAL */}
+      <Modal
+        visible={subscriptionModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setSubscriptionModalVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => setSubscriptionModalVisible(false)}
+        >
+          <Pressable 
+            style={styles.subscriptionModalContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <View style={styles.subscriptionModalHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.subscriptionModalTitle}>Manage Subscription</Text>
+                <Text style={styles.subscriptionModalSubtitle}>Choose the plan that fits your needs</Text>
+              </View>
+              <Pressable 
+                onPress={() => setSubscriptionModalVisible(false)}
+                hitSlop={8}
+              >
+                <Ionicons name="close-circle" size={32} color="#64748B" />
+              </Pressable>
+            </View>
+
+            {/* Modal Content - Scrollable */}
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
+              <View style={{ padding: 24 }}>
+                {/* Current Plan Info */}
+                <View style={styles.currentPlanSection}>
+                  <View style={styles.currentPlanBadge}>
+                    <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                    <Text style={styles.currentPlanBadgeText}>Active Plan</Text>
+                  </View>
+                  <Text style={styles.modalCurrentPlanName}>{activePlan}</Text>
+                  <Text style={styles.modalCurrentPlanPrice}>₹{currentPlan.price}/month</Text>
+                  <View style={styles.planValidityContainer}>
+                    <Ionicons name="time-outline" size={18} color="#6366F1" />
+                    <Text style={styles.planValidityText}>Valid for 23 more days</Text>
+                  </View>
+                </View>
+
+                {/* Plan Selection */}
+                <Text style={styles.sectionTitle}>Available Plans</Text>
+                
+                {PLANS.map((plan) => (
+                  <Pressable
+                    key={plan.name}
+                    style={[
+                      styles.planCard,
+                      activePlan === plan.name && styles.planCardActive,
+                    ]}
+                    onPress={() => setActivePlan(plan.name)}
+                  >
+                    {activePlan === plan.name && (
+                      <View style={styles.activePlanIndicator}>
+                        <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                      </View>
+                    )}
+                    
+                    <View style={styles.planCardHeader}>
+                      <Text style={[
+                        styles.planCardName,
+                        activePlan === plan.name && styles.planCardNameActive
+                      ]}>
+                        {plan.name}
+                      </Text>
+                      {plan.name === "Platinum" && (
+                        <View style={styles.popularBadge}>
+                          <Text style={styles.popularBadgeText}>Popular</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={styles.planCardPricing}>
+                      <Text style={[
+                        styles.planCardPrice,
+                        activePlan === plan.name && styles.planCardPriceActive
+                      ]}>
+                        ₹{plan.price}
+                      </Text>
+                      <Text style={styles.planCardPeriod}>/month</Text>
+                    </View>
+
+                    <View style={styles.planCardFeatures}>
+                      <View style={styles.featureItem}>
+                        <Ionicons name="checkmark" size={16} color="#10B981" />
+                        <Text style={styles.featureText}>Daily maid service</Text>
+                      </View>
+                      <View style={styles.featureItem}>
+                        <Ionicons name="checkmark" size={16} color="#10B981" />
+                        <Text style={styles.featureText}>
+                          {plan.name === "Basic" ? "5" : plan.name === "Standard" ? "10" : plan.name === "Gold" ? "15" : "Unlimited"} backup days
+                        </Text>
+                      </View>
+                      <View style={styles.featureItem}>
+                        <Ionicons name="checkmark" size={16} color="#10B981" />
+                        <Text style={styles.featureText}>24/7 support</Text>
+                      </View>
+                      {(plan.name === "Gold" || plan.name === "Platinum") && (
+                        <View style={styles.featureItem}>
+                          <Ionicons name="checkmark" size={16} color="#10B981" />
+                          <Text style={styles.featureText}>Priority replacement</Text>
+                        </View>
+                      )}
+                    </View>
+                  </Pressable>
+                ))}
+
+                {/* Update Button */}
+                <Pressable
+                  style={styles.modalUpdateButton}
+                  onPress={() => {
+                    handleUpdateSubscription();
+                    setSubscriptionModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.modalUpdateButtonText}>Update Subscription</Text>
+                  <Ionicons name="arrow-forward" size={20} color="#fff" />
+                </Pressable>
+
+                {/* Footer Info */}
+                <View style={styles.modalFooterInfo}>
+                  <Ionicons name="information-circle-outline" size={20} color="#64748B" />
+                  <Text style={styles.modalFooterText}>
+                    Changes will take effect in the next billing cycle
+                  </Text>
+                </View>
+              </View>
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* CHAT MODAL */}
       <Modal
