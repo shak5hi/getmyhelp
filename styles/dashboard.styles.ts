@@ -105,10 +105,10 @@ export const dashboardStyles = StyleSheet.create({
     overflow: "hidden",
   },
   subscriptionGradientBorder: {
-    backgroundColor: "#6366F1", // Fallback for gradient
+    backgroundColor: "#111827", // Fallback for gradient
     padding: 3,
     borderRadius: 20,
-    shadowColor: "#6366F1",
+    shadowColor: "#111827",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -136,7 +136,7 @@ export const dashboardStyles = StyleSheet.create({
   currentPlanLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#6366F1",
+    color: "#111827",
     letterSpacing: 1,
   },
   subscriptionInfo: {
@@ -157,7 +157,7 @@ export const dashboardStyles = StyleSheet.create({
   planPrice: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#6366F1",
+    color: "#111827",
   },
   planPriceMonth: {
     fontSize: 14,
@@ -197,7 +197,7 @@ export const dashboardStyles = StyleSheet.create({
   },
   tapToManageText: {
     fontSize: 14,
-    color: "#6366F1",
+    color: "#111827",
     fontWeight: "600",
   },
 
@@ -297,7 +297,7 @@ export const dashboardStyles = StyleSheet.create({
   planValidityText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#4F46E5",
+    color: "#111827",
     marginLeft: 8,
   },
 
@@ -400,14 +400,14 @@ export const dashboardStyles = StyleSheet.create({
 
   /* MODAL UPDATE BUTTON */
   modalUpdateButton: {
-    backgroundColor: "#6366F1",
+    backgroundColor: "#111827",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 18,
     borderRadius: 16,
     marginBottom: 16,
-    shadowColor: "#6366F1",
+    shadowColor: "#111827",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -446,10 +446,10 @@ export const dashboardStyles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#6366F1",
+    backgroundColor: "#111827",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#6366F1",
+    shadowColor: "#111827",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -470,7 +470,7 @@ export const dashboardStyles = StyleSheet.create({
     overflow: "hidden",
   },
   chatHeader: {
-    backgroundColor: "#6366F1",
+    backgroundColor: "#111827",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -507,7 +507,7 @@ export const dashboardStyles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   userMessage: {
-    backgroundColor: "#6366F1",
+    backgroundColor: "#111827",
     alignSelf: "flex-end",
     borderBottomRightRadius: 4,
   },
@@ -534,19 +534,19 @@ export const dashboardStyles = StyleSheet.create({
   optionButton: {
     backgroundColor: "#FFFFFF",
     borderWidth: 1.5,
-    borderColor: "#6366F1",
+    borderColor: "#111827",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 16,
     alignSelf: "flex-start",
-    shadowColor: "#6366F1",
+    shadowColor: "#111827",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   optionButtonText: {
-    color: "#6366F1",
+    color: "#111827",
     fontSize: 14,
     fontWeight: "600",
   },
