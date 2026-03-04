@@ -205,9 +205,17 @@ export default function LocationScreen() {
         return;
       }
 
-      // 7️⃣ Navigate with societies data directly in params
+      // 7️⃣ Persist societies/address to storage and navigate
+      try {
+        await AsyncStorage.setItem("societies_data", JSON.stringify(societies));
+        await AsyncStorage.setItem("user_address", address);
+        console.log("💾 Societies and address saved to storage");
+      } catch (saveErr) {
+        console.log("❌ Failed to save societies to storage", saveErr);
+      }
+
       console.log("🚀 Navigating with data...");
-      
+
       router.push({
         pathname: "/society-detected",
         params: {
