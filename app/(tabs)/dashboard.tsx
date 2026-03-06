@@ -14,9 +14,9 @@ import {
   Text,
   View,
 } from "react-native";
-import config from "../src/config";
-import { useLanguage } from "../src/LanguageContext";
-import { dashboardStyles as styles } from "../styles/dashboard.styles";
+import config from "../../src/config";
+import { useLanguage } from "../../src/LanguageContext";
+import { dashboardStyles as styles } from "../../styles/dashboard.styles";
 
 // Chatbot Types
 type MessageType = {
@@ -445,13 +445,6 @@ export default function DashboardScreen() {
 
   return (
     <>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>GetMyHelp</Text>
-        <Pressable style={styles.profileButton}>
-          <Ionicons name="person-outline" size={22} color="#6366F1" />
-        </Pressable>
-      </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
