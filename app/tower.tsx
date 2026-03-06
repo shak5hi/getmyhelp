@@ -1,19 +1,19 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Animated,
+  Pressable,
   Text,
   TouchableOpacity,
-  Pressable,
-  Animated,
-  ActivityIndicator,
+  View,
 } from "react-native";
-import { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { towerStyles as styles } from "../styles/tower.styles";
+import config from "../src/config";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
-import config from "../src/config";
+import { towerStyles as styles } from "../styles/tower.styles";
 
 type Tower = {
   id: string;
@@ -146,7 +146,7 @@ export default function TowerScreen() {
         disabled={!selectedTower}
         onPress={async () => {
           await AsyncStorage.setItem("selected_tower_id", selectedTower);
-          router.push("/house");
+          router.push("/flat-type");
         }}
       >
         <Text
