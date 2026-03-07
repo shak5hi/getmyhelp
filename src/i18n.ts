@@ -1,5 +1,5 @@
-import { I18n } from "i18n-js";
 import * as Localization from "expo-localization";
+import { I18n } from "i18n-js";
 
 const i18n = new I18n({
   en: {
@@ -40,8 +40,8 @@ const i18n = new I18n({
 
     // TOWER
     step2: "Step 2 of 3",
-    selectTower: "Which tower or wing?",
-    towerSubtitle: "Select your exact building in your society.",
+    selectTower: "What's your flat or house number?",
+    towerSubtitle: "Enter your exact flat or house number.",
     seeMore: "See more",
     showLess: "Show less",
 
@@ -95,13 +95,13 @@ const i18n = new I18n({
     selectSociety: "अपनी सोसाइटी चुनें",
     useCurrentLocation: "मेरी वर्तमान लोकेशन का उपयोग करें",
     fetchingLocation: "लोकेशन प्राप्त की जा रही है...",
-    locationPermissionError:"पास की सोसाइटी खोजने के लिए लोकेशन की अनुमति आवश्यक है।",
+    locationPermissionError: "पास की सोसाइटी खोजने के लिए लोकेशन की अनुमति आवश्यक है।",
     locationFetchError: "लोकेशन प्राप्त नहीं हो सकी",
     continue: "आगे बढ़ें",
 
     step2: "चरण 2 / 3",
-    selectTower: "कौन सा टावर या विंग?",
-    towerSubtitle: "अपनी सोसाइटी की इमारत चुनें।",
+    selectTower: "आपका फ्लैट या मकान नंबर क्या है?",
+    towerSubtitle: "अपना सटीक फ्लैट या मकान नंबर दर्ज करें।",
     seeMore: "और देखें",
     showLess: "कम दिखाएं",
 
@@ -129,13 +129,11 @@ const i18n = new I18n({
   },
 });
 
-// SAFE locale detection
-const deviceLocale =
-  Localization.locale ||
-  Localization.getLocales?.()[0]?.languageCode ||
-  "en";
+// SAFE locale detection for modern expo-localization
+const locales = Localization.getLocales();
+const deviceLocale = locales && locales.length > 0 ? locales[0].languageCode : "en";
 
-i18n.locale = deviceLocale.split("-")[0];
+i18n.locale = deviceLocale ? deviceLocale.split("-")[0] : "en";
 i18n.enableFallback = true;
 
 export default i18n;
