@@ -51,8 +51,15 @@ export default function PhoneScreen() {
       console.log("📊 Response status:", response.status);
       console.log("✅ Response ok:", response.ok);
 
-      const data = await response.json();
-      console.log("📦 Response data:", JSON.stringify(data, null, 2));
+      const text = await response.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+        console.log("📦 Response data:", JSON.stringify(data, null, 2));
+      } catch (e) {
+        console.log("⚠️ Response is not JSON. Raw text start:", text.substring(0, 100));
+        data = { message: "Unexpected server response" };
+      }
 
       if (!response.ok) {
         // Handle different error response formats
