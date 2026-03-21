@@ -83,8 +83,15 @@ export default function OtpScreen() {
         }
       );
 
-      const data = await response.json();
-      console.log("🔍 FULL VERIFY OTP RESPONSE:", data);
+      const text = await response.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+        console.log("🔍 FULL VERIFY OTP RESPONSE:", data);
+      } catch (e) {
+        console.log("⚠️ Response is not JSON. Raw text start:", text.substring(0, 100));
+        data = { message: "Server error: The backend API returned HTML instead of JSON. Ensure the server at " + config.apiUrl + " is running and accessible." };
+      }
 
       if (!response.ok) {
         setError(data.message || "Invalid or expired OTP");

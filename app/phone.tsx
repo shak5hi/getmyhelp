@@ -58,7 +58,7 @@ export default function PhoneScreen() {
         console.log("📦 Response data:", JSON.stringify(data, null, 2));
       } catch (e) {
         console.log("⚠️ Response is not JSON. Raw text start:", text.substring(0, 100));
-        data = { message: "Unexpected server response" };
+        data = { message: "Server error: The backend API returned HTML instead of JSON. Ensure the server at " + config.apiUrl + " is running and accessible." };
       }
 
       if (!response.ok) {
