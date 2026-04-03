@@ -77,7 +77,7 @@ export default function OtpScreen() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            phone,
+            phone: phone.replace(/^\+91/, "").replace("+", ""),
             otp,
           }),
         }
@@ -94,7 +94,19 @@ export default function OtpScreen() {
       }
 
       if (!response.ok) {
-        setError(data.message || "Invalid or expired OTP");
+        let errorMessage = "Invalid or expired OTP";
+        
+        if (data?.detail) {
+          if (Array.isArray(data.detail)) {
+            errorMessage = data.detail[0]?.msg || errorMessage;
+          } else if (typeof data.detail === "string") {
+            errorMessage = data.detail;
+          }
+        } else if (data?.message) {
+          errorMessage = data.message;
+        }
+
+        setError(errorMessage);
         return;
       }
 
@@ -143,7 +155,7 @@ export default function OtpScreen() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone: phone.replace(/^\+91/, "").replace("+", "") }),
       });
 
       setOtp("");
