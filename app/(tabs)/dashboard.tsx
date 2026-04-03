@@ -50,6 +50,12 @@ export default function DashboardScreen() {
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [availablePlans, setAvailablePlans] = useState<any[]>([]);
   const [loadingSubscription, setLoadingSubscription] = useState(true);
+  const [assignedMaid, setAssignedMaid] = useState<any>({
+    name: "Aaradhya Singh",
+    role: "Daily Help",
+    since: "07 Jul 2024",
+    image: "https://i.pravatar.cc/150?img=47",
+  }); // Set to null to see "No Maid" alert
 
   // UI state
   const [activePlan, setActivePlan] = useState("");
@@ -70,6 +76,10 @@ export default function DashboardScreen() {
       const token = await AsyncStorage.getItem("access_token");
       const userStr = await AsyncStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
+
+      // Note: In a real app, you would fetch the assigned maid from the API here
+      // For now, I'm keeping it as state for demonstration.
+      // If user is "new", you could setAssignedMaid(null).
 
       // Prefer common name fields, fall back to 'user'
       const rawName =
@@ -97,7 +107,6 @@ export default function DashboardScreen() {
         { headers }
       );
       const subData = await subRes.json();
-      console.log("📦 Subscription data:", subData);
 
       const activeSub =
         subData?.subscriptions?.find((s: any) => s.status === "active") ||
@@ -114,7 +123,6 @@ export default function DashboardScreen() {
         { headers }
       );
       const plansData = await plansRes.json();
-      console.log("📦 Available plans:", plansData);
 
       if (plansData?.subscriptions) setAvailablePlans(plansData.subscriptions);
       else if (Array.isArray(plansData)) setAvailablePlans(plansData);
@@ -449,23 +457,60 @@ export default function DashboardScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* GREETING */}
-        <View>
+        <View style={{ marginBottom: 4 }}>
           <Text style={styles.greeting}>{getGreeting()}, {customerName} 👋</Text>
           <Text style={styles.subGreeting}>Here's a quick overview of your service</Text>
         </View>
 
-        {/* HERO CARD */}
-        <View style={styles.heroCard}>
-          <View style={styles.heroText}>
-            <Text style={styles.heroLabel}>Your Maid</Text>
-            <Text style={styles.heroName}>Aaradhya Singh</Text>
-            <Text style={styles.heroRole}>Daily Help</Text>
-            <Text style={styles.heroDate}>Since 07 Jul 2024</Text>
-            <Pressable style={styles.heroButton}>
-              <Text style={styles.heroButtonText}>View Details</Text>
-            </Pressable>
+        {/* HERO SECTION / ALERT */}
+        {assignedMaid ? (
+          <View style={styles.heroCard}>
+            <View style={styles.heroText}>
+              <Text style={styles.heroLabel}>Your Maid</Text>
+              <Text style={styles.heroName}>{assignedMaid.name}</Text>
+              <Text style={styles.heroRole}>{assignedMaid.role}</Text>
+              <Text style={styles.heroDate}>Since {assignedMaid.since}</Text>
+              <Pressable style={styles.heroButton}>
+                <Text style={styles.heroButtonText}>View Details</Text>
+              </Pressable>
+            </View>
+            <Image source={{ uri: assignedMaid.image }} style={styles.heroImage} />
           </View>
-          <Image source={{ uri: "https://i.pravatar.cc/150?img=47" }} style={styles.heroImage} />
+        ) : (
+          <View style={styles.alertCard}>
+            <View style={styles.alertIconContainer}>
+               <Ionicons name="alert-circle" size={28} color="#9A3412" />
+            </View>
+            <View style={styles.alertContent}>
+               <Text style={styles.alertTitle}>No Maid Assigned</Text>
+               <Text style={styles.alertText}>It looks like you don't have a maid assigned to your flat yet.</Text>
+               <Pressable 
+                  style={styles.alertButton}
+                  onPress={() => Alert.alert("Contact AOA", "Please contact the Apartment Owners Association (AOA) to assign a maid.")}
+               >
+                  <Text style={styles.alertButtonText}>Contact AOA</Text>
+               </Pressable>
+            </View>
+          </View>
+        )}
+
+        {/* STATS ROW */}
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="calendar-outline" size={18} color="#111827" />
+            </View>
+            <Text style={styles.statValue}>18/22</Text>
+            <Text style={styles.statLabel}>Days Present</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Ionicons name="time-outline" size={18} color="#111827" />
+            </View>
+            <Text style={styles.statValue}>Tomorrow</Text>
+            <Text style={styles.statLabel}>Next Service</Text>
+          </View>
         </View>
 
         {/* SUBSCRIPTION CARD */}
