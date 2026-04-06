@@ -30,7 +30,7 @@ export default function SubscriptionsScreen() {
       const user = userStr ? JSON.parse(userStr) : null;
       const customerId = user?.id;
 
-      if (!customerId || !token) {
+      if (!token) {
         setLoading(false);
         return;
       }
@@ -40,29 +40,32 @@ export default function SubscriptionsScreen() {
         "Content-Type": "application/json",
       };
 
-      // 1. Fetch current subscriptions
+      // 1. Fetch current subscriptions from the customer endpoint
       const subRes = await fetch(
-        `${config.apiUrl}/admin/customers/${customerId}/subscriptions`,
+        `${config.apiUrl}/admin/customer-subscriptions`, // List all customer subscriptions
         { headers }
       );
       const subData = await subRes.json();
       
-      const activeSubs = subData?.subscriptions?.filter((s: any) => s.status === "active") || [];
-      const pastSubs = subData?.subscriptions || [];
-      // Combine gracefully if no active, just to show fallback (optional logic, we stick to active)
-      setCurrentSubscriptions(activeSubs.length > 0 ? activeSubs : (pastSubs.length > 0 ? [pastSubs[0]] : []));
+      // Filter for active ones if the endpoint returns all
+      const allSubs = Array.isArray(subData) ? subData : (subData?.subscriptions || []);
+      const activeSubs = allSubs.filter((s: any) => s.status === "active");
+      
+      setCurrentSubscriptions(activeSubs.length > 0 ? activeSubs : (allSubs.length > 0 ? [allSubs[0]] : []));
 
-      // 2. Fetch available plans
-      const plansRes = await fetch(
-        `${config.apiUrl}/admin/subscriptions/available-for-customer/${customerId}`,
-        { headers }
-      );
-      const plansData = await plansRes.json();
+      // 2. Fetch available plans for this customer's location
+      if (customerId) {
+        const plansRes = await fetch(
+          `${config.apiUrl}/admin/subscriptions/available-for-customer/${customerId}`,
+          { headers }
+        );
+        const plansData = await plansRes.json();
 
-      if (plansData?.subscriptions) {
-        setAvailablePlans(plansData.subscriptions);
-      } else if (Array.isArray(plansData)) {
-        setAvailablePlans(plansData);
+        if (plansData?.subscriptions) {
+          setAvailablePlans(plansData.subscriptions);
+        } else if (Array.isArray(plansData)) {
+          setAvailablePlans(plansData);
+        }
       }
     } catch (error) {
       console.error("Error fetching subscriptions:", error);
@@ -71,17 +74,38 @@ export default function SubscriptionsScreen() {
     }
   };
 
-  const handleAddSubscription = (planName?: string) => {
+  const handleAddSubscription = (planId?: string, planName?: string) => {
+    if (!planId) return;
+
     Alert.alert(
       "Subscribe",
-      `Are you sure you want to subscribe to ${planName || "a new plan"}?`,
+      `Are you sure you want to subscribe to ${planName || "this plan"}?`,
       [
         { text: "Cancel", style: "cancel" },
         { 
           text: "Confirm", 
-          onPress: () => {
-            // TODO: POST /admin/customers/{customerId}/subscriptions
-            Alert.alert("Success", "Subscription added successfully! (Mocked)");
+          onPress: async () => {
+             try {
+               const token = await AsyncStorage.getItem("access_token");
+               const response = await fetch(`${config.apiUrl}/customer/select-subscription`, {
+                 method: "POST",
+                 headers: {
+                   "Content-Type": "application/json",
+                   Authorization: `Bearer ${token}`,
+                 },
+                 body: JSON.stringify({ plan_id: planId }),
+               });
+
+               if (response.ok) {
+                 Alert.alert("Success", "Subscription added successfully!");
+                 fetchSubscriptionData(); // Refresh list
+               } else {
+                 const data = await response.json();
+                 Alert.alert("Error", data.message || "Failed to subscribe");
+               }
+             } catch (err) {
+               Alert.alert("Error", "Network error. Please try again.");
+             }
           }
         }
       ]
@@ -105,7 +129,7 @@ export default function SubscriptionsScreen() {
     );
   };
 
-  const handleDeleteSubscription = (subRef: string) => {
+  const handleDeleteSubscription = (subscriptionId: string) => {
     Alert.alert(
       "Cancel Subscription",
       "Are you absolutely sure you want to cancel this subscription? This action cannot be undone.",
@@ -114,10 +138,26 @@ export default function SubscriptionsScreen() {
         { 
           text: "Yes, Cancel", 
           style: "destructive",
-          onPress: () => {
-            // TODO: DELETE config.apiUrl/admin/subscriptions/{id}
-            Alert.alert("Cancelled", "Your subscription has been removed. (Mocked)");
-            setCurrentSubscriptions([]); // optimistically clear
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem("access_token");
+              const response = await fetch(`${config.apiUrl}/admin/customer-subscriptions/${subscriptionId}/cancel`, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+
+              if (response.ok) {
+                Alert.alert("Cancelled", "Your subscription has been cancelled.");
+                fetchSubscriptionData(); // Refresh list
+              } else {
+                const data = await response.json();
+                Alert.alert("Error", data.message || "Failed to cancel subscription");
+              }
+            } catch (err) {
+              Alert.alert("Error", "Network error. Please try again.");
+            }
           }
         }
       ]

@@ -10,6 +10,7 @@ import {
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+import config from "../../src/config";
 import { styles } from "../../styles/profile.styles";
 
 // --- TYPES ---
@@ -105,23 +106,43 @@ export default function ProfileScreen() {
 
   const loadUserData = async () => {
     try {
-      // Load raw user data (usually has phone and first_name)
+      const token = await AsyncStorage.getItem("access_token");
       const userStr = await AsyncStorage.getItem("user");
       const userObj = userStr ? JSON.parse(userStr) : null;
-      
-      const rawName =
-        (userObj?.first_name && userObj.first_name.trim()) ||
-        (userObj?.firstName && userObj.firstName.trim()) ||
-        (userObj?.name && userObj.name.trim()) ||
-        "Guest";
-      
-      const rawPhone = userObj?.phone || userObj?.phoneNumber || "No Phone";
+      const customerId = userObj?.id;
 
-      // Load flat/tower selection
-      const storedFlat = await AsyncStorage.getItem("flat_number") || await AsyncStorage.getItem("selected_tower_id") || "No Tower";
-
-      // Load society data
+      let rawName = "Guest";
+      let rawPhone = "No Phone";
       let societyName = "No Society";
+      let storedFlat = "No Tower";
+
+      if (token) {
+        // 1. Fetch real customer data from API
+        try {
+          const headers = { Authorization: `Bearer ${token}` };
+          
+          const res = await fetch(`${config.apiUrl}/customer/profile`, { headers });
+          const apiUser = await res.json();
+          
+          if (apiUser) {
+            rawName = apiUser.first_name || apiUser.name || userObj?.first_name || userObj?.name || rawName;
+            rawPhone = apiUser.phone || apiUser.phoneNumber || apiUser.mobile || apiUser.user_phone || userObj?.phone || userObj?.phoneNumber || rawPhone;
+          }
+        } catch (apiErr) {
+          console.log("Profile API error, falling back to storage:", apiErr);
+          rawName = userObj?.first_name || userObj?.name || rawName;
+          rawPhone = userObj?.phone || userObj?.phoneNumber || rawPhone;
+        }
+      } else if (userObj) {
+        // No token or not logged in properly, but have user data in storage
+        rawName = userObj.first_name || userObj.name || rawName;
+        rawPhone = userObj.phone || userObj.phoneNumber || rawPhone;
+      }
+
+      // Load flat/tower selection from local storage
+      storedFlat = (await AsyncStorage.getItem("flat_number")) || (await AsyncStorage.getItem("selected_tower_id")) || "No Tower";
+
+      // Load society data from local storage (or API if you prefer)
       const selectedSocietyId = await AsyncStorage.getItem("selected_society_id");
       const societiesJson = await AsyncStorage.getItem("societies_data");
       
@@ -148,10 +169,8 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem("user");
-      await AsyncStorage.removeItem("token");
-      // Replace with your actual auth route scheme, e.g., '/(auth)' or '/login'
-      router.replace("/(auth)" as any); 
+      await AsyncStorage.multiRemove(["access_token", "user", "selected_society_id", "selected_tower_id", "flat_number"]);
+      router.replace("/"); 
     } catch (error) {
       console.error("Error during logout:", error);
     }

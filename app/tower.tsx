@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Text,
@@ -21,8 +21,40 @@ export default function TowerScreen() {
   const [towerNumber, setTowerNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [towers, setTowers] = useState<any[]>([]);
+  const [fetchingTowers, setFetchingTowers] = useState(true);
 
   const isValid = towerNumber.trim().length > 0;
+
+  useEffect(() => {
+    fetchTowers();
+  }, []);
+
+  const fetchTowers = async () => {
+    try {
+      const societyId = await AsyncStorage.getItem("selected_society_id");
+      const token = await AsyncStorage.getItem("access_token");
+      
+      if (!societyId || !token) {
+        setFetchingTowers(false);
+        return;
+      }
+
+      const response = await fetch(`${config.apiUrl}/customer/societies/${societyId}/towers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const towersData = Array.isArray(result) ? result : (result?.towers || result?.data || []);
+        setTowers(towersData);
+      }
+    } catch (err) {
+      console.log("Error fetching towers:", err);
+    } finally {
+      setFetchingTowers(false);
+    }
+  };
 
   const handleContinue = async () => {
     if (!isValid) {
@@ -37,41 +69,14 @@ export default function TowerScreen() {
       const societyId = await AsyncStorage.getItem("selected_society_id");
       const token = await AsyncStorage.getItem("access_token");
 
-      // Additional data needed for onboarding depending on backend
-      const phoneRaw = await AsyncStorage.getItem("user");
-      const phoneObj = phoneRaw ? JSON.parse(phoneRaw) : null;
-      const phoneNumber = phoneObj?.phone || "Unknown";
-
       if (!societyId || !token) {
-        setError("Missing society or token information. Please go back.");
+        setError("Missing society or token. Please restart onboarding.");
         return;
       }
 
-      // Final onboarding / validate API
-      // Since your prompt specifies POST /user/onboarding, I will use that endpoint
+      // Final onboarding via enter-flat
       const response = await fetch(
-        `${config.apiUrl}/user/onboarding`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            phoneNumber,
-            societyId: societyId,
-            towerNumber: towerNumber.trim(),
-            // Assuming latitude and longitude are handled by societyId backend matching or can be sent if needed
-          }),
-        }
-      );
-
-      // If the `/user/onboarding` endpoint does not actually exist yet on your external backend
-      // and you meant for me to use the existing `/customer/validate-tower-number` from house.tsx, 
-      // replace the fetch URL and payload above with:
-      /*
-      const response = await fetch(
-        `${config.apiUrl}/customer/validate-tower-number`,
+        `${config.apiUrl}/customer/enter-flat`,
         {
           method: "POST",
           headers: {
@@ -80,25 +85,14 @@ export default function TowerScreen() {
           },
           body: JSON.stringify({
             society_id: societyId,
-            tower_id: towerNumber.trim(), // The backend might expect an ID here, but if text is allowed now
             flat_number: towerNumber.trim(),
           }),
         }
       );
-      */
 
       if (!response.ok) {
-        // Just in case we hit a 404 because the prompt's endpoint doesn't exist
-        if (response.status === 404) {
-          console.warn("Endpoint /user/onboarding not found. Attempting fallback to existing flow.");
-
-          await AsyncStorage.setItem("selected_tower_id", towerNumber.trim());
-          router.replace("/dashboard");
-          return;
-        }
-
         const data = await response.json();
-        setError(data.message || "Failed to complete onboarding");
+        setError(data.message || "Failed to save flat details");
         return;
       }
 
@@ -108,7 +102,8 @@ export default function TowerScreen() {
 
       router.replace("/dashboard");
     } catch (err) {
-      setError("Network err. Failed to complete onboarding");
+      setError("Network error. Failed to complete onboarding");
+      console.log("Onboarding error:", err);
     } finally {
       setLoading(false);
     }

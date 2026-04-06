@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Pressable,
   Text,
   TextInput,
@@ -125,15 +126,78 @@ export default function OtpScreen() {
 
       // (optional) store customer data
       if (customer) {
+        // Ensure phone is included for profile fallback
+        const userToSave = { ...customer, phone: phone };
         await AsyncStorage.setItem(
           "user",
-          JSON.stringify(customer)
+          JSON.stringify(userToSave)
         );
+      } else {
+        // Even if no customer object, save the phone for fallback
+        await AsyncStorage.setItem("user", JSON.stringify({ phone }));
       }
 
       console.log("🔐 ACCESS TOKEN SAVED:", accessToken);
 
-      // ✅ VERIFIED → MOVE TO LOCATION
+      // ✅ CHECK IF ONBOARDING SHOULD BE SKIPPED
+      try {
+        console.log("🔍 [otp] Checking onboarding status...");
+        
+        // 1. First check if the login response itself has the info
+        const hasSocInLogin = customer?.society_id || customer?.societyId;
+        const hasTowerInLogin = customer?.tower_id || customer?.towerId || customer?.flat_number || customer?.flatNumber;
+
+        if (hasSocInLogin && hasTowerInLogin) {
+          console.log("✅ [otp] Info found in login response!");
+          await AsyncStorage.setItem("selected_society_id", String(hasSocInLogin));
+          if (customer?.tower_id || customer?.towerId) {
+             await AsyncStorage.setItem("selected_tower_id", String(customer?.tower_id || customer?.towerId));
+          }
+          if (customer?.flat_number || customer?.flatNumber) {
+             await AsyncStorage.setItem("flat_number", String(customer?.flat_number || customer?.flatNumber));
+          }
+          cleanupOtpState();
+          router.replace("/(tabs)/dashboard");
+          return;
+        }
+
+        // 2. Fallback to Profile API
+        console.log("🔍 [otp] Checking via profile API...");
+        const profileRes = await fetch(`${config.apiUrl}/customer/profile`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const profileResponse = await profileRes.json();
+        
+        // Handle if response is wrapped in { data: ... }
+        const profileData = profileResponse?.data || profileResponse;
+        console.log("👤 [otp] Profile data:", JSON.stringify(profileData));
+        
+        const hasSociety = profileData?.society_id || profileData?.societyId;
+        const hasTower = profileData?.tower_id || profileData?.towerId || profileData?.flat_number || profileData?.flatNumber;
+
+        if (profileData && hasSociety && hasTower) {
+          console.log("✅ [otp] Returning user detected via Profile API");
+          
+          await AsyncStorage.setItem("selected_society_id", String(hasSociety));
+          if (profileData.tower_id || profileData.towerId) {
+             await AsyncStorage.setItem("selected_tower_id", String(profileData.tower_id || profileData.towerId));
+          }
+          if (profileData.flat_number || profileData.flatNumber) {
+             await AsyncStorage.setItem("flat_number", String(profileData.flat_number || profileData.flatNumber));
+          }
+          
+          cleanupOtpState();
+          router.replace("/(tabs)/dashboard");
+          return;
+        } else {
+          console.log("🧭 [otp] Incomplete profile (missing society/tower/flat)");
+        }
+      } catch (profileErr) {
+        console.log("⚠️ [otp] Could not determine onboarding status:", profileErr);
+      }
+
+      // ✅ VERIFIED BUT NEW → MOVE TO LOCATION
+      console.log("🚀 [otp] Navigating to /location");
       cleanupOtpState();
       router.replace("/location");
     } catch (err) {
@@ -150,19 +214,28 @@ export default function OtpScreen() {
       setLoading(true);
       setError("");
 
-      await fetch(`${config.apiUrl}/customer/resend-otp`, {
+      const cleanPhone = phone.replace(/^\+91/, "").replace("+", "");
+      console.log("🔄 Resending OTP to:", cleanPhone);
+
+      const response = await fetch(`${config.apiUrl}/customer/resend-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phone: phone.replace(/^\+91/, "").replace("+", "") }),
+        body: JSON.stringify({ phone: cleanPhone }),
       });
 
+      if (!response.ok) {
+        throw new Error("Failed to resend OTP");
+      }
+
       setOtp("");
-      setResendActive(true);
       setTimer(40);
+      setResendActive(true);
+      Alert.alert("Success", "New OTP has been sent!");
     } catch (err) {
-      setError("Failed to resend OTP");
+      console.log("❌ Resend error:", err);
+      setError("Failed to resend OTP. Please try again.");
     } finally {
       setLoading(false);
     }

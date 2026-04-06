@@ -50,12 +50,7 @@ export default function DashboardScreen() {
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [availablePlans, setAvailablePlans] = useState<any[]>([]);
   const [loadingSubscription, setLoadingSubscription] = useState(true);
-  const [assignedMaid, setAssignedMaid] = useState<any>({
-    name: "Aaradhya Singh",
-    role: "Daily Help",
-    since: "07 Jul 2024",
-    image: "https://i.pravatar.cc/150?img=47",
-  }); // Set to null to see "No Maid" alert
+  const [assignedMaid, setAssignedMaid] = useState<any>(null);
 
   // UI state
   const [activePlan, setActivePlan] = useState("");
@@ -76,12 +71,54 @@ export default function DashboardScreen() {
       const token = await AsyncStorage.getItem("access_token");
       const userStr = await AsyncStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
+      const customerId = user?.id;
 
-      // Note: In a real app, you would fetch the assigned maid from the API here
-      // For now, I'm keeping it as state for demonstration.
-      // If user is "new", you could setAssignedMaid(null).
+      if (!customerId || !token) return;
 
-      // Prefer common name fields, fall back to 'user'
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+
+      // 1. Fetch assigned assignments (to get the maid/provider)
+      const assignmentsRes = await fetch(
+        `${config.apiUrl}/admin/customers/${customerId}/assignments`,
+        { headers }
+      );
+      const assignmentsData = await assignmentsRes.json();
+      
+      const assignments = Array.isArray(assignmentsData) ? assignmentsData : (assignmentsData?.assignments || []);
+
+      if (assignments.length > 0) {
+        // Get the provider from the most recent active assignment
+        const activeAssignment = assignments[0];
+        const providerId = activeAssignment.provider_id;
+        
+        if (providerId) {
+          // 2. Fetch full maid profile
+          const maidRes = await fetch(
+            `${config.apiUrl}/admin/providers/${providerId}/profile`,
+            { headers }
+          );
+          const maidData = await maidRes.json();
+          
+          if (maidData) {
+            setAssignedMaid({
+              name: maidData.name || "Assigned Maid",
+              role: maidData.role || activeAssignment.service_name || "Daily Help",
+              since: maidData.joining_date || activeAssignment.start_date || "N/A",
+              image: maidData.profile_picture || "https://i.pravatar.cc/150?img=47",
+              // Use metrics from assignment if available
+              daysPresent: activeAssignment.days_present || "0/0",
+              nextService: activeAssignment.next_service_date || "Tomorrow",
+            });
+          }
+        }
+      } else {
+        setAssignedMaid(null);
+      }
+
+      // 3. Prefer common name fields, fall back to 'user'
       const rawName =
         (user?.first_name && user.first_name.trim()) ||
         (user?.firstName && user.firstName.trim()) ||
@@ -93,15 +130,7 @@ export default function DashboardScreen() {
 
       setCustomerName(formattedName);
 
-      const customerId = user?.id;
-      if (!customerId || !token) return;
-
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-
-      // Fetch current subscription
+      // 4. Fetch current subscription
       const subRes = await fetch(
         `${config.apiUrl}/admin/customers/${customerId}/subscriptions`,
         { headers }
@@ -117,7 +146,7 @@ export default function DashboardScreen() {
         setActivePlan(activeSub.plan_name);
       }
 
-      // Fetch available plans
+      // 5. Fetch available plans
       const plansRes = await fetch(
         `${config.apiUrl}/admin/subscriptions/available-for-customer/${customerId}`,
         { headers }
@@ -274,15 +303,15 @@ export default function DashboardScreen() {
         if (option === "Go back") {
           resetToMain();
         } else if (option === "Where is my maid?") {
-          addBotMessage("Your maid Aaradhya Singh is currently Inside. She checked in at 9:02 AM.", ["Check another maid", "Go back"]);
+          addBotMessage(`Your help ${assignedMaid?.name || "staff"} is currently Inside. She checked in recently.`, ["Check another maid", "Go back"]);
         } else if (option === "Today's attendance") {
-          addBotMessage("✅ Aaradhya Singh - Present (9:02 AM)\n✅ Sunita - Present (8:45 AM)", ["View full attendance", "Go back"]);
+          addBotMessage(`✅ ${assignedMaid?.name || "Staff"} - Present\n✅ Backup Support - Present`, ["View full attendance", "Go back"]);
         } else if (option === "Maid timings") {
-          addBotMessage("Aaradhya Singh:\nCheck-in: 9:02 AM\nCheck-out: Not yet", ["Set reminder", "Go back"]);
+          addBotMessage(`${assignedMaid?.name || "Staff"}:\nCheck-in: 9:02 AM\nCheck-out: Not yet`, ["Set reminder", "Go back"]);
         } else if (option === "Add or remove a maid") {
           addBotMessage("To add or remove a maid, please contact our support team at 1800-XXX-XXXX", ["Talk to support", "Go back"]);
         } else if (option === "Check another maid") {
-          addBotMessage("Which maid would you like to check?", ["Aaradhya Singh", "Sunita", "Go back"]);
+          addBotMessage("Which maid would you like to check?", [assignedMaid?.name || "Staff", "Backup Maid", "Go back"]);
         }
       } else if (flowState === "replacement_backup") {
         if (option === "Go back") {
@@ -500,7 +529,7 @@ export default function DashboardScreen() {
             <View style={styles.statIconContainer}>
               <Ionicons name="calendar-outline" size={18} color="#111827" />
             </View>
-            <Text style={styles.statValue}>18/22</Text>
+            <Text style={styles.statValue}>{assignedMaid?.daysPresent || "—"}</Text>
             <Text style={styles.statLabel}>Days Present</Text>
           </View>
 
@@ -508,7 +537,7 @@ export default function DashboardScreen() {
             <View style={styles.statIconContainer}>
               <Ionicons name="time-outline" size={18} color="#111827" />
             </View>
-            <Text style={styles.statValue}>Tomorrow</Text>
+            <Text style={styles.statValue}>{assignedMaid?.nextService || "—"}</Text>
             <Text style={styles.statLabel}>Next Service</Text>
           </View>
         </View>
