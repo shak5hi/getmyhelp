@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import config from "../src/config";
+import { apiFetch } from "../src/api";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
 import { otpStyles as styles } from "../styles/otp.styles";
@@ -69,19 +70,13 @@ export default function OtpScreen() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        `${config.apiUrl}/customer/verify-otp`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            phone,
-            otp,
-          }),
-        }
-      );
+      const response = await apiFetch("/customer/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({
+          phone,
+          otp,
+        }),
+      });
 
       const data = await response.json();
       console.log("🔍 FULL VERIFY OTP RESPONSE:", data);
@@ -114,9 +109,17 @@ export default function OtpScreen() {
 
       console.log("🔐 ACCESS TOKEN SAVED:", accessToken);
 
-      // ✅ VERIFIED → MOVE TO LOCATION
+      /* UPDATED LOGIC */
+      // Navigate based on customer.is_active from verify-otp response
+      // is_active = true  → existing active user → go to Dashboard
+      // is_active = false → new / incomplete user → continue onboarding
       cleanupOtpState();
-      router.replace("/location");
+      if (customer?.is_active === true) {
+        router.replace("/(tabs)/home");
+      } else {
+        router.replace("/location");
+      }
+      /* END UPDATED LOGIC */
     } catch (err) {
       console.log("❌ OTP VERIFY ERROR:", err);
       setError("Network error. Please try again.");
@@ -131,11 +134,8 @@ export default function OtpScreen() {
       setLoading(true);
       setError("");
 
-      await fetch(`${config.apiUrl}/customer/resend-otp`, {
+      await apiFetch("/customer/resend-otp", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ phone }),
       });
 

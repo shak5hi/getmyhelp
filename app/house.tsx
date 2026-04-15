@@ -13,6 +13,7 @@ import { houseStyles as styles } from "../styles/house.styles";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
 import config from "../src/config";
+import { apiFetch } from "../src/api";
 
 export default function HouseScreen() {
   useLanguage();
@@ -43,21 +44,14 @@ export default function HouseScreen() {
         return;
       }
 
-      const response = await fetch(
-        `${config.apiUrl}/customer/validate-tower-number`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            society_id: societyId,
-            tower_id: towerId,
-            flat_number: houseNumber.trim(),
-          }),
-        }
-      );
+      const response = await apiFetch("/customer/validate-tower-number", {
+        method: "POST",
+        body: JSON.stringify({
+          society_id: societyId,
+          tower_id: towerId,
+          flat_number: houseNumber.trim(),
+        }),
+      });
 
       const result = await response.json();
 
@@ -77,7 +71,7 @@ export default function HouseScreen() {
         houseNumber.trim()
       );
 
-      router.replace("/dashboard");
+      router.replace("/(tabs)/home");
     } catch (err) {
       setError("Failed to validate flat number");
     } finally {

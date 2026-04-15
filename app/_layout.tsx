@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { LanguageProvider } from "../src/LanguageContext";
 
 export default function RootLayout() {
@@ -20,15 +20,10 @@ export default function RootLayout() {
         screenOptions={{
           headerShadowVisible: false,
           headerTitleAlign: "center",
-          headerBackTitleVisible: false,
-          headerPressColor: "transparent",
-          headerPressOpacity: 1,
 
           headerTitle: "GetMyHelp",
           headerBackVisible: false,
 
-          headerLeftContainerStyle: { paddingLeft: 16 },
-          headerRightContainerStyle: { paddingRight: 16 },
 
           headerLeft: () => (
             <View style={styles.headerBubble}>
@@ -60,14 +55,20 @@ export default function RootLayout() {
         <Stack.Screen name="society-detected" />
         <Stack.Screen name="tower" />
         <Stack.Screen name="house" />
-        <Stack.Screen name="subscription" />
-        <Stack.Screen name="dashboard" />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* Redirect wrappers for backward compatibility */}
+        <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="subscription" options={{ headerShown: false }} />
+        
+        {/* SETTINGS + LOGOUT FEATURE */}
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
       </Stack>
     </LanguageProvider>
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   headerBubble: {
     width: 32,
     height: 32,
@@ -76,4 +77,4 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
   },
-};
+});

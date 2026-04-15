@@ -14,6 +14,7 @@ import { towerStyles as styles } from "../styles/tower.styles";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
 import config from "../src/config";
+import { apiFetch } from "../src/api";
 
 type Tower = {
   id: string;
@@ -37,21 +38,12 @@ export default function TowerScreen() {
   const fetchTowers = async () => {
     try {
       const societyId = await AsyncStorage.getItem("selected_society_id");
-      const token = await AsyncStorage.getItem("access_token");
-
-      if (!societyId || !token) {
+      if (!societyId) {
         setError("Missing society information");
         return;
       }
 
-      const response = await fetch(
-        `${config.apiUrl}/customer/societies/${societyId}/towers`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiFetch(`/customer/societies/${societyId}/towers`);
 
       const result = await response.json();
 

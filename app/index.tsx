@@ -1,29 +1,67 @@
-import { Image, Text, View, Pressable, Modal } from "react-native";
-import { useEffect, useState } from "react";
+/* PRODUCTION ARCHITECTURE UPGRADE — startup auth guard added */
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { Image, Modal, Pressable, Text, View, ActivityIndicator } from "react-native";
+import { useEffect, useState } from "react";
 import i18n from "../src/i18n";
 import PrimaryButton from "../components/PrimaryButton";
 import { homeStyles as styles } from "../styles/home.styles";
-import { useRouter } from "expo-router";
+import config from "../src/config";
+import { apiFetch } from "../src/api";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
   { code: "hi", label: "हिंदी" },
 ];
 
-export default function HomeScreen() {
+export default function IndexScreen() {
   const router = useRouter();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  /* PRODUCTION ARCHITECTURE UPGRADE */
+  const [checking, setChecking] = useState(true);
+  /* END PRODUCTION ARCHITECTURE UPGRADE */
 
-  // 🔹 Show modal only first time
   useEffect(() => {
-    const checkLanguage = async () => {
-      const lang = await AsyncStorage.getItem("LANGUAGE");
-      if (!lang) {
-        setShowLanguageModal(true);
+    /* PRODUCTION ARCHITECTURE UPGRADE — startup auth guard */
+    const checkAuthAndRoute = async () => {
+      try {
+        const token = await AsyncStorage.getItem("access_token");
+
+        if (!token) {
+          // No token — show welcome screen, check language preference
+          const lang = await AsyncStorage.getItem("LANGUAGE");
+          if (!lang) setShowLanguageModal(true);
+          setChecking(false);
+          return;
+        }
+
+        const res = await apiFetch("/customer/profile");
+
+        if (!res.ok) {
+          // Token invalid / expired — clear and show welcome
+          setChecking(false);
+          return;
+        }
+
+        const json = await res.json();
+        const customer = json?.data;
+
+        if (customer?.is_active === true) {
+          router.replace("/(tabs)/home");
+        } else {
+          // Incomplete profile — resume onboarding
+          router.replace("/location");
+        }
+      } catch {
+        // Network error — fallback to welcome screen
+        const lang = await AsyncStorage.getItem("LANGUAGE");
+        if (!lang) setShowLanguageModal(true);
+        setChecking(false);
       }
     };
-    checkLanguage();
+
+    checkAuthAndRoute();
+    /* END PRODUCTION ARCHITECTURE UPGRADE */
   }, []);
 
   const selectLanguage = async (code: string) => {
@@ -32,10 +70,20 @@ export default function HomeScreen() {
     setShowLanguageModal(false);
   };
 
+  /* PRODUCTION ARCHITECTURE UPGRADE — show spinner while checking token */
+  if (checking) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#6366F1" />
+      </View>
+    );
+  }
+  /* END PRODUCTION ARCHITECTURE UPGRADE */
+
   return (
     <View style={styles.container}>
 
-      {/* 🌐 CHANGE LANGUAGE BUTTON (NEW) */}
+      {/* 🌐 CHANGE LANGUAGE BUTTON */}
       <Pressable
         onPress={() => setShowLanguageModal(true)}
         style={{
@@ -112,3 +160,4 @@ export default function HomeScreen() {
     </View>
   );
 }
+/* END PRODUCTION ARCHITECTURE UPGRADE */

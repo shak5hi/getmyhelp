@@ -12,6 +12,7 @@ import {
 } from "react-native";
 
 import config from "../src/config";
+import { apiFetch } from "../src/api";
 import styles from "../styles/societyDetectedStyles";
 
 /* ---------------------------------------
@@ -47,20 +48,7 @@ export default function LocationScreen() {
   useEffect(() => {
     const fetchAllSocieties = async () => {
       try {
-        const token = await AsyncStorage.getItem("access_token");
-        if (!token) {
-          router.replace("/phone");
-          return;
-        }
-
-        const response = await fetch(
-          `${config.apiUrl}/customer/societies`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await apiFetch("/customer/societies");
 
         const data = await response.json();
         setSocieties(data?.data?.societies || []);
@@ -133,21 +121,6 @@ export default function LocationScreen() {
       const address = geocodeData.display_name;
       console.log("🏠 ADDRESS:", address);
 
-      // 4️⃣ Get access token from storage
-      const token = await AsyncStorage.getItem("access_token");
-
-      if (!token) {
-        setError("User not authenticated. Please login again.");
-        setLoadingLocation(false);
-        router.replace("/phone");
-        return;
-      }
-
-      console.log("🔐 USING TOKEN:", token.substring(0, 20) + "...");
-
-      // 5️⃣ Send location to backend with correct field names
-      console.log("📤 Sending location to backend...");
-
       const requestBody = {
         latitude: latitude,
         longitude: longitude,
@@ -155,19 +128,10 @@ export default function LocationScreen() {
         locality: "",
       };
 
-      console.log("📦 REQUEST BODY:", JSON.stringify(requestBody, null, 2));
-
-      const response = await fetch(
-        `${config.apiUrl}/customer/explore-societies`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const response = await apiFetch("/customer/explore-societies", {
+        method: "POST",
+        body: JSON.stringify(requestBody),
+      });
 
       console.log("📥 Backend response status:", response.status);
 

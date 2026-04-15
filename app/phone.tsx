@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import i18n from "../src/i18n";
 import config from "../src/config";
+import { apiFetch } from "../src/api";
 import { phoneStyles as styles } from "../styles/phone.styles";
 
 export default function PhoneScreen() {
@@ -34,17 +35,10 @@ export default function PhoneScreen() {
       setLoading(true);
       setError("");
 
-      const apiUrl = `${config.apiUrl}/customer/login`;
-      console.log("🔄 Sending OTP request to:", apiUrl);
-      console.log("📱 Phone number:", "+91" + phone);
-
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch("/customer/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
-          phone: "+91" + phone,
+          phone: phone,
         }),
       });
 
@@ -77,7 +71,7 @@ export default function PhoneScreen() {
       console.log("✅ OTP sent successfully");
       router.push({
         pathname: "/otp",
-        params: { phone: "+91" + phone },
+        params: { phone: phone },
       });
     } catch (err: any) {
       console.error("❌ Fetch error:", err);

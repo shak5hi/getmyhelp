@@ -1,4 +1,6 @@
-export const towerStyles = {
+import { StyleSheet } from "react-native";
+
+export const towerStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
@@ -97,5 +99,5 @@ export const towerStyles = {
   buttonTextDisabled: {
     color: "#9CA3AF",
   },
-};
+});
 
