@@ -44,7 +44,7 @@ export default function PhoneScreen() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          phone: "+91" + phone,
+          phone: phone, // Use 10 digits to match verification steps
         }),
       });
 

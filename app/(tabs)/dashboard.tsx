@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -43,6 +44,7 @@ type FlowState =
 let messageCounter = 0;
 
 export default function DashboardScreen() {
+  const router = useRouter();
   useLanguage();
 
   // API state
@@ -50,16 +52,11 @@ export default function DashboardScreen() {
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [availablePlans, setAvailablePlans] = useState<any[]>([]);
   const [loadingSubscription, setLoadingSubscription] = useState(true);
-  const [assignedMaid, setAssignedMaid] = useState<any>(null);
+  const [assignments, setAssignments] = useState<any[]>([]);
 
   // UI state
-  const [activePlan, setActivePlan] = useState("");
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
-  const [chatVisible, setChatVisible] = useState(false);
-  const [messages, setMessages] = useState<MessageType[]>([]);
-  const [flowState, setFlowState] = useState<FlowState>("main");
-  const [replacementData, setReplacementData] = useState({ when: "", type: "" });
-  const [selectedService, setSelectedService] = useState("");
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
@@ -80,43 +77,48 @@ export default function DashboardScreen() {
         "Content-Type": "application/json",
       };
 
-      // 1. Fetch assigned assignments (to get the maid/provider)
+      // 1. Fetch active assignments
+      console.log(`🔍 Fetching assignments for customer`);
       const assignmentsRes = await fetch(
-        `${config.apiUrl}/admin/customers/${customerId}/assignments`,
+        `${config.apiUrl}/customer/assignments`,
         { headers }
       );
-      const assignmentsData = await assignmentsRes.json();
       
-      const assignments = Array.isArray(assignmentsData) ? assignmentsData : (assignmentsData?.assignments || []);
-
-      if (assignments.length > 0) {
-        // Get the provider from the most recent active assignment
-        const activeAssignment = assignments[0];
-        const providerId = activeAssignment.provider_id;
-        
-        if (providerId) {
-          // 2. Fetch full maid profile
-          const maidRes = await fetch(
-            `${config.apiUrl}/admin/providers/${providerId}/profile`,
-            { headers }
-          );
-          const maidData = await maidRes.json();
-          
-          if (maidData) {
-            setAssignedMaid({
-              name: maidData.name || "Assigned Maid",
-              role: maidData.role || activeAssignment.service_name || "Daily Help",
-              since: maidData.joining_date || activeAssignment.start_date || "N/A",
-              image: maidData.profile_picture || "https://i.pravatar.cc/150?img=47",
-              // Use metrics from assignment if available
-              daysPresent: activeAssignment.days_present || "0/0",
-              nextService: activeAssignment.next_service_date || "Tomorrow",
-            });
-          }
-        }
-      } else {
+      console.log(`📊 Assignments Status: ${assignmentsRes.status}`);
+      
+      if (!assignmentsRes.ok) {
+        console.log(`⚠️ Assignments fetch failed: ${assignmentsRes.status}`);
         setAssignedMaid(null);
+      } else {
+        const assignmentsData = await assignmentsRes.json();
+        const assignmentsList = assignmentsData.data || [];
+        console.log("🔍 Assignments Response:", JSON.stringify(assignmentsList, null, 2));
+
+        if (assignmentsList.length > 0) {
+          const mappedAssignments = assignmentsList.map((acc: any) => {
+            const provider = acc.provider;
+            const fullName = `${provider.first_name} ${provider.last_name}`.trim() || "Assigned Maid";
+            const profileImage = provider.profile_image || "https://i.pravatar.cc/150?img=47";
+            
+            return {
+              id: acc.id,
+              name: fullName,
+              role: acc.assigned_services?.[0] || "Daily Help",
+              since: acc.start_date
+                ? new Date(acc.start_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                : "Active",
+              image: profileImage,
+              daysPresent: "—",
+              nextService: "—",
+              providerId: provider.id
+            };
+          });
+          setAssignments(mappedAssignments);
+        } else {
+          setAssignments([]);
+        }
       }
+
 
       // 3. Prefer common name fields, fall back to 'user'
       const rawName =
@@ -143,7 +145,7 @@ export default function DashboardScreen() {
 
       if (activeSub) {
         setCurrentSubscription(activeSub);
-        setActivePlan(activeSub.plan_name);
+        setSelectedPlanId(activeSub.plan_id || activeSub.id);
       }
 
       // 5. Fetch available plans
@@ -169,316 +171,54 @@ export default function DashboardScreen() {
     return "Good Evening";
   };
 
-  const handleUpdateSubscription = () => {
-    Alert.alert(
-      "Request Sent ✅",
-      "Your request to update the subscription has been sent. Our team will contact you shortly.",
-      [{ text: "Okay" }]
-    );
-  };
+  const handleUpdateSubscription = async () => {
+    if (!selectedPlanId) {
+      Alert.alert("Select a Plan", "Please choose a subscription plan first.");
+      return;
+    }
 
-  const openChat = () => {
-    setChatVisible(true);
-    if (messages.length === 0) {
-      addBotMessage(
-        "Hi 👋 I'm here to help you manage maids, services, and subscriptions.\n\nWhat would you like to do?",
-        [
-          "Maid & Attendance",
-          "Replacement / Backup",
-          "Services Hub",
-          "Subscription & Plan",
-          "Payments & Billing",
-          "Profile & Settings",
-          "Help & Support",
-        ]
-      );
+    try {
+      const token = await AsyncStorage.getItem("access_token");
+      if (!token) {
+        Alert.alert("Error", "You are not logged in.");
+        return;
+      }
+
+      const response = await fetch(`${config.apiUrl}/customer/select-subscription`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ plan_id: selectedPlanId }),
+      });
+
+      if (response.ok) {
+        Alert.alert(
+          "Success ✅",
+          "Your subscription has been updated successfully!",
+          [{ text: "Great!" }]
+        );
+        fetchDashboardData(); // Refresh current subscription
+        setSubscriptionModalVisible(false);
+      } else {
+        const data = await response.json();
+        Alert.alert("Error", data.detail || "Failed to update subscription. Please try again.");
+      }
+    } catch (err) {
+      Alert.alert("Error", "Network error. Please check your connection.");
     }
   };
 
-  const addBotMessage = (text: string, options?: string[]) => {
-    messageCounter++;
-    const newMessage: MessageType = {
-      id: `bot-${Date.now()}-${messageCounter}`,
-      text,
-      isBot: true,
-      options,
-    };
-    setMessages((prev) => [...prev, newMessage]);
-    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-  };
-
-  const addUserMessage = (text: string) => {
-    messageCounter++;
-    const newMessage: MessageType = {
-      id: `user-${Date.now()}-${messageCounter}`,
-      text,
-      isBot: false,
-    };
-    setMessages((prev) => [...prev, newMessage]);
-    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-  };
-
-  const handleOptionClick = (option: string) => {
-    addUserMessage(option);
-
-    setTimeout(() => {
-      if (flowState === "main") {
-        switch (option) {
-          case "Maid & Attendance":
-            setFlowState("maid_attendance");
-            addBotMessage("What would you like to check or manage?", [
-              "Where is my maid?",
-              "Today's attendance",
-              "Maid timings",
-              "Add or remove a maid",
-              "Go back",
-            ]);
-            break;
-          case "Replacement / Backup":
-            setFlowState("replacement_backup");
-            addBotMessage("I can help you with replacements and backup days.", [
-              "Request replacement",
-              "Backup days remaining",
-              "Use backup day",
-              "Why replacement was rejected",
-              "Go back",
-            ]);
-            break;
-          case "Services Hub":
-            setFlowState("services_hub");
-            addBotMessage("What service are you looking for?", [
-              "Cleaning services",
-              "Pet care",
-              "Elderly care",
-              "Babysitting",
-              "One-day maid help",
-              "View all services",
-              "Go back",
-            ]);
-            break;
-          case "Subscription & Plan":
-            setFlowState("subscription_plan");
-            addBotMessage("Here's what I can help you with regarding your plan.", [
-              "My current plan",
-              "Days left",
-              "Backup days",
-              "Upgrade plan",
-              "What happens if plan expires",
-              "Go back",
-            ]);
-            break;
-          case "Payments & Billing":
-            setFlowState("payments_billing");
-            addBotMessage("What would you like to check?", [
-              "View invoices",
-              "Recent payments",
-              "Charged twice",
-              "Payment failed",
-              "Download bill",
-              "Go back",
-            ]);
-            break;
-          case "Profile & Settings":
-            setFlowState("profile_settings");
-            addBotMessage("What would you like to update?", [
-              "Change phone number",
-              "Update address",
-              "Notification preferences",
-              "View backup days",
-              "Go back",
-            ]);
-            break;
-          case "Help & Support":
-            setFlowState("help_support");
-            addBotMessage("I'm here to help. What's the issue?", [
-              "Raise a complaint",
-              "Talk to support",
-              "FAQs",
-              "Emergency help",
-              "Go back",
-            ]);
-            break;
-        }
-      } else if (flowState === "maid_attendance") {
-        if (option === "Go back") {
-          resetToMain();
-        } else if (option === "Where is my maid?") {
-          addBotMessage(`Your help ${assignedMaid?.name || "staff"} is currently Inside. She checked in recently.`, ["Check another maid", "Go back"]);
-        } else if (option === "Today's attendance") {
-          addBotMessage(`✅ ${assignedMaid?.name || "Staff"} - Present\n✅ Backup Support - Present`, ["View full attendance", "Go back"]);
-        } else if (option === "Maid timings") {
-          addBotMessage(`${assignedMaid?.name || "Staff"}:\nCheck-in: 9:02 AM\nCheck-out: Not yet`, ["Set reminder", "Go back"]);
-        } else if (option === "Add or remove a maid") {
-          addBotMessage("To add or remove a maid, please contact our support team at 1800-XXX-XXXX", ["Talk to support", "Go back"]);
-        } else if (option === "Check another maid") {
-          addBotMessage("Which maid would you like to check?", [assignedMaid?.name || "Staff", "Backup Maid", "Go back"]);
-        }
-      } else if (flowState === "replacement_backup") {
-        if (option === "Go back") {
-          resetToMain();
-        } else if (option === "Request replacement") {
-          setFlowState("replacement_when");
-          addBotMessage("When do you need a replacement?", ["Today", "Tomorrow", "Choose date", "Go back"]);
-        } else if (option === "Backup days remaining") {
-          addBotMessage(`You have ${currentSubscription?.days_remaining ?? "—"} backup days remaining in your current plan.`, ["Use backup day", "Go back"]);
-        } else if (option === "Use backup day") {
-          addBotMessage("Backup day requested successfully! ✅\n\nA backup maid will be assigned to you shortly.", ["Request another", "Go back"]);
-        } else if (option === "Why replacement was rejected") {
-          addBotMessage("Your recent replacement request was rejected because no backup staff was available on that date. Please try selecting a different date.", ["Request replacement", "Go back"]);
-        }
-      } else if (flowState === "replacement_when") {
-        if (option === "Go back") {
-          setFlowState("replacement_backup");
-          addBotMessage("I can help you with replacements and backup days.", [
-            "Request replacement", "Backup days remaining", "Use backup day", "Why replacement was rejected", "Go back",
-          ]);
-        } else {
-          setReplacementData({ ...replacementData, when: option });
-          setFlowState("replacement_type");
-          addBotMessage("What type of help do you need?", ["Full-day maid", "Cook", "Babysitter", "Cleaning help", "Go back"]);
-        }
-      } else if (flowState === "replacement_type") {
-        if (option === "Go back") {
-          setFlowState("replacement_when");
-          addBotMessage("When do you need a replacement?", ["Today", "Tomorrow", "Choose date", "Go back"]);
-        } else {
-          setReplacementData({ ...replacementData, type: option });
-          setFlowState("replacement_confirm");
-          addBotMessage(
-            `Confirm your request:\n\nWhen: ${replacementData.when}\nType: ${option}\n\nShall I proceed?`,
-            ["Yes, request replacement", "Go back"]
-          );
-        }
-      } else if (flowState === "replacement_confirm") {
-        if (option === "Go back") {
-          setFlowState("replacement_type");
-          addBotMessage("What type of help do you need?", ["Full-day maid", "Cook", "Babysitter", "Cleaning help", "Go back"]);
-        } else {
-          addBotMessage("✅ Replacement requested successfully!\n\nOur team will confirm and assign a replacement soon.", ["Request another", "Go back to main menu"]);
-          setFlowState("main");
-        }
-      } else if (flowState === "services_hub") {
-        if (option === "Go back") {
-          resetToMain();
-        } else if (option === "View all services") {
-          addBotMessage("Here are all our services:\n\n• Cleaning services\n• Pet care\n• Elderly care\n• Babysitting\n• One-day maid help\n• Gardening\n• Laundry service", ["Select a service", "Go back"]);
-        } else if (option === "Select a service") {
-          addBotMessage("What service are you looking for?", ["Cleaning services", "Pet care", "Elderly care", "Babysitting", "One-day maid help", "Go back"]);
-        } else {
-          setSelectedService(option);
-          setFlowState("service_detail");
-          addBotMessage(`${option}\n\nThis includes professional help tailored to your needs. Starting from ₹500.`, ["Check price", "Book service", "Go back"]);
-        }
-      } else if (flowState === "service_detail") {
-        if (option === "Go back") {
-          setFlowState("services_hub");
-          addBotMessage("What service are you looking for?", ["Cleaning services", "Pet care", "Elderly care", "Babysitting", "One-day maid help", "View all services", "Go back"]);
-        } else if (option === "Check price") {
-          addBotMessage(`${selectedService} pricing:\n\n• Basic: ₹500\n• Standard: ₹800\n• Premium: ₹1200`, ["Book service", "Go back"]);
-        } else if (option === "Book service") {
-          addBotMessage("Service booking request sent! ✅\n\nOur team will contact you to confirm the booking.", ["Book another service", "Go back to main menu"]);
-          setFlowState("main");
-        }
-      } else if (flowState === "subscription_plan") {
-        if (option === "Go back") {
-          resetToMain();
-        } else if (option === "My current plan") {
-          addBotMessage(
-            `You are currently on the ${currentSubscription?.plan_name || activePlan} plan (₹${currentSubscription?.amount_paid || "—"}/month).`,
-            ["Upgrade plan", "Go back"]
-          );
-        } else if (option === "Days left") {
-          addBotMessage(`You have ${currentSubscription?.days_remaining ?? "—"} days left in your current billing cycle.`, ["Extend plan", "Go back"]);
-        } else if (option === "Backup days") {
-          addBotMessage(`You have ${currentSubscription?.days_remaining ?? "—"} backup days remaining.`, ["Use backup day", "Go back"]);
-        } else if (option === "Upgrade plan") {
-          addBotMessage("To upgrade your plan, please contact our support team or visit the subscription page.", ["Contact support", "Go back"]);
-        } else if (option === "What happens if plan expires") {
-          addBotMessage("If your plan expires:\n\n• Services will be paused\n• You'll receive reminders before expiry\n• You can renew anytime", ["Renew now", "Go back"]);
-        }
-      } else if (flowState === "payments_billing") {
-        if (option === "Go back") {
-          resetToMain();
-        } else if (option === "View invoices") {
-          addBotMessage("Your recent invoices:\n\n• Jan 2025 - ₹699\n• Dec 2024 - ₹699\n• Nov 2024 - ₹699", ["Download invoice", "Go back"]);
-        } else if (option === "Recent payments") {
-          addBotMessage("Last payment: ₹699 on Jan 1, 2025\nStatus: Success ✅", ["View all payments", "Go back"]);
-        } else if (option === "Charged twice" || option === "Payment failed") {
-          addBotMessage("I'm escalating this to our support team. You'll receive a call within 24 hours.", ["Talk to support now", "Go back"]);
-        } else if (option === "Download bill") {
-          addBotMessage("Bill download link has been sent to your registered email.", ["Download another", "Go back"]);
-        }
-      } else if (flowState === "profile_settings") {
-        if (option === "Go back") {
-          resetToMain();
-        } else if (option === "Change phone number") {
-          addBotMessage("To change your phone number, please contact our support team for verification.", ["Contact support", "Go back"]);
-        } else if (option === "Update address") {
-          addBotMessage("To update your address, please contact our support team.", ["Contact support", "Go back"]);
-        } else if (option === "Notification preferences") {
-          addBotMessage("Current preferences:\n\n✅ SMS notifications\n✅ Email alerts\n❌ Push notifications", ["Change preferences", "Go back"]);
-        } else if (option === "View backup days") {
-          addBotMessage(`You have ${currentSubscription?.days_remaining ?? "—"} backup days remaining.`, ["Use backup day", "Go back"]);
-        }
-      } else if (flowState === "help_support") {
-        if (option === "Go back") {
-          resetToMain();
-        } else if (option === "Raise a complaint") {
-          addBotMessage("Please describe your complaint and our team will get back to you within 24 hours.", ["Submit complaint", "Go back"]);
-        } else if (option === "Talk to support") {
-          addBotMessage("You can reach our support team at:\n\n📞 1800-XXX-XXXX\n✉️ support@getmyhelp.com\n\nAvailable 24/7", ["Call now", "Go back"]);
-        } else if (option === "FAQs") {
-          addBotMessage("Popular FAQs:\n\n• How to request replacement?\n• What are backup days?\n• How to upgrade plan?\n• Payment methods accepted", ["View more FAQs", "Go back"]);
-        } else if (option === "Emergency help") {
-          addBotMessage("🚨 EMERGENCY CONTACT:\n\n📞 1800-XXX-XXXX\n📞 +91-XXXXX-XXXXX\n\nAvailable 24/7 for urgent assistance", ["Go back"]);
-        }
-      } else if (
-        option === "Go back to main menu" ||
-        option === "Request another" ||
-        option === "Book another service"
-      ) {
-        resetToMain();
-      }
-    }, 300);
+  const openChat = () => {
+    router.push("/(tabs)/chatbot");
   };
 
   const resetToMain = () => {
-    setFlowState("main");
-    setReplacementData({ when: "", type: "" });
-    setSelectedService("");
-    addBotMessage("What would you like to do?", [
-      "Maid & Attendance",
-      "Replacement / Backup",
-      "Services Hub",
-      "Subscription & Plan",
-      "Payments & Billing",
-      "Profile & Settings",
-      "Help & Support",
-    ]);
+    // Legacy reset logic removed
   };
 
-  const renderMessage = ({ item }: { item: MessageType }) => (
-    <View style={{ marginBottom: 16 }}>
-      <View style={[styles.messageBubble, item.isBot ? styles.botMessage : styles.userMessage]}>
-        <Text style={[styles.messageText, item.isBot ? styles.botMessageText : styles.userMessageText]}>
-          {item.text}
-        </Text>
-      </View>
-      {item.options && item.options.length > 0 && (
-        <View style={styles.optionsContainer}>
-          {item.options.map((option, index) => (
-            <Pressable
-              key={`${item.id}-option-${index}`}
-              style={styles.optionButton}
-              onPress={() => handleOptionClick(option)}
-            >
-              <Text style={styles.optionButtonText}>{option}</Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
-    </View>
-  );
+  const renderMessage = ({ item }: { item: any }) => null; // Legacy renderer removed
 
   return (
     <>
@@ -492,19 +232,27 @@ export default function DashboardScreen() {
         </View>
 
         {/* HERO SECTION / ALERT */}
-        {assignedMaid ? (
-          <View style={styles.heroCard}>
-            <View style={styles.heroText}>
-              <Text style={styles.heroLabel}>Your Maid</Text>
-              <Text style={styles.heroName}>{assignedMaid.name}</Text>
-              <Text style={styles.heroRole}>{assignedMaid.role}</Text>
-              <Text style={styles.heroDate}>Since {assignedMaid.since}</Text>
-              <Pressable style={styles.heroButton}>
-                <Text style={styles.heroButtonText}>View Details</Text>
-              </Pressable>
+        {assignments.length > 0 ? (
+          assignments.map((assignedMaid) => (
+            <View key={assignedMaid.id} style={styles.heroCard}>
+              <View style={styles.heroText}>
+                <Text style={styles.heroLabel}>Your Maid</Text>
+                <Text style={styles.heroName}>{assignedMaid.name}</Text>
+                <Text style={styles.heroRole}>{assignedMaid.role}</Text>
+                <Text style={styles.heroDate}>Since {assignedMaid.since}</Text>
+                <Pressable 
+                  style={styles.heroButton}
+                  onPress={() => router.push({
+                    pathname: "/assignment-details",
+                    params: { id: assignedMaid.id }
+                  })}
+                >
+                  <Text style={styles.heroButtonText}>View Details</Text>
+                </Pressable>
+              </View>
+              <Image source={{ uri: assignedMaid.image }} style={styles.heroImage} />
             </View>
-            <Image source={{ uri: assignedMaid.image }} style={styles.heroImage} />
-          </View>
+          ))
         ) : (
           <View style={styles.alertCard}>
             <View style={styles.alertIconContainer}>
@@ -523,24 +271,26 @@ export default function DashboardScreen() {
           </View>
         )}
 
-        {/* STATS ROW */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="calendar-outline" size={18} color="#111827" />
+        {/* STATS ROW (Only show for the first maid if relevant, or handle differently) */}
+        {assignments.length > 0 && (
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <View style={styles.statIconContainer}>
+                <Ionicons name="calendar-outline" size={18} color="#111827" />
+              </View>
+              <Text style={styles.statValue}>{assignments[0]?.daysPresent || "—"}</Text>
+              <Text style={styles.statLabel}>Days Present</Text>
             </View>
-            <Text style={styles.statValue}>{assignedMaid?.daysPresent || "—"}</Text>
-            <Text style={styles.statLabel}>Days Present</Text>
-          </View>
 
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="time-outline" size={18} color="#111827" />
+            <View style={styles.statCard}>
+              <View style={styles.statIconContainer}>
+                <Ionicons name="time-outline" size={18} color="#111827" />
+              </View>
+              <Text style={styles.statValue}>{assignments[0]?.nextService || "—"}</Text>
+              <Text style={styles.statLabel}>Next Service</Text>
             </View>
-            <Text style={styles.statValue}>{assignedMaid?.nextService || "—"}</Text>
-            <Text style={styles.statLabel}>Next Service</Text>
           </View>
-        </View>
+        )}
 
         {/* SUBSCRIPTION CARD */}
         <Pressable style={styles.subscriptionCard} onPress={() => setSubscriptionModalVisible(true)}>
@@ -628,22 +378,22 @@ export default function DashboardScreen() {
                 {availablePlans.length > 0 ? (
                   availablePlans.map((plan: any) => (
                     <Pressable
-                      key={plan.id || plan.name}
-                      style={[styles.planCard, activePlan === plan.name && styles.planCardActive]}
-                      onPress={() => setActivePlan(plan.name)}
+                      key={plan.id || index}
+                      style={[styles.planCard, selectedPlanId === (plan.id) && styles.planCardActive]}
+                      onPress={() => setSelectedPlanId(plan.id)}
                     >
-                      {activePlan === plan.name && (
+                      {selectedPlanId === (plan.id) && (
                         <View style={styles.activePlanIndicator}>
                           <Ionicons name="checkmark-circle" size={24} color="#10B981" />
                         </View>
                       )}
                       <View style={styles.planCardHeader}>
-                        <Text style={[styles.planCardName, activePlan === plan.name && styles.planCardNameActive]}>
+                        <Text style={[styles.planCardName, selectedPlanId === (plan.id) && styles.planCardNameActive]}>
                           {plan.name}
                         </Text>
                       </View>
                       <View style={styles.planCardPricing}>
-                        <Text style={[styles.planCardPrice, activePlan === plan.name && styles.planCardPriceActive]}>
+                        <Text style={[styles.planCardPrice, selectedPlanId === (plan.id) && styles.planCardPriceActive]}>
                           ₹{plan.price ?? plan.base_price ?? "—"}
                         </Text>
                         <Text style={styles.planCardPeriod}>/month</Text>
@@ -691,35 +441,7 @@ export default function DashboardScreen() {
         </Pressable>
       </Modal>
 
-      {/* CHAT MODAL */}
-      <Modal
-        visible={chatVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setChatVisible(false)}
-      >
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalContainer}>
-          <View style={styles.chatContainer}>
-            <View style={styles.chatHeader}>
-              <View>
-                <Text style={styles.chatHeaderTitle}>GetMyHelp Assistant</Text>
-                <Text style={styles.chatHeaderSubtitle}>Online</Text>
-              </View>
-              <Pressable onPress={() => setChatVisible(false)}>
-                <Ionicons name="close" size={28} color="#fff" />
-              </Pressable>
-            </View>
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              renderItem={renderMessage}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.messagesList}
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      {/* Legacy Chat Modal Removed */}
     </>
   );
 }

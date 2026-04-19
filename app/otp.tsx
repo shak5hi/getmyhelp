@@ -78,7 +78,7 @@ export default function OtpScreen() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            phone: phone.replace(/^\+91/, "").replace("+", ""),
+            phone: phone.replace(/\D/g, "").slice(-10),
             otp,
           }),
         }
@@ -170,7 +170,7 @@ export default function OtpScreen() {
         
         // Handle if response is wrapped in { data: ... }
         const profileData = profileResponse?.data || profileResponse;
-        console.log("👤 [otp] Profile data:", JSON.stringify(profileData));
+        console.log("👤 [otp] FULL Profile data:", JSON.stringify(profileData, null, 2));
         
         const hasSociety = profileData?.society_id || profileData?.societyId;
         const hasTower = profileData?.tower_id || profileData?.towerId || profileData?.flat_number || profileData?.flatNumber;
@@ -214,15 +214,14 @@ export default function OtpScreen() {
       setLoading(true);
       setError("");
 
-      const cleanPhone = phone.replace(/^\+91/, "").replace("+", "");
-      console.log("🔄 Resending OTP to:", cleanPhone);
+      console.log("🔄 Resending OTP to:", phone);
 
       const response = await fetch(`${config.apiUrl}/customer/resend-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phone: cleanPhone }),
+        body: JSON.stringify({ phone: phone.replace(/\D/g, "").slice(-10) }),
       });
 
       if (!response.ok) {

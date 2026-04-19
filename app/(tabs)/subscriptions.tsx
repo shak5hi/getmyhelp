@@ -4,10 +4,12 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
   Alert,
+  RefreshControl,
+  Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import config from "../../src/config";
@@ -30,7 +32,7 @@ export default function SubscriptionsScreen() {
       const user = userStr ? JSON.parse(userStr) : null;
       const customerId = user?.id;
 
-      if (!token) {
+      if (!token || !customerId) {
         setLoading(false);
         return;
       }
@@ -40,17 +42,16 @@ export default function SubscriptionsScreen() {
         "Content-Type": "application/json",
       };
 
-      // 1. Fetch current subscriptions from the customer endpoint
+      // 1. Fetch current subscriptions for this customer
       const subRes = await fetch(
-        `${config.apiUrl}/admin/customer-subscriptions`, // List all customer subscriptions
+        `${config.apiUrl}/admin/customers/${customerId}/subscriptions`,
         { headers }
       );
       const subData = await subRes.json();
-      
-      // Filter for active ones if the endpoint returns all
-      const allSubs = Array.isArray(subData) ? subData : (subData?.subscriptions || []);
+
+      const allSubs = subData?.subscriptions || [];
       const activeSubs = allSubs.filter((s: any) => s.status === "active");
-      
+
       setCurrentSubscriptions(activeSubs.length > 0 ? activeSubs : (allSubs.length > 0 ? [allSubs[0]] : []));
 
       // 2. Fetch available plans for this customer's location
@@ -101,7 +102,7 @@ export default function SubscriptionsScreen() {
                  fetchSubscriptionData(); // Refresh list
                } else {
                  const data = await response.json();
-                 Alert.alert("Error", data.message || "Failed to subscribe");
+                 Alert.alert("Error", data.detail || "Failed to subscribe");
                }
              } catch (err) {
                Alert.alert("Error", "Network error. Please try again.");
@@ -153,7 +154,7 @@ export default function SubscriptionsScreen() {
                 fetchSubscriptionData(); // Refresh list
               } else {
                 const data = await response.json();
-                Alert.alert("Error", data.message || "Failed to cancel subscription");
+                Alert.alert("Error", data.detail || "Failed to cancel subscription");
               }
             } catch (err) {
               Alert.alert("Error", "Network error. Please try again.");
@@ -252,7 +253,7 @@ export default function SubscriptionsScreen() {
 
               <TouchableOpacity 
                 style={styles.subscribeButton}
-                onPress={() => handleAddSubscription(plan.name)}
+                onPress={() => handleAddSubscription(plan.id, plan.name)}
               >
                 <Text style={styles.subscribeButtonText}>Subscribe Now</Text>
                 <Ionicons name="arrow-forward" size={16} color="#4F46E5" />

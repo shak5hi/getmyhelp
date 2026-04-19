@@ -4,9 +4,10 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
@@ -177,8 +178,12 @@ export default function ProfileScreen() {
   };
 
   const handleActionPress = (action: string) => {
-    // TODO: Add API endpoint or Navigation logic here
-    console.log(`Action triggered: ${action}`);
+    if (action.includes("Subscription")) {
+      router.push("/(tabs)/subscriptions");
+    } else {
+      console.log(`Action triggered: ${action}`);
+      Alert.alert("Coming Soon", `${action} functionality will be available in the next update.`);
+    }
   };
 
   if (loading) {
