@@ -13,6 +13,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import config from "../../src/config";
@@ -88,7 +89,7 @@ export default function DashboardScreen() {
       
       if (!assignmentsRes.ok) {
         console.log(`⚠️ Assignments fetch failed: ${assignmentsRes.status}`);
-        setAssignedMaid(null);
+        setAssignments([]);
       } else {
         const assignmentsData = await assignmentsRes.json();
         const assignmentsList = assignmentsData.data || [];
@@ -222,13 +223,58 @@ export default function DashboardScreen() {
 
   return (
     <>
+      {/* TOP HEADER BAR */}
+      <View style={styles.topBar}>
+        <View style={styles.topBarBrand}>
+          <View style={styles.topBarLogo}>
+            <Ionicons name="home" size={18} color="#111827" />
+          </View>
+          <Text style={styles.topBarName}>GetMyHelp</Text>
+        </View>
+        <View style={styles.topBarActions}>
+          <TouchableOpacity style={styles.topBarIcon} onPress={openChat}>
+            <Ionicons name="chatbubble-ellipses-outline" size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.topBarIcon} onPress={() => router.push("/(tabs)/profile")}>
+            <Ionicons name="person-outline" size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* GREETING */}
-        <View style={{ marginBottom: 4 }}>
+        <View>
           <Text style={styles.greeting}>{getGreeting()}, {customerName} 👋</Text>
           <Text style={styles.subGreeting}>Here's a quick overview of your service</Text>
+        </View>
+
+        {/* QUICK ACTIONS */}
+        <View style={styles.quickActionsRow}>
+          <TouchableOpacity style={styles.quickAction} onPress={() => router.push("/(tabs)/society")}>
+            <View style={[styles.quickActionIcon, { backgroundColor: "#EEF2FF" }]}>
+              <Ionicons name="business-outline" size={18} color="#6366F1" />
+            </View>
+            <Text style={styles.quickActionLabel}>Society</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickAction} onPress={() => router.push("/society/create-ticket")}>
+            <View style={[styles.quickActionIcon, { backgroundColor: "#FFF7ED" }]}>
+              <Ionicons name="ticket-outline" size={18} color="#F59E0B" />
+            </View>
+            <Text style={styles.quickActionLabel}>Raise{"\n"}Ticket</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickAction} onPress={() => router.push("/(tabs)/subscriptions")}>
+            <View style={[styles.quickActionIcon, { backgroundColor: "#F0FDF4" }]}>
+              <Ionicons name="diamond-outline" size={18} color="#10B981" />
+            </View>
+            <Text style={styles.quickActionLabel}>Plans</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickAction} onPress={openChat}>
+            <View style={[styles.quickActionIcon, { backgroundColor: "#FEF2F2" }]}>
+              <Ionicons name="headset-outline" size={18} color="#EF4444" />
+            </View>
+            <Text style={styles.quickActionLabel}>Support</Text>
+          </TouchableOpacity>
         </View>
 
         {/* HERO SECTION / ALERT */}
@@ -329,11 +375,6 @@ export default function DashboardScreen() {
           </View>
         </Pressable>
       </ScrollView>
-
-      {/* CHAT BUTTON */}
-      <Pressable style={styles.chatButton} onPress={openChat}>
-        <Ionicons name="chatbubble-ellipses" size={26} color="#fff" />
-      </Pressable>
 
       {/* SUBSCRIPTION MODAL */}
       <Modal

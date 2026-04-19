@@ -8,10 +8,52 @@ export const dashboardStyles = StyleSheet.create({
   content: {
     padding: 20,
     paddingBottom: 120,
-    gap: 24,
+    gap: 20,
   },
 
-  /* HEADER */
+  /* TOP HEADER BAR */
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: "#111827",
+  },
+  topBarBrand: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  topBarLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  topBarName: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
+  },
+  topBarActions: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
+  },
+  topBarIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.12)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  /* HEADER (legacy, unused) */
   header: {
     paddingTop: 50,
     paddingHorizontal: 20,
@@ -39,13 +81,48 @@ export const dashboardStyles = StyleSheet.create({
 
   /* GREETING */
   greeting: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "800",
     color: "#111827",
   },
   subGreeting: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#6B7280",
+    marginTop: 2,
+  },
+
+  /* QUICK ACTIONS */
+  quickActionsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  quickAction: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  quickActionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  quickActionLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#374151",
+    textAlign: "center",
   },
 
   /* HERO */

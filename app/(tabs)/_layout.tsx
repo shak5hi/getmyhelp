@@ -32,15 +32,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="subscriptions"
-        options={{
-          title: "Subscriptions",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="diamond-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="society"
         options={{
           title: "Society",
@@ -67,15 +58,8 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="subscriptions" options={{ href: null }} />
+      <Tabs.Screen name="settings" options={{ href: null }} />
       <Tabs.Screen
         name="explore"
         options={{

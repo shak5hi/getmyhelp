@@ -9,6 +9,8 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+// NOTE: edges={["bottom"]} — expo-router tab screens already sit below the status bar,
+// so we only need bottom safe area for the home indicator.
 import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -147,35 +149,21 @@ export default function SocietyScreen() {
         setData(extractFinanceRows(json));
       } else {
         const response = await fetch(`${config.apiUrl}/customer/tickets`, { headers });
-        
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`Tickets fetch failed with status ${response.status}:`, errorText.substring(0, 500));
           throw new Error(`Tickets server error: ${response.status}`);
         }
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-           const text = await response.text();
-           console.error("Tickets non-JSON response:", text.substring(0, 200));
-           throw new Error("Invalid tickets response format");
-        }
-
         const json = await response.json();
-        console.log("Tickets raw response:", JSON.stringify(json).substring(0, 200));
-        
-        // Robust extraction: Check multiple possible paths for the ticket array
-        let ticketList = [];
-        if (json.data && Array.isArray(json.data.tickets)) {
-          ticketList = json.data.tickets;
-        } else if (Array.isArray(json.tickets)) {
-          ticketList = json.tickets;
-        } else if (Array.isArray(json.data)) {
-          ticketList = json.data;
-        } else if (Array.isArray(json)) {
-          ticketList = json;
-        }
-        
+
+        let ticketList: any[] = [];
+        if (json.data && Array.isArray(json.data.tickets)) ticketList = json.data.tickets;
+        else if (Array.isArray(json.tickets)) ticketList = json.tickets;
+        else if (Array.isArray(json.data)) ticketList = json.data;
+        else if (Array.isArray(json)) ticketList = json;
+
         setData(ticketList);
       }
     } catch (error) {
@@ -198,14 +186,7 @@ export default function SocietyScreen() {
 
   const openAttachment = async (url: string) => {
     try {
-      // If URL starts with /, prepend the API base URL
-      const baseUrl = config.apiUrl.includes("/api/v1") 
-        ? config.apiUrl.split("/api/v1")[0] 
-        : config.apiUrl;
-      
-      const fullUrl = url.startsWith("http") ? url : `${baseUrl}${url}`;
-      
-      console.log("Opening attachment URL:", fullUrl);
+      const fullUrl = url.startsWith("http") ? url : `${config.fileBaseUrl}${url}`;
       await WebBrowser.openBrowserAsync(fullUrl, {
         toolbarColor: "#6366F1",
         enableBarCollapsing: true,
@@ -215,17 +196,6 @@ export default function SocietyScreen() {
       console.error("Could not open attachment", err);
     }
   };
-
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <Text style={styles.title}>Society</Text>
-      <Text style={styles.subtitle}>
-        {activeTab === "finance"
-          ? "Manage your transactions and bills"
-          : "Get support and report issues"}
-      </Text>
-    </View>
-  );
 
   const renderTabs = () => (
     <View style={styles.tabContainer}>
@@ -265,18 +235,23 @@ export default function SocietyScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={["bottom"]} style={styles.container}>
+      {/* Fixed top header — matches dashboard */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>Society</Text>
+          <Text style={styles.subtitle}>
+            {activeTab === "finance" ? "Transactions & billing" : "Support tickets"}
+          </Text>
+        </View>
+      </View>
+
       <FlatList
         data={loading ? [] : data}
         keyExtractor={(item, index) =>
           item?.id != null ? String(item.id) : `${activeTab}-${index}`
         }
-        ListHeaderComponent={
-          <>
-            {renderHeader()}
-            {renderTabs()}
-          </>
-        }
+        ListHeaderComponent={renderTabs()}
         renderItem={({ item }) => {
           if (activeTab === "finance") {
             return (
@@ -310,6 +285,7 @@ export default function SocietyScreen() {
                 status={status as any}
                 priority={priority as any}
                 createdAt={item.created_at}
+                type={item.type as any}
                 onPress={() => router.push({
                   pathname: "/society/ticket-details",
                   params: { id: item.id }
@@ -351,7 +327,7 @@ export default function SocietyScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Transaction Details</Text>
               <TouchableOpacity onPress={() => setSelectedTransaction(null)}>
-                <Ionicons name="close" size={24} color="#64748B" />
+                <Ionicons name="close" size={24} color="#6B7280" />
               </TouchableOpacity>
             </View>
 

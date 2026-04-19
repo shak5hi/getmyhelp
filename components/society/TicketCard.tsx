@@ -9,6 +9,7 @@ interface TicketProps {
   status: "Open" | "In Progress" | "Closed" | "Resolved";
   priority: "Low" | "Medium" | "High";
   createdAt: string;
+  type?: "common" | "private";
   onPress: () => void;
 }
 
@@ -18,36 +19,29 @@ export const TicketCard: React.FC<TicketProps> = ({
   status,
   priority,
   createdAt,
+  type,
   onPress,
 }) => {
   const getStatusColor = () => {
     switch (status) {
-      case "Open":
-        return "#6366F1"; // Indigo
-      case "In Progress":
-        return "#F59E0B"; // Amber
-      case "Closed":
-        return "#64748B"; // Slate
-      case "Resolved":
-        return "#10B981"; // Emerald
-      default:
-        return "#64748B";
+      case "Open":        return "#818CF8"; // indigo-400 — readable on dark
+      case "In Progress": return "#FCD34D"; // amber-300
+      case "Closed":      return "#94A3B8"; // slate-400
+      case "Resolved":    return "#34D399"; // emerald-400
+      default:            return "#94A3B8";
     }
   };
 
   const getPriorityIcon = () => {
     switch (priority) {
-      case "High":
-        return { name: "flash", color: "#EF4444" };
-      case "Medium":
-        return { name: "alert-circle", color: "#F59E0B" };
-      case "Low":
-        return { name: "information-circle", color: "#10B981" };
-      default:
-        return { name: "information-circle", color: "#64748B" };
+      case "High":   return { name: "flash",              color: "#F87171" }; // red-400
+      case "Medium": return { name: "alert-circle",       color: "#FCD34D" }; // amber-300
+      case "Low":    return { name: "information-circle", color: "#34D399" }; // emerald-400
+      default:       return { name: "information-circle", color: "#94A3B8" };
     }
   };
 
+  const statusColor  = getStatusColor();
   const priorityInfo = getPriorityIcon();
 
   return (
@@ -55,15 +49,30 @@ export const TicketCard: React.FC<TicketProps> = ({
       onPress={onPress}
       style={({ pressed }) => [
         styles.ticketCard,
-        { borderLeftColor: getStatusColor(), opacity: pressed ? 0.8 : 1 },
+        { borderLeftColor: statusColor, opacity: pressed ? 0.85 : 1 },
       ]}
     >
       <View style={styles.ticketHeader}>
-        <Text style={styles.ticketTitle} numberOfLines={1}>
+        <Text style={styles.ticketTitle} numberOfLines={2}>
           {title}
         </Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor() + "15" }]}>
-          <Text style={[styles.statusText, { color: getStatusColor() }]}>{status}</Text>
+        <View style={{ alignItems: "flex-end", gap: 4 }}>
+          <View style={[styles.statusBadge, { backgroundColor: statusColor + "22" }]}>
+            <Text style={[styles.statusText, { color: statusColor }]}>{status}</Text>
+          </View>
+          {type && (
+            <View style={[styles.statusBadge, { backgroundColor: type === "private" ? "#FEF3C720" : "#EEF2FF33" }]}>
+              <Ionicons
+                name={type === "private" ? "lock-closed" : "people"}
+                size={9}
+                color={type === "private" ? "#FCD34D" : "#818CF8"}
+                style={{ marginRight: 3 }}
+              />
+              <Text style={[styles.statusText, { color: type === "private" ? "#FCD34D" : "#818CF8" }]}>
+                {type}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 

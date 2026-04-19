@@ -124,80 +124,62 @@ export default function OtpScreen() {
       // ✅ STORE TOKEN
       await AsyncStorage.setItem("access_token", accessToken);
 
-      // (optional) store customer data
-      if (customer) {
-        // Ensure phone is included for profile fallback
-        const userToSave = { ...customer, phone: phone };
-        await AsyncStorage.setItem(
-          "user",
-          JSON.stringify(userToSave)
-        );
-      } else {
-        // Even if no customer object, save the phone for fallback
-        await AsyncStorage.setItem("user", JSON.stringify({ phone }));
-      }
+      // Store customer data (include phone for fallback)
+      const userToSave = { ...(customer || {}), phone };
+      await AsyncStorage.setItem("user", JSON.stringify(userToSave));
 
       console.log("🔐 ACCESS TOKEN SAVED:", accessToken);
 
-      // ✅ CHECK IF ONBOARDING SHOULD BE SKIPPED
-      try {
-        console.log("🔍 [otp] Checking onboarding status...");
-        
-        // 1. First check if the login response itself has the info
-        const hasSocInLogin = customer?.society_id || customer?.societyId;
-        const hasTowerInLogin = customer?.tower_id || customer?.towerId || customer?.flat_number || customer?.flatNumber;
+      // ── Decide whether to skip onboarding ──
+      // The login response now includes society_id, tower_id, flat_number
+      // when the phone was pre-registered by admin as a resident.
+      // No second API call needed.
 
-        if (hasSocInLogin && hasTowerInLogin) {
-          console.log("✅ [otp] Info found in login response!");
-          await AsyncStorage.setItem("selected_society_id", String(hasSocInLogin));
-          if (customer?.tower_id || customer?.towerId) {
-             await AsyncStorage.setItem("selected_tower_id", String(customer?.tower_id || customer?.towerId));
-          }
-          if (customer?.flat_number || customer?.flatNumber) {
-             await AsyncStorage.setItem("flat_number", String(customer?.flat_number || customer?.flatNumber));
-          }
-          cleanupOtpState();
-          router.replace("/(tabs)/dashboard");
-          return;
+      const societyId  = customer?.society_id  ?? customer?.societyId;
+      const towerId    = customer?.tower_id     ?? customer?.towerId;
+      const flatNumber = customer?.flat_number  ?? customer?.flatNumber;
+
+      if (societyId && flatNumber) {
+        // Pre-registered resident — all details already on the account
+        console.log("✅ [otp] Pre-registered resident — skipping onboarding");
+        await AsyncStorage.setItem("selected_society_id", String(societyId));
+        if (towerId) {
+          await AsyncStorage.setItem("selected_tower_id", String(towerId));
         }
-
-        // 2. Fallback to Profile API
-        console.log("🔍 [otp] Checking via profile API...");
-        const profileRes = await fetch(`${config.apiUrl}/customer/profile`, {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        const profileResponse = await profileRes.json();
-        
-        // Handle if response is wrapped in { data: ... }
-        const profileData = profileResponse?.data || profileResponse;
-        console.log("👤 [otp] FULL Profile data:", JSON.stringify(profileData, null, 2));
-        
-        const hasSociety = profileData?.society_id || profileData?.societyId;
-        const hasTower = profileData?.tower_id || profileData?.towerId || profileData?.flat_number || profileData?.flatNumber;
-
-        if (profileData && hasSociety && hasTower) {
-          console.log("✅ [otp] Returning user detected via Profile API");
-          
-          await AsyncStorage.setItem("selected_society_id", String(hasSociety));
-          if (profileData.tower_id || profileData.towerId) {
-             await AsyncStorage.setItem("selected_tower_id", String(profileData.tower_id || profileData.towerId));
-          }
-          if (profileData.flat_number || profileData.flatNumber) {
-             await AsyncStorage.setItem("flat_number", String(profileData.flat_number || profileData.flatNumber));
-          }
-          
-          cleanupOtpState();
-          router.replace("/(tabs)/dashboard");
-          return;
-        } else {
-          console.log("🧭 [otp] Incomplete profile (missing society/tower/flat)");
-        }
-      } catch (profileErr) {
-        console.log("⚠️ [otp] Could not determine onboarding status:", profileErr);
+        await AsyncStorage.setItem("flat_number", String(flatNumber));
+        cleanupOtpState();
+        router.replace("/(tabs)/dashboard");
+        return;
       }
 
-      // ✅ VERIFIED BUT NEW → MOVE TO LOCATION
-      console.log("🚀 [otp] Navigating to /location");
+      // Fallback: profile API for accounts created before this change
+      try {
+        const profileRes = await fetch(`${config.apiUrl}/customer/profile`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const profileJson = await profileRes.json();
+        const p = profileJson?.data || profileJson;
+
+        const pSociety = p?.society_id ?? p?.societyId;
+        const pFlat    = p?.flat_number ?? p?.flatNumber;
+
+        if (pSociety && pFlat) {
+          console.log("✅ [otp] Returning user detected via Profile API");
+          await AsyncStorage.setItem("selected_society_id", String(pSociety));
+          if (p?.tower_id ?? p?.towerId) {
+            await AsyncStorage.setItem("selected_tower_id", String(p.tower_id ?? p.towerId));
+          }
+          await AsyncStorage.setItem("flat_number", String(pFlat));
+          cleanupOtpState();
+          router.replace("/(tabs)/dashboard");
+          return;
+        }
+      } catch (profileErr) {
+        console.log("⚠️ [otp] Profile check failed:", profileErr);
+      }
+
+      // New unknown user — send to location/onboarding
+      console.log("🚀 [otp] New user — navigating to /location");
       cleanupOtpState();
       router.replace("/location");
     } catch (err) {

@@ -195,7 +195,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         {/* 1. USER INFO CARD */}
@@ -261,8 +261,13 @@ export default function ProfileScreen() {
           />
         </SectionCard>
 
-        {/* 5. ABOUT GETMYHELP */}
-        <SectionCard title="ABOUT GETMYHELP">
+        {/* 5. PREFERENCES */}
+        <SectionCard title="PREFERENCES">
+          <MenuItem
+            icon="settings-outline"
+            title="Settings"
+            onPress={() => router.push("/(tabs)/settings")}
+          />
           <MenuItem
             icon="document-lock-outline"
             title="Terms & Conditions"

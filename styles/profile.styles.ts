@@ -13,6 +13,7 @@ export const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingTop: 12,
   },
   headerCard: {
     flexDirection: "row",

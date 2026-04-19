@@ -3,16 +3,16 @@ import { Platform } from 'react-native';
 
 const ENV = {
   dev: {
-    // Use staging URL for development too, or use local if you have backend running locally
     apiUrl: "http://31.97.239.190:9001",
-    // Uncomment if testing with local backend:
-    // apiUrl: Platform.OS === 'android' ? "http://10.0.2.2:9001" : "http://localhost:9001",
+    fileBaseUrl: "https://admin.getmyhelp.in",
   },
   staging: {
     apiUrl: "http://31.97.239.190:9001",
+    fileBaseUrl: "https://admin.getmyhelp.in",
   },
   prod: {
-    apiUrl: "http://31.97.239.190:9001", // Update this when you have production URL
+    apiUrl: "http://31.97.239.190:9001",
+    fileBaseUrl: "https://admin.getmyhelp.in",
   },
 };
 
