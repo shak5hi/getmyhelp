@@ -17,6 +17,7 @@ import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import config from "../../src/config";
+import { colors } from "../../constants/tokens";
 import { societyStyles as styles } from "../../styles/society.styles";
 
 const MAX_FILES = 5;
@@ -130,7 +131,7 @@ export default function CreateTicketScreen() {
       });
 
       if (response.ok) {
-        Alert.alert("Success ✅", "Your support ticket has been raised successfully.", [
+        Alert.alert("Ticket Created", "Your support ticket has been raised successfully.", [
           { text: "Done", onPress: () => router.back() },
         ]);
       } else {
@@ -152,16 +153,7 @@ export default function CreateTicketScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
-      <View style={[styles.header, { flexDirection: "row", alignItems: "center" }]}>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-        </TouchableOpacity>
-        <View>
-          <Text style={[styles.title, { fontSize: 20 }]}>New Ticket</Text>
-          <Text style={styles.subtitle}>Fill in the details below</Text>
-        </View>
-      </View>
+    <SafeAreaView edges={["bottom"]} style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -175,6 +167,7 @@ export default function CreateTicketScreen() {
             <TextInput
               style={styles.input}
               placeholder="Briefly describe the issue"
+              placeholderTextColor="#9CA3AF"
               value={title}
               onChangeText={setTitle}
             />
@@ -238,7 +231,7 @@ export default function CreateTicketScreen() {
                 <Ionicons
                   name="lock-closed-outline"
                   size={16}
-                  color={type === "private" ? "#111827" : "#9CA3AF"}
+                  color={type === "private" ? colors.accent : "#9CA3AF"}
                 />
                 <Text style={[styles.typeButtonText, type === "private" && styles.typeButtonTextActive]}>
                   Private
@@ -255,7 +248,7 @@ export default function CreateTicketScreen() {
                 <Ionicons
                   name="people-outline"
                   size={16}
-                  color={type === "common" ? "#111827" : "#9CA3AF"}
+                  color={type === "common" ? colors.accent : "#9CA3AF"}
                 />
                 <Text style={[styles.typeButtonText, type === "common" && styles.typeButtonTextActive]}>
                   Common
@@ -271,6 +264,7 @@ export default function CreateTicketScreen() {
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Provide more details about your request..."
+              placeholderTextColor="#9CA3AF"
               multiline
               numberOfLines={5}
               value={description}
@@ -296,7 +290,7 @@ export default function CreateTicketScreen() {
                       style={styles.attachmentRemove}
                       onPress={() => removeAttachment(index)}
                     >
-                      <Ionicons name="close-circle" size={20} color="#EF4444" />
+                      <Ionicons name="close-circle" size={20} color="#fff" />
                     </TouchableOpacity>
                   </View>
                 ))}
@@ -304,8 +298,8 @@ export default function CreateTicketScreen() {
             )}
 
             {attachments.length < MAX_FILES && (
-              <TouchableOpacity style={styles.attachmentPicker} onPress={pickImages}>
-                <Ionicons name="image-outline" size={22} color="#6366F1" />
+              <TouchableOpacity style={styles.attachmentPicker} onPress={pickImages} activeOpacity={0.75}>
+                <Ionicons name="image-outline" size={22} color="#374151" />
                 <Text style={styles.attachmentPickerText}>
                   {attachments.length === 0 ? "Add Photos" : `Add More (${attachments.length}/${MAX_FILES})`}
                 </Text>
@@ -314,9 +308,10 @@ export default function CreateTicketScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.submitButton, loading && { opacity: 0.7 }]}
+            style={[styles.submitButton, loading && { opacity: 0.65 }]}
             onPress={handleCreate}
             disabled={loading}
+            activeOpacity={0.85}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />

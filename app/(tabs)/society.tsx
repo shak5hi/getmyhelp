@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../../src/config";
+import { colors } from "../../constants/tokens";
 import { societyStyles as styles } from "../../styles/society.styles";
 import { TransactionCard } from "../../components/society/TransactionCard";
 import { TicketCard } from "../../components/society/TicketCard";
@@ -188,7 +189,7 @@ export default function SocietyScreen() {
     try {
       const fullUrl = url.startsWith("http") ? url : `${config.fileBaseUrl}${url}`;
       await WebBrowser.openBrowserAsync(fullUrl, {
-        toolbarColor: "#6366F1",
+        toolbarColor: "#111827",
         enableBarCollapsing: true,
         showTitle: true,
       });
@@ -197,22 +198,65 @@ export default function SocietyScreen() {
     }
   };
 
-  const renderTabs = () => (
-    <View style={styles.tabContainer}>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === "finance" && styles.activeTab]}
-        onPress={() => setActiveTab("finance")}
-      >
-        <Text style={[styles.tabText, activeTab === "finance" && styles.activeTabText]}>Finance</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.tab, activeTab === "tickets" && styles.activeTab]}
-        onPress={() => setActiveTab("tickets")}
-      >
-        <Text style={[styles.tabText, activeTab === "tickets" && styles.activeTabText]}>Tickets</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const renderTabs = () => {
+    // Finance summary totals
+    const totalIncome  = activeTab === "finance" ? data.filter((t: any) => t.type === "income").reduce((s: number, t: any) => s + t.amount, 0) : 0;
+    const totalExpense = activeTab === "finance" ? data.filter((t: any) => t.type === "expense").reduce((s: number, t: any) => s + t.amount, 0) : 0;
+
+    return (
+      <>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "finance" && styles.activeTab]}
+            onPress={() => setActiveTab("finance")}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.tabText, activeTab === "finance" && styles.activeTabText]}>Finance</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "tickets" && styles.activeTab]}
+            onPress={() => setActiveTab("tickets")}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.tabText, activeTab === "tickets" && styles.activeTabText]}>Tickets</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Finance summary cards */}
+        {activeTab === "finance" && !loading && data.length > 0 && (
+          <View style={styles.summaryRow}>
+            <View style={[styles.summaryCard, { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", borderWidth: 1 }]}>
+              <View style={[styles.summaryIconWrap, { backgroundColor: "#DCFCE7" }]}>
+                <Ionicons name="arrow-down-circle" size={18} color="#16A34A" />
+              </View>
+              <Text style={[styles.summaryLabel, { color: "#15803D" }]}>Total Income</Text>
+              <Text style={[styles.summaryValue, styles.summaryValueIncome]}>
+                ₹{totalIncome.toLocaleString()}
+              </Text>
+            </View>
+            <View style={[styles.summaryCard, { backgroundColor: "#FFF1F2", borderColor: "#FECDD3", borderWidth: 1 }]}>
+              <View style={[styles.summaryIconWrap, { backgroundColor: "#FFE4E6" }]}>
+                <Ionicons name="arrow-up-circle" size={18} color="#E11D48" />
+              </View>
+              <Text style={[styles.summaryLabel, { color: "#BE123C" }]}>Total Expenses</Text>
+              <Text style={[styles.summaryValue, styles.summaryValueExpense]}>
+                ₹{totalExpense.toLocaleString()}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Count strip */}
+        {!loading && data.length > 0 && (
+          <View style={styles.countStrip}>
+            <Text style={styles.countStripText}>
+              {data.length} {activeTab === "finance" ? "transactions" : "tickets"}
+            </Text>
+          </View>
+        )}
+      </>
+    );
+  };
 
   const renderLoading = () => (
     <View style={{ padding: 20 }}>
@@ -239,8 +283,11 @@ export default function SocietyScreen() {
       {/* Fixed top header — matches dashboard */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.title}>Society</Text>
-          <Text style={styles.subtitle}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ width: 4, height: 22, backgroundColor: colors.accent, borderRadius: 2, marginRight: 8 }} />
+            <Text style={styles.title}>Society</Text>
+          </View>
+          <Text style={[styles.subtitle, { marginLeft: 12 }]}>
             {activeTab === "finance" ? "Transactions & billing" : "Support tickets"}
           </Text>
         </View>
@@ -297,7 +344,7 @@ export default function SocietyScreen() {
         ListEmptyComponent={loading ? renderLoading() : renderEmpty()}
         contentContainerStyle={activeTab === "finance" ? styles.financeList : styles.ticketList}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366F1" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />
         }
       />
 
@@ -305,6 +352,7 @@ export default function SocietyScreen() {
         <TouchableOpacity
           style={styles.fab}
           onPress={() => router.push("/society/create-ticket")}
+          activeOpacity={0.85}
         >
           <Ionicons name="add" size={32} color="#fff" />
         </TouchableOpacity>
@@ -327,7 +375,7 @@ export default function SocietyScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Transaction Details</Text>
               <TouchableOpacity onPress={() => setSelectedTransaction(null)}>
-                <Ionicons name="close" size={24} color="#6B7280" />
+                <Ionicons name="close" size={24} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
 
@@ -381,7 +429,7 @@ export default function SocietyScreen() {
                         <Ionicons 
                           name={att.file_type?.includes("pdf") ? "document-text" : "image"} 
                           size={20} 
-                          color="#6366F1" 
+                          color="#D1D5DB" 
                         />
                         <Text style={styles.attachmentName} numberOfLines={1}>
                           {att.original_filename || `Attachment ${idx + 1}`}

@@ -18,7 +18,7 @@ export const CommentItem: React.FC<CommentProps> = ({
   return (
     <View style={[styles.commentBubble, isMe ? styles.myComment : styles.otherComment]}>
       {!isMe && (
-        <Text style={[styles.statusText, { color: "#6366F1", marginBottom: 4, fontSize: 9 }]}>
+        <Text style={[styles.statusText, { color: "#6B7280", marginBottom: 4, fontSize: 9 }]}>
           {authorName}
         </Text>
       )}

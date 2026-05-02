@@ -65,6 +65,11 @@ export default function RootLayout() {
           <Stack.Screen name="subscription" />
           <Stack.Screen name="dashboard" />
           <Stack.Screen name="assignment-details" options={{ headerTitle: "Assignment Details" }} />
+          <Stack.Screen name="community/announcement-detail" options={{ headerTitle: "Announcement" }} />
+          <Stack.Screen name="community/forum-thread" options={{ headerTitle: "Discussion" }} />
+          <Stack.Screen name="community/create-post" options={{ headerTitle: "New Post" }} />
+          <Stack.Screen name="society/create-ticket" options={{ headerTitle: "New Ticket" }} />
+          <Stack.Screen name="society/ticket-details" options={{ headerTitle: "Ticket Details" }} />
         </Stack>
       </LanguageProvider>
     </SafeAreaProvider>

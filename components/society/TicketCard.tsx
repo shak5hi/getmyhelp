@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { societyStyles as styles } from "../../styles/society.styles";
 
 interface TicketProps {
@@ -13,73 +12,48 @@ interface TicketProps {
   onPress: () => void;
 }
 
+const STATUS_CONFIG: Record<string, { bg: string; text: string }> = {
+  "Open":        { bg: "#F3F4F6", text: "#374151" },
+  "In Progress": { bg: "#FEF3C7", text: "#92400E" },
+  "Resolved":    { bg: "#D1FAE5", text: "#065F46" },
+  "Closed":      { bg: "#F3F4F6", text: "#6B7280" },
+};
+
+const PRIORITY_DOT_COLOR: Record<string, string> = {
+  "High":   "#F87171",
+  "Medium": "#FCD34D",
+  "Low":    "#34D399",
+};
+
 export const TicketCard: React.FC<TicketProps> = ({
   id,
   title,
   status,
   priority,
   createdAt,
-  type,
   onPress,
 }) => {
-  const getStatusColor = () => {
-    switch (status) {
-      case "Open":        return "#818CF8"; // indigo-400 — readable on dark
-      case "In Progress": return "#FCD34D"; // amber-300
-      case "Closed":      return "#94A3B8"; // slate-400
-      case "Resolved":    return "#34D399"; // emerald-400
-      default:            return "#94A3B8";
-    }
-  };
-
-  const getPriorityIcon = () => {
-    switch (priority) {
-      case "High":   return { name: "flash",              color: "#F87171" }; // red-400
-      case "Medium": return { name: "alert-circle",       color: "#FCD34D" }; // amber-300
-      case "Low":    return { name: "information-circle", color: "#34D399" }; // emerald-400
-      default:       return { name: "information-circle", color: "#94A3B8" };
-    }
-  };
-
-  const statusColor  = getStatusColor();
-  const priorityInfo = getPriorityIcon();
+  const statusCfg = STATUS_CONFIG[status] ?? STATUS_CONFIG["Closed"];
+  const dotColor = PRIORITY_DOT_COLOR[priority] ?? PRIORITY_DOT_COLOR["Medium"];
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.ticketCard,
-        { borderLeftColor: statusColor, opacity: pressed ? 0.85 : 1 },
-      ]}
+      style={({ pressed }) => [styles.ticketCard, { opacity: pressed ? 0.85 : 1 }]}
     >
       <View style={styles.ticketHeader}>
         <Text style={styles.ticketTitle} numberOfLines={2}>
           {title}
         </Text>
-        <View style={{ alignItems: "flex-end", gap: 4 }}>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor + "22" }]}>
-            <Text style={[styles.statusText, { color: statusColor }]}>{status}</Text>
-          </View>
-          {type && (
-            <View style={[styles.statusBadge, { backgroundColor: type === "private" ? "#FEF3C720" : "#EEF2FF33" }]}>
-              <Ionicons
-                name={type === "private" ? "lock-closed" : "people"}
-                size={9}
-                color={type === "private" ? "#FCD34D" : "#818CF8"}
-                style={{ marginRight: 3 }}
-              />
-              <Text style={[styles.statusText, { color: type === "private" ? "#FCD34D" : "#818CF8" }]}>
-                {type}
-              </Text>
-            </View>
-          )}
+        <View style={[styles.statusBadge, { backgroundColor: statusCfg.bg }]}>
+          <Text style={[styles.statusText, { color: statusCfg.text }]}>{status}</Text>
         </View>
       </View>
 
       <View style={styles.ticketFooter}>
         <View style={styles.priorityContainer}>
-          <Ionicons name={priorityInfo.name as any} size={14} color={priorityInfo.color} />
-          <Text style={styles.priorityText}>{priority} Priority</Text>
+          <View style={[styles.priorityDot, { backgroundColor: dotColor }]} />
+          <Text style={styles.priorityText}>{priority}</Text>
         </View>
         <Text style={styles.ticketDate}>
           {new Date(createdAt).toLocaleDateString("en-IN", {

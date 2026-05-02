@@ -19,6 +19,7 @@ import {
 import config from "../../src/config";
 import { useLanguage } from "../../src/LanguageContext";
 import { dashboardStyles as styles } from "../../styles/dashboard.styles";
+import { colors } from "../../constants/tokens";
 
 // Chatbot Types
 type MessageType = {
@@ -50,6 +51,7 @@ export default function DashboardScreen() {
 
   // API state
   const [customerName, setCustomerName] = useState("user");
+  const [customerImage, setCustomerImage] = useState<string | null>(null);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [availablePlans, setAvailablePlans] = useState<any[]>([]);
   const [loadingSubscription, setLoadingSubscription] = useState(true);
@@ -99,7 +101,7 @@ export default function DashboardScreen() {
           const mappedAssignments = assignmentsList.map((acc: any) => {
             const provider = acc.provider;
             const fullName = `${provider.first_name} ${provider.last_name}`.trim() || "Assigned Maid";
-            const profileImage = provider.profile_image || "https://i.pravatar.cc/150?img=47";
+            const profileImage = provider.profile_image || null;
             
             return {
               id: acc.id,
@@ -132,6 +134,7 @@ export default function DashboardScreen() {
         rawName.length > 0 ? rawName.charAt(0).toUpperCase() + rawName.slice(1) : "User";
 
       setCustomerName(formattedName);
+      setCustomerImage(user?.profile_image || null);
 
       // 4. Fetch current subscription
       const subRes = await fetch(
@@ -170,6 +173,15 @@ export default function DashboardScreen() {
     if (hour < 12) return "Good Morning";
     if (hour < 17) return "Good Afternoon";
     return "Good Evening";
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return "?";
+    const names = name.trim().split(" ");
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return names[0].substring(0, 2).toUpperCase();
   };
 
   const handleUpdateSubscription = async () => {
@@ -222,58 +234,66 @@ export default function DashboardScreen() {
   const renderMessage = ({ item }: { item: any }) => null; // Legacy renderer removed
 
   return (
-    <>
-      {/* TOP HEADER BAR */}
-      <View style={styles.topBar}>
-        <View style={styles.topBarBrand}>
-          <View style={styles.topBarLogo}>
-            <Ionicons name="home" size={18} color="#111827" />
-          </View>
-          <Text style={styles.topBarName}>GetMyHelp</Text>
-        </View>
-        <View style={styles.topBarActions}>
-          <TouchableOpacity style={styles.topBarIcon} onPress={openChat}>
-            <Ionicons name="chatbubble-ellipses-outline" size={18} color="#FFFFFF" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.topBarIcon} onPress={() => router.push("/(tabs)/profile")}>
-            <Ionicons name="person-outline" size={18} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* GREETING */}
-        <View>
-          <Text style={styles.greeting}>{getGreeting()}, {customerName} 👋</Text>
-          <Text style={styles.subGreeting}>Here's a quick overview of your service</Text>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.greeting}>{getGreeting()}, {customerName} 👋</Text>
+            <Text style={styles.subGreeting}>Here's a quick overview of your service</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} style={styles.profileAvatar}>
+            {customerImage ? (
+              <Image source={{ uri: customerImage }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.initialsContainer}>
+                <Text style={styles.initialsText}>{getInitials(customerName)}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* QUICK ACTIONS */}
         <View style={styles.quickActionsRow}>
-          <TouchableOpacity style={styles.quickAction} onPress={() => router.push("/(tabs)/society")}>
-            <View style={[styles.quickActionIcon, { backgroundColor: "#EEF2FF" }]}>
-              <Ionicons name="business-outline" size={18} color="#6366F1" />
+          <TouchableOpacity
+            style={[styles.quickAction, { backgroundColor: "#EEF2FF", borderColor: "#C7D2FE" }]}
+            onPress={() => router.push("/(tabs)/society")}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: "#E0E7FF" }]}>
+              <Ionicons name="business-outline" size={18} color="#4F46E5" />
             </View>
-            <Text style={styles.quickActionLabel}>Society</Text>
+            <Text style={[styles.quickActionLabel, { color: "#4338CA" }]}>Society</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickAction} onPress={() => router.push("/society/create-ticket")}>
-            <View style={[styles.quickActionIcon, { backgroundColor: "#FFF7ED" }]}>
-              <Ionicons name="ticket-outline" size={18} color="#F59E0B" />
+
+          <TouchableOpacity
+            style={[styles.quickAction, { backgroundColor: "#FFF7ED", borderColor: "#FED7AA" }]}
+            onPress={() => router.push("/society/create-ticket")}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: "#FFEDD5" }]}>
+              <Ionicons name="ticket-outline" size={18} color="#EA580C" />
             </View>
-            <Text style={styles.quickActionLabel}>Raise{"\n"}Ticket</Text>
+            <Text style={[styles.quickActionLabel, { color: "#C2410C" }]}>Raise{"\n"}Ticket</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickAction} onPress={() => router.push("/(tabs)/subscriptions")}>
-            <View style={[styles.quickActionIcon, { backgroundColor: "#F0FDF4" }]}>
-              <Ionicons name="diamond-outline" size={18} color="#10B981" />
+
+          <TouchableOpacity
+            style={[styles.quickAction, { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0" }]}
+            onPress={() => router.push("/(tabs)/subscriptions")}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: "#DCFCE7" }]}>
+              <Ionicons name="diamond-outline" size={18} color="#16A34A" />
             </View>
-            <Text style={styles.quickActionLabel}>Plans</Text>
+            <Text style={[styles.quickActionLabel, { color: "#15803D" }]}>Plans</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickAction} onPress={openChat}>
-            <View style={[styles.quickActionIcon, { backgroundColor: "#FEF2F2" }]}>
-              <Ionicons name="headset-outline" size={18} color="#EF4444" />
+
+          <TouchableOpacity
+            style={[styles.quickAction, { backgroundColor: "#FFF1F2", borderColor: "#FECDD3" }]}
+            onPress={openChat}
+          >
+            <View style={[styles.quickActionIcon, { backgroundColor: "#FFE4E6" }]}>
+              <Ionicons name="headset-outline" size={18} color="#E11D48" />
             </View>
-            <Text style={styles.quickActionLabel}>Support</Text>
+            <Text style={[styles.quickActionLabel, { color: "#BE123C" }]}>Support</Text>
           </TouchableOpacity>
         </View>
 
@@ -296,7 +316,13 @@ export default function DashboardScreen() {
                   <Text style={styles.heroButtonText}>View Details</Text>
                 </Pressable>
               </View>
-              <Image source={{ uri: assignedMaid.image }} style={styles.heroImage} />
+              {assignedMaid.image ? (
+                <Image source={{ uri: assignedMaid.image }} style={styles.heroImage} />
+              ) : (
+                <View style={[styles.heroImage, styles.heroInitials]}>
+                  <Text style={styles.heroInitialsText}>{getInitials(assignedMaid.name)}</Text>
+                </View>
+              )}
             </View>
           ))
         ) : (
@@ -317,20 +343,20 @@ export default function DashboardScreen() {
           </View>
         )}
 
-        {/* STATS ROW (Only show for the first maid if relevant, or handle differently) */}
+        {/* STATS ROW */}
         {assignments.length > 0 && (
           <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <View style={styles.statIconContainer}>
-                <Ionicons name="calendar-outline" size={18} color="#111827" />
+            <View style={[styles.statCard, { borderLeftWidth: 3, borderLeftColor: colors.accent }]}>
+              <View style={[styles.statIconContainer, { backgroundColor: colors.accentLight }]}>
+                <Ionicons name="calendar-outline" size={18} color={colors.accent} />
               </View>
               <Text style={styles.statValue}>{assignments[0]?.daysPresent || "—"}</Text>
               <Text style={styles.statLabel}>Days Present</Text>
             </View>
 
-            <View style={styles.statCard}>
-              <View style={styles.statIconContainer}>
-                <Ionicons name="time-outline" size={18} color="#111827" />
+            <View style={[styles.statCard, { borderLeftWidth: 3, borderLeftColor: "#9333EA" }]}>
+              <View style={[styles.statIconContainer, { backgroundColor: "#F3E8FF" }]}>
+                <Ionicons name="time-outline" size={18} color="#9333EA" />
               </View>
               <Text style={styles.statValue}>{assignments[0]?.nextService || "—"}</Text>
               <Text style={styles.statLabel}>Next Service</Text>
@@ -340,38 +366,31 @@ export default function DashboardScreen() {
 
         {/* SUBSCRIPTION CARD */}
         <Pressable style={styles.subscriptionCard} onPress={() => setSubscriptionModalVisible(true)}>
-          <View style={styles.subscriptionGradientBorder}>
-            <View style={styles.subscriptionContent}>
-              <View style={styles.subscriptionHeader}>
-                <View style={styles.subscriptionIconContainer}>
-                  <Ionicons name="diamond" size={24} color="#6366F1" />
-                </View>
-                <Text style={styles.currentPlanLabel}>CURRENT PLAN</Text>
-              </View>
+          <View style={styles.subscriptionHeader}>
+            <View style={styles.subscriptionIconContainer}>
+              <Ionicons name="diamond" size={18} color="#6366F1" />
+            </View>
+            <Text style={styles.currentPlanLabel}>CURRENT PLAN</Text>
+          </View>
 
-              {loadingSubscription ? (
-                <ActivityIndicator color="#6366F1" style={{ marginVertical: 12 }} />
-              ) : (
-                <View style={styles.subscriptionInfo}>
-                  <View style={styles.subscriptionLeft}>
-                    <Text style={styles.planName}>{currentSubscription?.plan_name || "No Plan"}</Text>
-                    <Text style={styles.planPrice}>
-                      ₹{currentSubscription?.amount_paid || "—"}
-                      <Text style={styles.planPriceMonth}> /month</Text>
-                    </Text>
-                  </View>
-                  <View style={styles.subscriptionRight}>
-                    <Text style={styles.daysLeftNumber}>{currentSubscription?.days_remaining ?? "—"}</Text>
-                    <Text style={styles.daysLeftText}>days left</Text>
-                  </View>
-                </View>
-              )}
-
-              <View style={styles.subscriptionFooter}>
-                <Text style={styles.tapToManageText}>Tap to manage subscription</Text>
-                <Ionicons name="chevron-forward" size={20} color="#6366F1" />
+          {loadingSubscription ? (
+            <ActivityIndicator color="#6366F1" style={{ marginVertical: 6 }} />
+          ) : (
+            <View style={styles.subscriptionCompactRow}>
+              <Text style={styles.planNameCompact} numberOfLines={1}>
+                {currentSubscription?.plan_name || "No Plan"}
+              </Text>
+              <View style={styles.daysLeftPill}>
+                <Text style={styles.daysLeftPillText}>
+                  {currentSubscription?.days_remaining ?? "—"} days left
+                </Text>
               </View>
             </View>
+          )}
+
+          <View style={styles.subscriptionFooter}>
+            <Text style={styles.tapToManageText}>Tap to manage subscription</Text>
+            <Ionicons name="chevron-forward" size={18} color="#6366F1" />
           </View>
         </Pressable>
       </ScrollView>
@@ -483,6 +502,6 @@ export default function DashboardScreen() {
       </Modal>
 
       {/* Legacy Chat Modal Removed */}
-    </>
+    </View>
   );
 }

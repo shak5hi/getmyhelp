@@ -1,24 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { colors } from "../../constants/tokens";
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#6366F1",
-        tabBarInactiveTintColor: "#94A3B8",
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: "#ffffff",
+          backgroundColor: colors.surface,
           borderTopWidth: 1,
-          borderTopColor: "#E2E8F0",
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
+          borderTopColor: colors.border,
+          height: 80,
+          paddingBottom: 12,
+          paddingTop: 10,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",
+          marginTop: 2,
         },
       }}
     >
@@ -55,6 +57,15 @@ export default function TabLayout() {
           title: "Profile",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="community"
+        options={{
+          title: "Community",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people-outline" size={size} color={color} />
           ),
         }}
       />

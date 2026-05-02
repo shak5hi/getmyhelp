@@ -1,20 +1,21 @@
 import { StyleSheet } from "react-native";
+import { colors, shadows, radii } from "../constants/tokens";
 
 export const societyStyles = StyleSheet.create({
   // ── Shell ──────────────────────────────────────────────
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: colors.background,
   },
 
   // ── Fixed page header (title bar) ─────────────────────
   header: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     paddingHorizontal: 20,
     paddingTop: 6,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: colors.border,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -25,12 +26,12 @@ export const societyStyles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#111827",
+    color: colors.textPrimary,
     letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 13,
-    color: "#6B7280",
+    color: colors.textSecondary,
     marginTop: 2,
     fontWeight: "500",
   },
@@ -39,7 +40,7 @@ export const societyStyles = StyleSheet.create({
   tabContainer: {
     flexDirection: "row",
     backgroundColor: "#E5E7EB",
-    borderRadius: 12,
+    borderRadius: radii.md,
     marginHorizontal: 16,
     marginTop: 14,
     marginBottom: 14,
@@ -52,7 +53,7 @@ export const societyStyles = StyleSheet.create({
     borderRadius: 10,
   },
   activeTab: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -65,7 +66,7 @@ export const societyStyles = StyleSheet.create({
     color: "#9CA3AF",
   },
   activeTabText: {
-    color: "#111827",
+    color: colors.accent,
   },
 
   // ── List content container ─────────────────────────────
@@ -78,19 +79,72 @@ export const societyStyles = StyleSheet.create({
     paddingBottom: 100,
   },
 
+  // ── Finance summary row ────────────────────────────────
+  summaryRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginHorizontal: 16,
+    marginBottom: 14,
+  },
+  summaryCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
+  },
+  summaryIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  summaryLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.textTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    marginBottom: 2,
+  },
+  summaryValue: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: colors.textPrimary,
+  },
+  summaryValueIncome: {
+    color: colors.success,
+  },
+  summaryValueExpense: {
+    color: colors.danger,
+  },
+
+  // ── Count strip ───────────────────────────────────────
+  countStrip: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+  },
+  countStripText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.textTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+
   // ── Transaction card ───────────────────────────────────
   transactionCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
     padding: 16,
     marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadows.sm,
   },
   iconContainer: {
     width: 42,
@@ -99,16 +153,12 @@ export const societyStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 14,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
   },
   incomeIcon: {
     backgroundColor: "#F0FDF4",
-    borderColor: "#BBF7D0",
   },
   expenseIcon: {
-    backgroundColor: "#FEF2F2",
-    borderColor: "#FECACA",
+    backgroundColor: colors.dangerLight,
   },
   transactionInfo: {
     flex: 1,
@@ -116,12 +166,12 @@ export const societyStyles = StyleSheet.create({
   transactionCategory: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#111827",
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   transactionDate: {
     fontSize: 13,
-    color: "#9CA3AF",
+    color: colors.textTertiary,
     fontWeight: "500",
   },
   transactionRight: {
@@ -132,24 +182,19 @@ export const societyStyles = StyleSheet.create({
     fontWeight: "700",
   },
   incomeAmount: {
-    color: "#10B981",
+    color: colors.success,
   },
   expenseAmount: {
-    color: "#EF4444",
+    color: colors.danger,
   },
 
-  // ── Ticket card (dark style) ───────────────────────────
+  // ── Ticket card (no left border) ──────────────────────
   ticketCard: {
-    backgroundColor: "#111827",
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
     padding: 16,
     marginBottom: 10,
-    borderLeftWidth: 4,
-    shadowColor: "#111827",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    ...shadows.sm,
   },
   ticketHeader: {
     flexDirection: "row",
@@ -160,18 +205,18 @@ export const societyStyles = StyleSheet.create({
   ticketTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: colors.textPrimary,
     flex: 1,
     marginRight: 10,
     lineHeight: 22,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 20,
   },
   statusText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.3,
@@ -180,23 +225,25 @@ export const societyStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.1)",
   },
   priorityContainer: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 5,
+  },
+  priorityDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
   },
   priorityText: {
-    fontSize: 12,
-    color: "#9CA3AF",
-    marginLeft: 5,
+    fontSize: 11,
+    color: colors.textTertiary,
     fontWeight: "500",
   },
   ticketDate: {
     fontSize: 12,
-    color: "#6B7280",
+    color: colors.textSecondary,
     fontWeight: "500",
   },
 
@@ -208,10 +255,10 @@ export const societyStyles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#111827",
+    backgroundColor: colors.accent,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#111827",
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -221,7 +268,7 @@ export const societyStyles = StyleSheet.create({
   // ── Create Ticket form ─────────────────────────────────
   formContainer: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: colors.background,
     padding: 16,
   },
   inputGroup: {
@@ -230,25 +277,19 @@ export const societyStyles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#6B7280",
+    color: colors.textSecondary,
     marginBottom: 8,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
     marginLeft: 2,
   },
   input: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 12,
+    borderColor: colors.border,
+    borderRadius: radii.md,
     padding: 14,
     fontSize: 15,
-    color: "#111827",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
+    color: colors.textPrimary,
+    ...shadows.sm,
   },
   textArea: {
     height: 120,
@@ -256,20 +297,20 @@ export const societyStyles = StyleSheet.create({
     paddingTop: 14,
   },
   submitButton: {
-    backgroundColor: "#111827",
+    backgroundColor: colors.accent,
     borderRadius: 14,
     padding: 16,
     alignItems: "center",
     marginTop: 8,
     marginBottom: 32,
-    shadowColor: "#111827",
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 4,
   },
   submitButtonText: {
-    color: "#fff",
+    color: colors.surface,
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -278,17 +319,17 @@ export const societyStyles = StyleSheet.create({
   // ── Ticket type selector ───────────────────────────────
   typeButton: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
-    borderColor: "#E5E7EB",
+    borderColor: colors.border,
     borderRadius: 14,
     padding: 14,
     alignItems: "center",
     gap: 4,
   },
   typeButtonActive: {
-    borderColor: "#111827",
-    backgroundColor: "#F9FAFB",
+    borderColor: colors.accent,
+    backgroundColor: colors.accentLight,
   },
   typeButtonText: {
     fontSize: 14,
@@ -297,7 +338,7 @@ export const societyStyles = StyleSheet.create({
     marginTop: 4,
   },
   typeButtonTextActive: {
-    color: "#111827",
+    color: colors.accent,
   },
   typeButtonSub: {
     fontSize: 11,
@@ -329,24 +370,24 @@ export const societyStyles = StyleSheet.create({
     position: "absolute",
     top: -4,
     right: -4,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     borderRadius: 10,
   },
   attachmentPicker: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#EEF2FF",
-    borderRadius: 12,
+    backgroundColor: colors.background,
+    borderRadius: radii.md,
     padding: 14,
-    borderWidth: 1,
-    borderColor: "#C7D2FE",
+    borderWidth: 1.5,
+    borderColor: colors.border,
     borderStyle: "dashed",
   },
   attachmentPickerText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#6366F1",
+    color: colors.textSecondary,
   },
 
   // ── Attachment row in detail view ──────────────────────
@@ -359,8 +400,8 @@ export const societyStyles = StyleSheet.create({
   detailAttachThumb: {
     width: 80,
     height: 80,
-    borderRadius: 12,
-    backgroundColor: "#1F2937",
+    borderRadius: radii.md,
+    backgroundColor: colors.surfaceAlt,
     overflow: "hidden",
   },
   detailAttachImage: {
@@ -370,28 +411,24 @@ export const societyStyles = StyleSheet.create({
 
   // ── Ticket detail ──────────────────────────────────────
   detailHeader: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     padding: 20,
     marginHorizontal: 16,
     marginTop: 12,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    borderRadius: radii.lg,
+    ...shadows.sm,
     marginBottom: 4,
   },
   detailTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#111827",
+    color: colors.textPrimary,
     marginBottom: 12,
   },
   detailDescription: {
     fontSize: 15,
     lineHeight: 24,
-    color: "#4B5563",
+    color: colors.textSecondary,
     marginBottom: 16,
   },
 
@@ -404,23 +441,19 @@ export const societyStyles = StyleSheet.create({
   commentBubble: {
     maxWidth: "82%",
     padding: 12,
-    borderRadius: 16,
+    borderRadius: radii.lg,
     marginBottom: 10,
   },
   myComment: {
     alignSelf: "flex-end",
-    backgroundColor: "#111827",
+    backgroundColor: colors.accent,
     borderBottomRightRadius: 4,
   },
   otherComment: {
     alignSelf: "flex-start",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderBottomLeftRadius: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadows.sm,
   },
   commentText: {
     fontSize: 14,
@@ -430,7 +463,7 @@ export const societyStyles = StyleSheet.create({
     color: "#FFFFFF",
   },
   otherCommentText: {
-    color: "#111827",
+    color: colors.textPrimary,
   },
   commentTime: {
     fontSize: 11,
@@ -441,38 +474,38 @@ export const societyStyles = StyleSheet.create({
     color: "rgba(255,255,255,0.6)",
   },
   otherCommentTime: {
-    color: "#9CA3AF",
+    color: colors.textTertiary,
   },
   commentInputContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
+    borderTopColor: colors.divider,
   },
   commentInput: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: colors.background,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: colors.border,
     paddingHorizontal: 16,
     paddingVertical: 10,
     marginRight: 10,
     fontSize: 15,
-    color: "#111827",
+    color: colors.textPrimary,
     maxHeight: 100,
   },
   sendButton: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "#111827",
+    backgroundColor: colors.accent,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#111827",
+    shadowColor: colors.accent,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -489,13 +522,13 @@ export const societyStyles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#111827",
+    color: colors.textPrimary,
     marginTop: 16,
     textAlign: "center",
   },
   emptyText: {
     fontSize: 14,
-    color: "#9CA3AF",
+    color: colors.textTertiary,
     textAlign: "center",
     marginTop: 8,
     lineHeight: 22,
@@ -503,19 +536,19 @@ export const societyStyles = StyleSheet.create({
 
   // ── Skeleton loader ────────────────────────────────────
   skeleton: {
-    backgroundColor: "#E5E7EB",
-    borderRadius: 8,
+    backgroundColor: colors.border,
+    borderRadius: radii.sm,
     overflow: "hidden",
   },
 
-  // ── Transaction detail modal ───────────────────────────
+  // ── Transaction detail modal (light themed) ────────────
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#111827",
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 24,
@@ -530,7 +563,7 @@ export const societyStyles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: colors.textPrimary,
   },
   modalSection: {
     marginBottom: 20,
@@ -538,14 +571,14 @@ export const societyStyles = StyleSheet.create({
   modalLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#6B7280",
+    color: colors.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   modalValue: {
     fontSize: 16,
-    color: "#E5E7EB",
+    color: colors.textSecondary,
     fontWeight: "500",
     lineHeight: 24,
   },
@@ -556,31 +589,31 @@ export const societyStyles = StyleSheet.create({
   attachmentItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1F2937",
+    backgroundColor: colors.surfaceAlt,
     padding: 12,
-    borderRadius: 12,
+    borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: "#374151",
+    borderColor: colors.border,
   },
   attachmentName: {
     flex: 1,
     fontSize: 14,
-    color: "#D1D5DB",
+    color: colors.textSecondary,
     marginLeft: 10,
     fontWeight: "500",
   },
   closeButton: {
-    backgroundColor: "#1F2937",
+    backgroundColor: colors.surfaceAlt,
     padding: 16,
     borderRadius: 14,
     alignItems: "center",
     marginTop: 8,
     borderWidth: 1,
-    borderColor: "#374151",
+    borderColor: colors.border,
   },
   closeButtonText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#9CA3AF",
+    color: colors.textSecondary,
   },
 });

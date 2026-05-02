@@ -151,48 +151,17 @@ export default function TicketDetailsScreen() {
 
   const getStatusColor = (status: string) => {
     const s = status?.toLowerCase() || "";
-    if (s.includes("open")) return "#6366F1";
-    if (s.includes("progress")) return "#F59E0B";
-    if (s.includes("closed")) return "#64748B";
-    if (s.includes("resolved")) return "#10B981";
-    return "#64748B";
+    if (s.includes("open"))     return { bg: "#F3F4F6",  text: "#374151"  };
+    if (s.includes("progress")) return { bg: "#FEF3C7",  text: "#92400E"  };
+    if (s.includes("closed"))   return { bg: "#F3F4F6",  text: "#6B7280"  };
+    if (s.includes("resolved")) return { bg: "#D1FAE5",  text: "#065F46"  };
+    return { bg: "#F3F4F6", text: "#6B7280" };
   };
 
   const attachments: any[] = ticket?.attachments || [];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { flexDirection: "row", alignItems: "center" }]}>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
-          <Ionicons name="arrow-back" size={24} color="#1E293B" />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { fontSize: 18 }]} numberOfLines={1}>{ticket?.title}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4, gap: 8 }}>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(ticket?.status) + "15", paddingVertical: 2 }]}>
-              <Text style={[styles.statusText, { color: getStatusColor(ticket?.status), fontSize: 9 }]}>
-                {ticket?.status}
-              </Text>
-            </View>
-            {ticket?.type && (
-              <View style={[styles.statusBadge, { backgroundColor: ticket.type === "private" ? "#FEF3C7" : "#EEF2FF", paddingVertical: 2 }]}>
-                <Ionicons
-                  name={ticket.type === "private" ? "lock-closed" : "people"}
-                  size={9}
-                  color={ticket.type === "private" ? "#D97706" : "#6366F1"}
-                  style={{ marginRight: 3 }}
-                />
-                <Text style={[styles.statusText, { color: ticket.type === "private" ? "#D97706" : "#6366F1", fontSize: 9 }]}>
-                  {ticket.type}
-                </Text>
-              </View>
-            )}
-            <Text style={[styles.subtitle, { marginTop: 0, fontSize: 12 }]}>#{id}</Text>
-          </View>
-        </View>
-      </View>
-
+    <SafeAreaView edges={["bottom"]} style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -204,6 +173,33 @@ export default function TicketDetailsScreen() {
         >
           {/* Ticket Description */}
           <View style={styles.detailHeader}>
+            <Text style={[styles.title, { fontSize: 20, marginBottom: 8 }]} numberOfLines={2}>{ticket?.title}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+              {(() => {
+                const sc = getStatusColor(ticket?.status);
+                return (
+                  <View style={[styles.statusBadge, { backgroundColor: sc.bg }]}>
+                    <Text style={[styles.statusText, { color: sc.text }]}>
+                      {ticket?.status}
+                    </Text>
+                  </View>
+                );
+              })()}
+              {ticket?.type && (
+                <View style={[styles.statusBadge, { backgroundColor: "#F3F4F6", flexDirection: "row", alignItems: "center", gap: 4 }]}>
+                  <Ionicons
+                    name={ticket.type === "private" ? "lock-closed" : "people"}
+                    size={11}
+                    color="#6B7280"
+                  />
+                  <Text style={[styles.statusText, { color: "#6B7280" }]}>
+                    {ticket.type}
+                  </Text>
+                </View>
+              )}
+              <Text style={[styles.subtitle, { marginTop: 0 }]}>#{id}</Text>
+            </View>
+
             <Text style={styles.label}>Description</Text>
             <Text style={styles.detailDescription}>{ticket?.description || "No description provided."}</Text>
 
@@ -244,7 +240,7 @@ export default function TicketDetailsScreen() {
                           />
                         ) : (
                           <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: 4 }}>
-                            <Ionicons name="document-text" size={28} color="#6366F1" />
+                            <Ionicons name="document-text" size={28} color="#9CA3AF" />
                             <Text style={{ fontSize: 10, color: "#9CA3AF", textAlign: "center", paddingHorizontal: 4 }} numberOfLines={2}>
                               {att.original_filename || "File"}
                             </Text>
@@ -260,7 +256,7 @@ export default function TicketDetailsScreen() {
 
           {/* Activity/Comments Title */}
           <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 }}>
-            <Text style={[styles.label, { fontSize: 16, color: "#1E293B" }]}>Interaction History</Text>
+            <Text style={styles.label}>Interaction History</Text>
           </View>
 
           {/* Comments */}
