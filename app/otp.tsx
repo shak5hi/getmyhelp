@@ -128,7 +128,20 @@ export default function OtpScreen() {
       const userToSave = { ...(customer || {}), phone };
       await AsyncStorage.setItem("user", JSON.stringify(userToSave));
 
+      // Save user_role for guard routing
+      if (customer?.user_role) {
+        await AsyncStorage.setItem("user_role", customer.user_role);
+      }
+
       console.log("🔐 ACCESS TOKEN SAVED:", accessToken);
+
+      // ── Guard: skip onboarding entirely ──
+      if (customer?.user_role === "guard") {
+        console.log("✅ [otp] Guard login — routing to guard tabs");
+        cleanupOtpState();
+        router.replace("/(guard-tabs)/visitor-list");
+        return;
+      }
 
       // ── Decide whether to skip onboarding ──
       // The login response now includes society_id, tower_id, flat_number
@@ -171,7 +184,12 @@ export default function OtpScreen() {
           }
           await AsyncStorage.setItem("flat_number", String(pFlat));
           cleanupOtpState();
-          router.replace("/(tabs)/dashboard");
+          const role = p?.user_role ?? await AsyncStorage.getItem("user_role");
+          if (role === "guard") {
+            router.replace("/(guard-tabs)/visitor-list");
+          } else {
+            router.replace("/(tabs)/dashboard");
+          }
           return;
         }
       } catch (profileErr) {

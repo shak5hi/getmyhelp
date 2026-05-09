@@ -35,7 +35,8 @@
       "expo-router",
       "expo-localization",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      ["expo-camera", { "cameraPermission": "Allow GetMyHelp to access your camera." }]
     ],
     "experiments": {
       "typedRoutes": true,

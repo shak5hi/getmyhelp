@@ -19,15 +19,16 @@ export type Reaction = {
 type Props = {
   reactions: Reaction[];
   onReact: (emoji: string) => void;
+  containerStyle?: any;
 };
 
-export function EmojiReactionBar({ reactions, onReact }: Props) {
+export function EmojiReactionBar({ reactions, onReact, containerStyle }: Props) {
   const [pickerVisible, setPickerVisible] = useState(false);
 
   const visible = reactions.filter((r) => r.count > 0);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
         {visible.map((r) => (
           <TouchableOpacity
@@ -82,7 +83,7 @@ export function EmojiReactionBar({ reactions, onReact }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 12,
+    marginTop: 4,
   },
   row: {
     flexDirection: "row",

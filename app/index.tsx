@@ -48,13 +48,19 @@ export default function HomeScreen() {
 
             if (profile && hasSociety && hasTower) {
               console.log("🚀 [index] Onboarded user, redirecting to dashboard");
-              
+
               // Pre-populate storage
               await AsyncStorage.setItem("selected_society_id", String(hasSociety));
               if (profile.tower_id || profile.towerId) await AsyncStorage.setItem("selected_tower_id", String(profile.tower_id || profile.towerId));
               if (profile.flat_number || profile.flatNumber) await AsyncStorage.setItem("flat_number", String(profile.flat_number || profile.flatNumber));
-              
-              router.replace("/(tabs)/dashboard");
+              if (profile.user_role) await AsyncStorage.setItem("user_role", String(profile.user_role));
+
+              const userRole = profile.user_role ?? await AsyncStorage.getItem("user_role");
+              if (userRole === "guard") {
+                router.replace("/(guard-tabs)/visitor-list");
+              } else {
+                router.replace("/(tabs)/dashboard");
+              }
             } else {
               console.log("🧭 [index] New user/Not onboarded, staying at index/location");
             }

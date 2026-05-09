@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { colors } from "../../constants/tokens";
 
-export default function TabLayout() {
+export default function GuardTabLayout() {
   return (
     <Tabs
       screenOptions={{
@@ -25,29 +25,38 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="dashboard"
+        name="visitor-list"
         options={{
-          title: "Dashboard",
+          title: "Visitors",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="grid-outline" size={size} color={color} />
+            <Ionicons name="people-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="society"
+        name="new-visitor"
         options={{
-          title: "Society",
+          title: "New Entry",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="business-outline" size={size} color={color} />
+            <Ionicons name="person-add-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="chatbot"
+        name="qr-scanner"
         options={{
-          title: "Assistant",
+          title: "Scan QR",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
+            <Ionicons name="qr-code-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="verify-otp"
+        options={{
+          title: "OTP Entry",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="keypad-outline" size={size} color={color} />
           ),
         }}
       />
@@ -58,32 +67,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="community"
-        options={{
-          title: "Community",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="visitors"
-        options={{
-          title: "Visitors",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="walk-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen name="subscriptions" options={{ href: null }} />
-      <Tabs.Screen name="settings" options={{ href: null }} />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          href: null,
         }}
       />
     </Tabs>

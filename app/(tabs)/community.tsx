@@ -86,11 +86,17 @@ export default function CommunityScreen() {
   const [pollsRefreshing, setPollsRefreshing] = useState(false);
   const [pollSelections, setPollSelections] = useState<Record<string, (string | number)[]>>({});
   const [submittingPoll, setSubmittingPoll] = useState<string | null>(null);
+  const [votedPollIds, setVotedPollIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     AsyncStorage.getItem("user").then((s) => {
       const user = s ? JSON.parse(s) : {};
       setSocietyId(user?.society_id ? String(user.society_id) : null);
+    });
+    AsyncStorage.getItem("voted_poll_ids").then((s) => {
+      if (s) {
+        try { setVotedPollIds(new Set(JSON.parse(s))); } catch {}
+      }
     });
   }, []);
 
@@ -235,6 +241,12 @@ export default function CommunityScreen() {
           )
         );
       }
+      setVotedPollIds((prev) => {
+        const next = new Set(prev);
+        next.add(String(poll.id));
+        AsyncStorage.setItem("voted_poll_ids", JSON.stringify([...next]));
+        return next;
+      });
     } catch (e) {
       console.error("vote:", e);
     } finally {
@@ -313,6 +325,7 @@ export default function CommunityScreen() {
       item.reaction_count ??
       item.reactions?.reduce((a: number, r: any) => a + (r.count ?? 0), 0) ??
       0;
+    const bodyPreview = stripHtml(item.content ?? item.body ?? "");
 
     return (
       <TouchableOpacity
@@ -325,7 +338,7 @@ export default function CommunityScreen() {
         }
         activeOpacity={0.75}
       >
-        {/* Author */}
+        {/* Author row */}
         <View style={styles.forumCardTop}>
           <View style={[styles.forumAvatar, { backgroundColor: av.bg }]}>
             <Text style={[styles.forumAvatarText, { color: av.text }]}>{initials}</Text>
@@ -339,19 +352,36 @@ export default function CommunityScreen() {
           <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
         </View>
 
+        {/* Title */}
         <Text style={styles.forumTitle} numberOfLines={2}>
           {item.title}
         </Text>
+
+        {/* Body preview */}
+        {bodyPreview.length > 0 && (
+          <Text style={styles.forumBody} numberOfLines={2}>
+            {bodyPreview}
+          </Text>
+        )}
 
         {/* Footer stats */}
         <View style={styles.forumFooter}>
           <View style={styles.forumStat}>
             <Ionicons name="chatbubble-outline" size={13} color="#6B7280" />
-            <Text style={styles.forumStatText}>{replyCount}</Text>
+            <Text style={styles.forumStatText}>
+              {replyCount} {replyCount === 1 ? "reply" : "replies"}
+            </Text>
           </View>
-          <View style={styles.forumStat}>
-            <Ionicons name="heart-outline" size={13} color="#6B7280" />
-            <Text style={styles.forumStatText}>{reactionCount}</Text>
+          {reactionCount > 0 && (
+            <View style={styles.forumStat}>
+              <Ionicons name="heart-outline" size={13} color="#6B7280" />
+              <Text style={styles.forumStatText}>{reactionCount}</Text>
+            </View>
+          )}
+          <View style={{ marginLeft: "auto" }}>
+            <Text style={[styles.forumAuthorTime, { color: colors.accent, fontWeight: "600" }]}>
+              Open thread
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -359,12 +389,12 @@ export default function CommunityScreen() {
   };
 
   const renderPoll = ({ item }: { item: any }) => {
-    const isVoted = item.is_voted ?? item.voted ?? false;
+    const isVoted = item.is_voted ?? item.voted ?? votedPollIds.has(String(item.id));
+    console.warn("POLL MULTI:", JSON.stringify({ id: item.id, is_multiple_choice: item.is_multiple_choice, is_multiple: item.is_multiple, allow_multiple: item.allow_multiple, multiple: item.multiple, type: item.type, poll_type: item.poll_type }));
     const isClosed =
       item.is_closed === true ||
       item.status === "closed" ||
-      item.status === "expired" ||
-      (item.expires_at && new Date(item.expires_at) < new Date());
+      item.status === "expired";
     const isMultiple = item.is_multiple_choice ?? item.is_multiple ?? false;
     const options: any[] = item.options ?? [];
     const totalVotes = options.reduce((a: number, o: any) => a + (o.vote_count ?? 0), 0);

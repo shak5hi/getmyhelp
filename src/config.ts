@@ -17,7 +17,6 @@ const ENV = {
 };
 
 const getEnvVars = () => {
-  if (__DEV__) return ENV.dev;
   if (Constants.expoConfig?.extra?.environment === 'staging') return ENV.staging;
   return ENV.prod;
 };

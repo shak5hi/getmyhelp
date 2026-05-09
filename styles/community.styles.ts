@@ -438,12 +438,14 @@ export const communityStyles = StyleSheet.create({
   // ── Thread / create-post ─────────────────────────────────
   replyBar: {
     flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
+    alignItems: "flex-end",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingBottom: 14,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
-    gap: 10,
+    gap: 8,
   },
   replyInput: {
     flex: 1,
@@ -451,11 +453,13 @@ export const communityStyles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 10,
+    paddingTop: 10,
     fontSize: 14,
     color: colors.textPrimary,
-    maxHeight: 80,
+    maxHeight: 100,
+    minHeight: 42,
   },
   replySendBtn: {
     width: 42,
@@ -469,7 +473,117 @@ export const communityStyles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 4,
+    flexShrink: 0,
   },
+
+  // ── Chat bubbles ─────────────────────────────────────────
+  bubbleRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginBottom: 4,
+    paddingHorizontal: 10,
+  },
+  bubbleRowOwn: {
+    justifyContent: "flex-end",
+  },
+  bubbleAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#6366F1",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 6,
+    flexShrink: 0,
+    alignSelf: "flex-end",
+  },
+  bubbleAvatarText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  bubble: {
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  bubbleOwn: {
+    backgroundColor: colors.accent,
+    borderBottomRightRadius: 4,
+  },
+  bubbleOther: {
+    backgroundColor: colors.surface,
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
+  },
+  bubbleAuthor: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.accent,
+    marginBottom: 2,
+  },
+  bubbleText: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    lineHeight: 20,
+  },
+  bubbleTextOwn: {
+    color: "#fff",
+  },
+  bubbleFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 4,
+    gap: 8,
+  },
+  bubbleActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  bubbleTime: {
+    fontSize: 10,
+    color: colors.textTertiary,
+  },
+  bubbleTimeOwn: {
+    color: "rgba(255,255,255,0.6)",
+  },
+
+  // ── Quoted message inside bubble ─────────────────────────
+  quotedBox: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.accent,
+    paddingLeft: 6,
+    paddingVertical: 3,
+    marginBottom: 5,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    borderRadius: 4,
+  },
+  quotedBoxOwn: {
+    borderLeftColor: "rgba(255,255,255,0.7)",
+    backgroundColor: "rgba(0,0,0,0.1)",
+  },
+  quotedAuthor: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.accent,
+    marginBottom: 1,
+  },
+  quotedAuthorOwn: {
+    color: "rgba(255,255,255,0.95)",
+  },
+  quotedText: {
+    fontSize: 12,
+    color: "#6B7280",
+    lineHeight: 16,
+  },
+  quotedTextOwn: {
+    color: "rgba(255,255,255,0.8)",
+  },
+
   replyCard: {
     backgroundColor: colors.surface,
     borderRadius: radii.md,
