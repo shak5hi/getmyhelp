@@ -27,7 +27,7 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.getmyhelp.mobile",
+      "package": "getmyhelp.android",
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.CAMERA",
