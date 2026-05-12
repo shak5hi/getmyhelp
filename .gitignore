@@ -41,3 +41,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Firebase iOS config (contains Apple credentials — do not commit)
+GoogleService-Info.plist

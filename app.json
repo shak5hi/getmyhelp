@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.getmyhelp.mobile",
+      "googleServicesFile": "$GOOGLE_SERVICES_PLIST",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true,
@@ -26,7 +27,12 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.getmyhelp.mobile"
+      "package": "com.getmyhelp.mobile",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static"
@@ -36,11 +42,24 @@
       "expo-localization",
       "expo-font",
       "expo-web-browser",
-      ["expo-camera", { "cameraPermission": "Allow GetMyHelp to access your camera." }]
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow GetMyHelp to access your camera."
+        }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "89d5a766-ed4e-448a-b07b-862d5e6ed823"
+      }
     }
   }
 }
