@@ -1,3 +1,4 @@
+import { getAuth, signInWithPhoneNumber } from "@react-native-firebase/auth";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -7,7 +8,7 @@ import {
   View,
 } from "react-native";
 import i18n from "../src/i18n";
-import config from "../src/config";
+import { setConfirmation } from "../src/firebaseConfirmation";
 import { phoneStyles as styles } from "../styles/phone.styles";
 
 export default function PhoneScreen() {
@@ -20,7 +21,6 @@ export default function PhoneScreen() {
   const handlePhoneChange = (text: string) => {
     const digitsOnly = text.replace(/[^0-9]/g, "");
     setPhone(digitsOnly);
-
     if (error) setError("");
   };
 
@@ -34,72 +34,25 @@ export default function PhoneScreen() {
       setLoading(true);
       setError("");
 
-      const apiUrl = `${config.apiUrl}/customer/login`;
-      console.log("🔄 Sending OTP request to:", apiUrl);
-      console.log("📱 Phone number:", "+91" + phone);
+      const phoneWithCode = `+91${phone}`;
+      console.log("🔄 Sending Firebase OTP to:", phoneWithCode);
 
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone: phone, // Use 10 digits to match verification steps
-        }),
-      });
+      const confirmation = await signInWithPhoneNumber(getAuth(), phoneWithCode);
+      setConfirmation(confirmation);
 
-      console.log("📊 Response status:", response.status);
-      console.log("✅ Response ok:", response.ok);
-
-      const text = await response.text();
-      let data;
-      try {
-        data = text ? JSON.parse(text) : {};
-        console.log("📦 Response data:", JSON.stringify(data, null, 2));
-      } catch (e) {
-        console.log("⚠️ Response is not JSON. Raw text start:", text.substring(0, 100));
-        data = { message: "Server error: The backend API returned HTML instead of JSON. Ensure the server at " + config.apiUrl + " is running and accessible." };
-      }
-
-      if (!response.ok) {
-        // Handle different error response formats
-        let errorMessage = "Unable to send OTP";
-        
-        if (data.detail) {
-          // FastAPI validation error format
-          if (Array.isArray(data.detail)) {
-            errorMessage = data.detail[0]?.msg || errorMessage;
-          } else if (typeof data.detail === 'string') {
-            errorMessage = data.detail;
-          }
-        } else if (data.message) {
-          errorMessage = data.message;
-        }
-        
-        setError(errorMessage);
-        return;
-      }
-
-      // ✅ OTP sent successfully
-      console.log("✅ OTP sent successfully");
+      console.log("✅ Firebase OTP sent successfully");
       router.push({
         pathname: "/otp",
-        params: { phone: "+91" + phone },
+        params: { phone: phoneWithCode },
       });
     } catch (err: any) {
-      console.error("❌ Fetch error:", err);
-      console.error("Error name:", err.name);
-      console.error("Error message:", err.message);
-      
-      // Provide more specific error messages
-      if (err.message.includes("Network request failed")) {
-        setError("Cannot reach server. Please check your internet connection.");
-      } else if (err.message.includes("timeout")) {
-        setError("Request timeout. Server is taking too long to respond.");
-      } else if (err.message.includes("JSON")) {
-        setError("Invalid response from server. Please try again.");
+      console.error("❌ Firebase OTP error:", err);
+      if (err.code === "auth/invalid-phone-number") {
+        setError("Invalid phone number. Please check and try again.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Too many attempts. Please try again later.");
       } else {
-        setError("Network error. Please try again.");
+        setError("Failed to send OTP. Please try again.");
       }
     } finally {
       setLoading(false);

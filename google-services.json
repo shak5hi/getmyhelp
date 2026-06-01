@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:717010664354:android:ba0e3229645d1802fd10fb",
+        "mobilesdk_app_id": "1:717010664354:android:af220fce84ca71a1fd10fb",
         "android_client_info": {
-          "package_name": "getmyhelp.android"
+          "package_name": "com.getmyhelp.mobile"
         }
       },
       "oauth_client": [],

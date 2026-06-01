@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getAuth, signInWithPhoneNumber } from "@react-native-firebase/auth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -12,6 +13,7 @@ import {
 import config from "../src/config";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
+import { getConfirmation, setConfirmation } from "../src/firebaseConfirmation";
 import { otpStyles as styles } from "../styles/otp.styles";
 
 export default function OtpScreen() {
@@ -70,33 +72,40 @@ export default function OtpScreen() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        `${config.apiUrl}/customer/verify-otp`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            phone: phone.replace(/\D/g, "").slice(-10),
-            otp,
-          }),
-        }
-      );
+      // 1. Verify OTP with Firebase
+      const confirmation = getConfirmation();
+      if (!confirmation) {
+        setError("Session expired. Please go back and request a new OTP.");
+        return;
+      }
+
+      const credential = await confirmation.confirm(otp);
+      const idToken = await credential.user.getIdToken();
+      console.log("✅ Firebase OTP verified");
+
+      // 2. Exchange Firebase ID token for app access_token
+      const response = await fetch(`${config.apiUrl}/customer/firebase-verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firebase_id_token: idToken,
+          phone: phone.replace(/\D/g, "").slice(-10),
+        }),
+      });
 
       const text = await response.text();
       let data;
       try {
         data = text ? JSON.parse(text) : {};
-        console.log("🔍 FULL VERIFY OTP RESPONSE:", data);
+        console.log("🔍 FULL FIREBASE VERIFY RESPONSE:", data);
       } catch (e) {
         console.log("⚠️ Response is not JSON. Raw text start:", text.substring(0, 100));
-        data = { message: "Server error: The backend API returned HTML instead of JSON. Ensure the server at " + config.apiUrl + " is running and accessible." };
+        data = { message: "Server error: backend returned HTML instead of JSON." };
       }
 
       if (!response.ok) {
         let errorMessage = "Invalid or expired OTP";
-        
+
         if (data?.detail) {
           if (Array.isArray(data.detail)) {
             errorMessage = data.detail[0]?.msg || errorMessage;
@@ -111,7 +120,6 @@ export default function OtpScreen() {
         return;
       }
 
-      // ✅ CORRECT TOKEN PATH
       const accessToken = data?.data?.access_token;
       const customer = data?.data?.customer;
 
@@ -214,27 +222,22 @@ export default function OtpScreen() {
       setLoading(true);
       setError("");
 
-      console.log("🔄 Resending OTP to:", phone);
+      console.log("🔄 Resending Firebase OTP to:", phone);
 
-      const response = await fetch(`${config.apiUrl}/customer/resend-otp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phone: phone.replace(/\D/g, "").slice(-10) }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to resend OTP");
-      }
+      const confirmation = await signInWithPhoneNumber(getAuth(), phone);
+      setConfirmation(confirmation);
 
       setOtp("");
       setTimer(40);
       setResendActive(true);
       Alert.alert("Success", "New OTP has been sent!");
-    } catch (err) {
+    } catch (err: any) {
       console.log("❌ Resend error:", err);
-      setError("Failed to resend OTP. Please try again.");
+      if (err.code === "auth/too-many-requests") {
+        setError("Too many attempts. Please try again later.");
+      } else {
+        setError("Failed to resend OTP. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

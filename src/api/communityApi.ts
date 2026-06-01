@@ -21,7 +21,7 @@ export const getAnnouncements = async (page = 1, search = "") => {
     `${config.apiUrl}/customer/announcements?${params}`,
     { headers }
   );
-  return res.json();
+  return safeJson(res);
 };
 
 export const getAnnouncementDetail = async (id: string | number) => {
@@ -30,7 +30,7 @@ export const getAnnouncementDetail = async (id: string | number) => {
     `${config.apiUrl}/customer/announcements/${id}`,
     { headers }
   );
-  return res.json();
+  return safeJson(res);
 };
 
 export const markAnnouncementRead = async (id: string | number) => {
@@ -57,7 +57,7 @@ export const getForumPosts = async (page = 1) => {
     `${config.apiUrl}/customer/forum/posts?page=${page}`,
     { headers }
   );
-  return res.json();
+  return safeJson(res);
 };
 
 export const getForumPostDetail = async (id: string | number) => {
@@ -66,7 +66,7 @@ export const getForumPostDetail = async (id: string | number) => {
     `${config.apiUrl}/customer/forum/posts/${id}`,
     { headers }
   );
-  return res.json();
+  return safeJson(res);
 };
 
 export const createForumPost = async (
@@ -112,7 +112,7 @@ export const reactToReply = async (id: string | number, emoji: string) => {
 export const getPolls = async () => {
   const headers = await authHeaders();
   const res = await fetch(`${config.apiUrl}/customer/polls`, { headers });
-  return res.json();
+  return safeJson(res);
 };
 
 export const votePoll = async (

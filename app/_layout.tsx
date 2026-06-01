@@ -78,8 +78,6 @@ export default function RootLayout() {
             <Stack.Screen name="location" />
             <Stack.Screen name="society-detected" />
             <Stack.Screen name="tower" />
-            <Stack.Screen name="subscription" />
-            <Stack.Screen name="dashboard" />
             <Stack.Screen name="assignment-details" options={{ headerTitle: "Assignment Details" }} />
             <Stack.Screen name="notifications" options={{ headerTitle: "Notifications" }} />
             <Stack.Screen name="community/announcement-detail" options={{ headerTitle: "Announcement" }} />

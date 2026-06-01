@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\pysha\\\\OneDrive\\\\Desktop\\\\getmyhelp\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(Select-Object Name, PSIsContainer)"
+    ]
+  }
+}
