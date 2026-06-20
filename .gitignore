@@ -42,5 +42,6 @@ app-example
 /ios
 /android
 
-# Firebase iOS config (contains Apple credentials — do not commit)
+# Firebase config files (contain API keys — do not commit)
 GoogleService-Info.plist
+google-services.json

@@ -20,6 +20,9 @@ import config from "../../src/config";
 import { useLanguage } from "../../src/LanguageContext";
 import { dashboardStyles as styles } from "../../styles/dashboard.styles";
 import { colors } from "../../constants/tokens";
+import TodaysHelp from "../../components/TodaysHelp";
+import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Chatbot Types
 type MessageType = {
@@ -47,11 +50,13 @@ let messageCounter = 0;
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   useLanguage();
 
   // API state
   const [customerName, setCustomerName] = useState("user");
   const [customerImage, setCustomerImage] = useState<string | null>(null);
+  const [locationLabel, setLocationLabel] = useState("Your Home");
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
   const [availablePlans, setAvailablePlans] = useState<any[]>([]);
   const [loadingSubscription, setLoadingSubscription] = useState(true);
@@ -135,6 +140,7 @@ export default function DashboardScreen() {
 
       setCustomerName(formattedName);
       setCustomerImage(user?.profile_image || null);
+      setLocationLabel(user?.flat_number ? `Flat ${user.flat_number}` : "Your Home");
 
       // 4. Fetch current subscription
       const subRes = await fetch(
@@ -235,164 +241,149 @@ export default function DashboardScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* GREETING */}
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.greeting}>{getGreeting()}, {customerName} 👋</Text>
-            <Text style={styles.subGreeting}>Here's a quick overview of your service</Text>
-          </View>
-          <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} style={styles.profileAvatar}>
-            {customerImage ? (
-              <Image source={{ uri: customerImage }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.initialsContainer}>
-                <Text style={styles.initialsText}>{getInitials(customerName)}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
+        {/* GRADIENT HEADER */}
+        <LinearGradient
+          colors={[colors.gradientStart, colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.headerGradient, { paddingTop: insets.top + 14 }]}
+        >
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity style={styles.headerIconBtn} onPress={() => router.push("/(tabs)/settings")}>
+              <Ionicons name="menu" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
 
-        {/* QUICK ACTIONS */}
-        <View style={styles.quickActionsRow}>
-          <TouchableOpacity
-            style={[styles.quickAction, { backgroundColor: "#EEF2FF", borderColor: "#C7D2FE" }]}
-            onPress={() => router.push("/(tabs)/society")}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: "#E0E7FF" }]}>
-              <Ionicons name="business-outline" size={18} color="#4F46E5" />
+            <View style={styles.headerLocation}>
+              <Ionicons name="location-sharp" size={14} color="#FFFFFF" />
+              <Text style={styles.headerLocationText} numberOfLines={1}>{locationLabel}</Text>
+              <Ionicons name="chevron-down" size={14} color="#FFFFFF" />
             </View>
-            <Text style={[styles.quickActionLabel, { color: "#4338CA" }]}>Society</Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.quickAction, { backgroundColor: "#FFF7ED", borderColor: "#FED7AA" }]}
-            onPress={() => router.push("/society/create-ticket")}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: "#FFEDD5" }]}>
-              <Ionicons name="ticket-outline" size={18} color="#EA580C" />
-            </View>
-            <Text style={[styles.quickActionLabel, { color: "#C2410C" }]}>Raise{"\n"}Ticket</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.quickAction, { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0" }]}
-            onPress={() => router.push("/(tabs)/subscriptions")}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: "#DCFCE7" }]}>
-              <Ionicons name="diamond-outline" size={18} color="#16A34A" />
-            </View>
-            <Text style={[styles.quickActionLabel, { color: "#15803D" }]}>Plans</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.quickAction, { backgroundColor: "#FFF1F2", borderColor: "#FECDD3" }]}
-            onPress={openChat}
-          >
-            <View style={[styles.quickActionIcon, { backgroundColor: "#FFE4E6" }]}>
-              <Ionicons name="headset-outline" size={18} color="#E11D48" />
-            </View>
-            <Text style={[styles.quickActionLabel, { color: "#BE123C" }]}>Support</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* HERO SECTION / ALERT */}
-        {assignments.length > 0 ? (
-          assignments.map((assignedMaid) => (
-            <View key={assignedMaid.id} style={styles.heroCard}>
-              <View style={styles.heroText}>
-                <Text style={styles.heroLabel}>Your Maid</Text>
-                <Text style={styles.heroName}>{assignedMaid.name}</Text>
-                <Text style={styles.heroRole}>{assignedMaid.role}</Text>
-                <Text style={styles.heroDate}>Since {assignedMaid.since}</Text>
-                <Pressable 
-                  style={styles.heroButton}
-                  onPress={() => router.push({
-                    pathname: "/assignment-details",
-                    params: { id: assignedMaid.id }
-                  })}
-                >
-                  <Text style={styles.heroButtonText}>View Details</Text>
-                </Pressable>
-              </View>
-              {assignedMaid.image ? (
-                <Image source={{ uri: assignedMaid.image }} style={styles.heroImage} />
+            <TouchableOpacity style={styles.headerAvatar} onPress={() => router.push("/(tabs)/profile")}>
+              {customerImage ? (
+                <Image source={{ uri: customerImage }} style={styles.avatarImage} />
               ) : (
-                <View style={[styles.heroImage, styles.heroInitials]}>
-                  <Text style={styles.heroInitialsText}>{getInitials(assignedMaid.name)}</Text>
+                <View style={styles.headerAvatarInitials}>
+                  <Text style={styles.headerAvatarInitialsText}>{getInitials(customerName)}</Text>
                 </View>
               )}
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.headerGreeting}>Hi {customerName}!</Text>
+          <Text style={styles.headerSubtitle}>What can we help you with today?</Text>
+
+          <Pressable style={styles.searchBar} onPress={openChat}>
+            <Ionicons name="search" size={18} color={colors.textTertiary} />
+            <Text style={styles.searchPlaceholder}>Search services, tickets…</Text>
+          </Pressable>
+        </LinearGradient>
+
+        {/* BODY */}
+        <View style={styles.body}>
+
+          {/* SERVICES LIST */}
+          <View>
+            <Text style={styles.sectionLabel}>Services</Text>
+            <View style={styles.serviceList}>
+              {[
+                { label: "My Society", desc: "Notices, payments & contacts", icon: "business", color: "#2563EB", bg: "#EFF6FF", onPress: () => router.push("/(tabs)/society") },
+                { label: "Raise a Ticket", desc: "Report an issue to your society", icon: "construct", color: "#EA580C", bg: "#FFF7ED", onPress: () => router.push("/society/create-ticket") },
+                { label: "Subscription Plans", desc: "Manage your home help plan", icon: "diamond", color: "#9333EA", bg: "#F5EBFF", onPress: () => router.push("/(tabs)/subscriptions") },
+                { label: "Visitors", desc: "Invite & approve your guests", icon: "people", color: "#16A34A", bg: "#F0FDF4", onPress: () => router.push("/(tabs)/visitors") },
+                { label: "Support", desc: "Chat with our help assistant", icon: "headset", color: "#E11D48", bg: "#FFF1F2", onPress: openChat },
+              ].map((s, i, arr) => (
+                <TouchableOpacity
+                  key={s.label}
+                  style={[styles.serviceRow, i < arr.length - 1 && styles.serviceRowDivider]}
+                  activeOpacity={0.7}
+                  onPress={s.onPress}
+                >
+                  <View style={[styles.serviceIcon, { backgroundColor: s.bg }]}>
+                    <Ionicons name={s.icon as any} size={20} color={s.color} />
+                  </View>
+                  <View style={styles.serviceTextWrap}>
+                    <Text style={styles.serviceTitle}>{s.label}</Text>
+                    <Text style={styles.serviceDesc} numberOfLines={1}>{s.desc}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+                </TouchableOpacity>
+              ))}
             </View>
-          ))
-        ) : (
-          <View style={styles.alertCard}>
-            <View style={styles.alertIconContainer}>
-               <Ionicons name="alert-circle" size={28} color="#9A3412" />
-            </View>
-            <View style={styles.alertContent}>
-               <Text style={styles.alertTitle}>No Maid Assigned</Text>
-               <Text style={styles.alertText}>It looks like you don't have a maid assigned to your flat yet.</Text>
-               <Pressable 
+          </View>
+
+          {/* HERO SECTION / ALERT */}
+          {assignments.length > 0 ? (
+            assignments.map((assignedMaid) => (
+              <View key={assignedMaid.id} style={styles.heroCard}>
+                <View style={styles.heroText}>
+                  <Text style={styles.heroLabel}>Your Maid</Text>
+                  <Text style={styles.heroName}>{assignedMaid.name}</Text>
+                  <Text style={styles.heroRole}>{assignedMaid.role}</Text>
+                  <Text style={styles.heroDate}>Since {assignedMaid.since}</Text>
+                  <Pressable
+                    style={styles.heroButton}
+                    onPress={() => router.push({
+                      pathname: "/assignment-details",
+                      params: { id: assignedMaid.id }
+                    })}
+                  >
+                    <Text style={styles.heroButtonText}>View Details</Text>
+                  </Pressable>
+                </View>
+                {assignedMaid.image ? (
+                  <Image source={{ uri: assignedMaid.image }} style={styles.heroImage} />
+                ) : (
+                  <View style={[styles.heroImage, styles.heroInitials]}>
+                    <Text style={styles.heroInitialsText}>{getInitials(assignedMaid.name)}</Text>
+                  </View>
+                )}
+              </View>
+            ))
+          ) : (
+            <View style={styles.alertCard}>
+              <View style={styles.alertIconContainer}>
+                <Ionicons name="alert-circle" size={28} color="#9A3412" />
+              </View>
+              <View style={styles.alertContent}>
+                <Text style={styles.alertTitle}>No Maid Assigned</Text>
+                <Text style={styles.alertText}>It looks like you don't have a maid assigned to your flat yet.</Text>
+                <Pressable
                   style={styles.alertButton}
                   onPress={() => Alert.alert("Contact AOA", "Please contact the Apartment Owners Association (AOA) to assign a maid.")}
-               >
+                >
                   <Text style={styles.alertButtonText}>Contact AOA</Text>
-               </Pressable>
-            </View>
-          </View>
-        )}
-
-        {/* STATS ROW */}
-        {assignments.length > 0 && (
-          <View style={styles.statsRow}>
-            <View style={[styles.statCard, { borderLeftWidth: 3, borderLeftColor: colors.accent }]}>
-              <View style={[styles.statIconContainer, { backgroundColor: colors.accentLight }]}>
-                <Ionicons name="calendar-outline" size={18} color={colors.accent} />
-              </View>
-              <Text style={styles.statValue}>{assignments[0]?.daysPresent || "—"}</Text>
-              <Text style={styles.statLabel}>Days Present</Text>
-            </View>
-
-            <View style={[styles.statCard, { borderLeftWidth: 3, borderLeftColor: "#9333EA" }]}>
-              <View style={[styles.statIconContainer, { backgroundColor: "#F3E8FF" }]}>
-                <Ionicons name="time-outline" size={18} color="#9333EA" />
-              </View>
-              <Text style={styles.statValue}>{assignments[0]?.nextService || "—"}</Text>
-              <Text style={styles.statLabel}>Next Service</Text>
-            </View>
-          </View>
-        )}
-
-        {/* SUBSCRIPTION CARD */}
-        <Pressable style={styles.subscriptionCard} onPress={() => setSubscriptionModalVisible(true)}>
-          <View style={styles.subscriptionHeader}>
-            <View style={styles.subscriptionIconContainer}>
-              <Ionicons name="diamond" size={18} color="#6366F1" />
-            </View>
-            <Text style={styles.currentPlanLabel}>CURRENT PLAN</Text>
-          </View>
-
-          {loadingSubscription ? (
-            <ActivityIndicator color="#6366F1" style={{ marginVertical: 6 }} />
-          ) : (
-            <View style={styles.subscriptionCompactRow}>
-              <Text style={styles.planNameCompact} numberOfLines={1}>
-                {currentSubscription?.plan_name || "No Plan"}
-              </Text>
-              <View style={styles.daysLeftPill}>
-                <Text style={styles.daysLeftPillText}>
-                  {currentSubscription?.days_remaining ?? "—"} days left
-                </Text>
+                </Pressable>
               </View>
             </View>
           )}
 
-          <View style={styles.subscriptionFooter}>
-            <Text style={styles.tapToManageText}>Tap to manage subscription</Text>
-            <Ionicons name="chevron-forward" size={18} color="#6366F1" />
-          </View>
-        </Pressable>
+          {/* TODAY'S HELP — resident-marked maid attendance */}
+          <TodaysHelp />
+
+          {/* SUBSCRIPTION PROMO BANNER */}
+          <Pressable style={styles.promoBanner} onPress={() => setSubscriptionModalVisible(true)}>
+            <View style={styles.promoTextWrap}>
+              <Text style={styles.promoLabel}>YOUR PLAN</Text>
+              <Text style={styles.promoTitle} numberOfLines={1}>
+                {loadingSubscription ? "Loading…" : currentSubscription?.plan_name || "No active plan"}
+              </Text>
+              <Text style={styles.promoSubtitle}>
+                {currentSubscription?.days_remaining != null
+                  ? `${currentSubscription.days_remaining} days remaining`
+                  : "Tap to explore plans"}
+              </Text>
+              <View style={styles.promoButton}>
+                <Text style={styles.promoButtonText}>Manage Plan</Text>
+              </View>
+            </View>
+            <View style={styles.promoIconCircle}>
+              <Ionicons name="diamond" size={30} color="#FFFFFF" />
+            </View>
+          </Pressable>
+        </View>
       </ScrollView>
 
       {/* SUBSCRIPTION MODAL */}
@@ -436,7 +427,7 @@ export default function DashboardScreen() {
                 <Text style={styles.sectionTitle}>Available Plans</Text>
 
                 {availablePlans.length > 0 ? (
-                  availablePlans.map((plan: any) => (
+                  availablePlans.map((plan: any, index: number) => (
                     <Pressable
                       key={plan.id || index}
                       style={[styles.planCard, selectedPlanId === (plan.id) && styles.planCardActive]}

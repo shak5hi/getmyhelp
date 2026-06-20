@@ -79,6 +79,7 @@ export default function RootLayout() {
             <Stack.Screen name="society-detected" />
             <Stack.Screen name="tower" />
             <Stack.Screen name="assignment-details" options={{ headerTitle: "Assignment Details" }} />
+            <Stack.Screen name="attendance-history" options={{ headerTitle: "Attendance History" }} />
             <Stack.Screen name="notifications" options={{ headerTitle: "Notifications" }} />
             <Stack.Screen name="community/announcement-detail" options={{ headerTitle: "Announcement" }} />
             <Stack.Screen name="community/forum-thread" options={{ headerTitle: "Discussion" }} />

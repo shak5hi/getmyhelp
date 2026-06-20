@@ -1,7 +1,11 @@
 export const colors = {
-  accent: "#1D4ED8",
-  accentLight: "#EFF6FF",
-  accentMid: "#BFDBFE",
+  accent: "#9333EA",
+  accentLight: "#F5EBFF",
+  accentMid: "#E2CFFB",
+
+  // Home gradient header (magenta -> purple)
+  gradientStart: "#E14ECA",
+  gradientEnd: "#9333EA",
 
   background: "#F8FAFC",
   surface: "#FFFFFF",
