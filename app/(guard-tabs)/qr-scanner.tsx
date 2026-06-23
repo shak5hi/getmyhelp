@@ -10,13 +10,17 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { scanQRCode } from "../../src/api/visitorApi";
 
 export default function QRScannerScreen() {
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanning, setScanning] = useState(true);
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [loading, setLoading] = useState(false);
 
   if (!permission) return <View />;
@@ -83,10 +87,10 @@ export default function QRScannerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
   permText: { fontSize: 16, color: "#333", textAlign: "center", marginBottom: 16 },
-  permBtn: { backgroundColor: colors.accent, borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10 },
+  permBtn: { backgroundColor: t.accent, borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10 },
   permBtnText: { color: "#fff", fontWeight: "600" },
   headerText: {
     color: "#fff",
@@ -107,7 +111,7 @@ const styles = StyleSheet.create({
   },
   rescanBtn: {
     marginTop: 24,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: 8,
     paddingHorizontal: 24,
     paddingVertical: 12,

@@ -13,7 +13,9 @@ import {
   markAnnouncementRead,
   reactToAnnouncement,
 } from "../../src/api/communityApi";
-import { communityStyles as styles } from "../../styles/community.styles";
+import { useMemo } from "react";
+import { makeStyles } from "../../styles/community.styles";
+import { useTheme } from "../../src/ThemeContext";
 import { EmojiReactionBar, Reaction } from "../../components/community/EmojiReactionBar";
 import { ImageGallery } from "../../components/community/ImageGallery";
 import { AuthorTag } from "../../components/community/AuthorTag";
@@ -38,6 +40,8 @@ const buildReactions = (raw: any[], userId?: string): Reaction[] => {
 
 export default function AnnouncementDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [announcement, setAnnouncement] = useState<any>(null);
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +93,7 @@ export default function AnnouncementDetail() {
   if (loading) {
     return (
       <SafeAreaView edges={["bottom"]} style={[styles.detailContainer, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#6366F1" />
+        <ActivityIndicator size="large" color={theme.accent} />
       </SafeAreaView>
     );
   }
@@ -97,7 +101,7 @@ export default function AnnouncementDetail() {
   if (!announcement) {
     return (
       <SafeAreaView edges={["bottom"]} style={styles.detailContainer}>
-        <Text style={{ textAlign: "center", marginTop: 40, color: "#9CA3AF" }}>
+        <Text style={{ textAlign: "center", marginTop: 40, color: theme.textTertiary }}>
           Announcement not found.
         </Text>
       </SafeAreaView>

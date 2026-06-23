@@ -22,7 +22,6 @@ export default function HomeScreen() {
   // 🔹 Check for existing session and onboarding status
   useEffect(() => {
     const checkAuth = async () => {
-      console.log("🔍 [index] Checking Auth...");
       // 1. Language Check
       const lang = await AsyncStorage.getItem("LANGUAGE");
       if (!lang) {
@@ -32,7 +31,6 @@ export default function HomeScreen() {
       // 2. Session Check
       const token = await AsyncStorage.getItem("access_token");
       if (token) {
-        console.log("🎫 [index] Token found, fetching profile...");
         try {
           const res = await fetch(`${APP_CONFIG.apiUrl}/customer/profile`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -41,13 +39,11 @@ export default function HomeScreen() {
           if (res.ok) {
             const profileResponse = await res.json();
             const profile = profileResponse?.data || profileResponse;
-            console.log("👤 [index] Profile data:", JSON.stringify(profile));
             
             const hasSociety = profile?.society_id || profile?.societyId;
             const hasTower = profile?.tower_id || profile?.towerId || profile?.flat_number || profile?.flatNumber;
 
             if (profile && hasSociety && hasTower) {
-              console.log("🚀 [index] Onboarded user, redirecting to dashboard");
 
               // Pre-populate storage
               await AsyncStorage.setItem("selected_society_id", String(hasSociety));
@@ -62,13 +58,10 @@ export default function HomeScreen() {
                 router.replace("/(tabs)/dashboard");
               }
             } else {
-              console.log("🧭 [index] New user/Not onboarded, staying at index/location");
             }
           } else {
-            console.log("❌ [index] Profile fetch failed with status:", res.status);
           }
         } catch (e) {
-          console.log("❌ [index] Auth auto-login error:", e);
         }
       }
     };

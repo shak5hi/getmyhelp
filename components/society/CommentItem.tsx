@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text } from "react-native";
-import { societyStyles as styles } from "../../styles/society.styles";
+import { makeStyles } from "../../styles/society.styles";
+import { useTheme } from "../../src/ThemeContext";
 
 interface CommentProps {
   text: string;
@@ -15,10 +16,12 @@ export const CommentItem: React.FC<CommentProps> = ({
   isMe,
   authorName,
 }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={[styles.commentBubble, isMe ? styles.myComment : styles.otherComment]}>
       {!isMe && (
-        <Text style={[styles.statusText, { color: "#6B7280", marginBottom: 4, fontSize: 9 }]}>
+        <Text style={[styles.statusText, { color: theme.textTertiary, marginBottom: 4, fontSize: 9 }]}>
           {authorName}
         </Text>
       )}

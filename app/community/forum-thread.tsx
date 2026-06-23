@@ -34,7 +34,8 @@ import {
   reportPost,
   reportReply,
 } from "../../src/api/communityApi";
-import { communityStyles as styles } from "../../styles/community.styles";
+import { makeStyles } from "../../styles/community.styles";
+import { useTheme } from "../../src/ThemeContext";
 
 const stripHtml = (html: string) =>
   (html ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
@@ -99,6 +100,8 @@ const flattenReplies = (list: any[]): any[] => {
 
 export default function ForumThread() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [post, setPost] = useState<any>(null);
   const [replies, setReplies] = useState<any[]>([]);
   const [postReactions, setPostReactions] = useState<any[]>([]);
@@ -415,7 +418,7 @@ export default function ForumThread() {
         edges={["bottom"]}
         style={[styles.detailContainer, { justifyContent: "center", alignItems: "center" }]}
       >
-        <ActivityIndicator size="large" color="#6366F1" />
+        <ActivityIndicator size="large" color={theme.accent} />
       </SafeAreaView>
     );
   }
@@ -605,7 +608,7 @@ export default function ForumThread() {
         style={[bannerStyles.banner, { transform: [{ translateY: bannerAnim }] }]}
         pointerEvents="none"
       >
-        <Ionicons name="chatbubble-outline" size={14} color="#fff" />
+        <Ionicons name="chatbubble-outline" size={14} color={theme.onAccent} />
         <Text style={bannerStyles.bannerText} numberOfLines={1}>{bannerText}</Text>
       </Animated.View>
 
@@ -666,7 +669,7 @@ export default function ForumThread() {
                     setReplyImages((prev) => prev.filter((_, idx) => idx !== i))
                   }
                 >
-                  <Ionicons name="close" size={12} color="#fff" />
+                  <Ionicons name="close" size={12} color={theme.onAccent} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -682,7 +685,7 @@ export default function ForumThread() {
             <Ionicons
               name="image-outline"
               size={22}
-              color={replyImages.length >= 3 ? "#D1D5DB" : "#6366F1"}
+              color={replyImages.length >= 3 ? theme.textTertiary : theme.accent}
             />
           </TouchableOpacity>
 
@@ -690,7 +693,7 @@ export default function ForumThread() {
             ref={inputRef}
             style={styles.replyInput}
             placeholder={replyingTo ? `Reply to ${replyingTo.name}…` : "Write a reply…"}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={theme.textTertiary}
             value={replyText}
             onChangeText={setReplyText}
             multiline
@@ -709,9 +712,9 @@ export default function ForumThread() {
             activeOpacity={0.8}
           >
             {sending ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={theme.onAccent} />
             ) : (
-              <Ionicons name="send" size={18} color="#fff" />
+              <Ionicons name="send" size={18} color={theme.onAccent} />
             )}
           </TouchableOpacity>
         </View>
@@ -741,7 +744,7 @@ export default function ForumThread() {
                   ? "Edit content…"
                   : "Reason for reporting…"
               }
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.textTertiary}
               autoFocus
             />
             <View style={modalStyles.row}>

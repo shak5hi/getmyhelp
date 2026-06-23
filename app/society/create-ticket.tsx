@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -17,14 +17,16 @@ import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import config from "../../src/config";
-import { colors } from "../../constants/tokens";
-import { societyStyles as styles } from "../../styles/society.styles";
+import { makeStyles } from "../../styles/society.styles";
+import { useTheme } from "../../src/ThemeContext";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 10;
 
 export default function CreateTicketScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("maintenance");
@@ -153,7 +155,7 @@ export default function CreateTicketScreen() {
   };
 
   return (
-    <SafeAreaView edges={["bottom"]} style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
+    <SafeAreaView edges={["bottom"]} style={[styles.formContainer, { padding: 0 }]}>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -167,7 +169,7 @@ export default function CreateTicketScreen() {
             <TextInput
               style={styles.input}
               placeholder="Briefly describe the issue"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.textTertiary}
               value={title}
               onChangeText={setTitle}
             />
@@ -183,7 +185,7 @@ export default function CreateTicketScreen() {
                   style={[
                     styles.tab,
                     { flex: 0, paddingHorizontal: 16, marginRight: 8, marginBottom: 8 },
-                    category === cat.slug ? styles.activeTab : { backgroundColor: "#E5E7EB" },
+                    category === cat.slug ? styles.activeTab : { backgroundColor: theme.surfaceAlt },
                   ]}
                   onPress={() => setCategory(cat.slug)}
                 >
@@ -205,7 +207,7 @@ export default function CreateTicketScreen() {
                   style={[
                     styles.tab,
                     { marginRight: 8 },
-                    priority === p.slug ? styles.activeTab : { backgroundColor: "#E5E7EB" },
+                    priority === p.slug ? styles.activeTab : { backgroundColor: theme.surfaceAlt },
                   ]}
                   onPress={() => setPriority(p.slug)}
                 >
@@ -231,7 +233,7 @@ export default function CreateTicketScreen() {
                 <Ionicons
                   name="lock-closed-outline"
                   size={16}
-                  color={type === "private" ? colors.accent : "#9CA3AF"}
+                  color={type === "private" ? theme.accent : theme.textTertiary}
                 />
                 <Text style={[styles.typeButtonText, type === "private" && styles.typeButtonTextActive]}>
                   Private
@@ -248,7 +250,7 @@ export default function CreateTicketScreen() {
                 <Ionicons
                   name="people-outline"
                   size={16}
-                  color={type === "common" ? colors.accent : "#9CA3AF"}
+                  color={type === "common" ? theme.accent : theme.textTertiary}
                 />
                 <Text style={[styles.typeButtonText, type === "common" && styles.typeButtonTextActive]}>
                   Common
@@ -264,7 +266,7 @@ export default function CreateTicketScreen() {
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Provide more details about your request..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.textTertiary}
               multiline
               numberOfLines={5}
               value={description}
@@ -276,7 +278,7 @@ export default function CreateTicketScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>
               Attachments{" "}
-              <Text style={{ color: "#9CA3AF", textTransform: "none", fontSize: 11 }}>
+              <Text style={{ color: theme.textTertiary, textTransform: "none", fontSize: 11 }}>
                 (JPG/PNG · max 5 · 10MB each)
               </Text>
             </Text>
@@ -299,7 +301,7 @@ export default function CreateTicketScreen() {
 
             {attachments.length < MAX_FILES && (
               <TouchableOpacity style={styles.attachmentPicker} onPress={pickImages} activeOpacity={0.75}>
-                <Ionicons name="image-outline" size={22} color="#374151" />
+                <Ionicons name="image-outline" size={22} color={theme.textSecondary} />
                 <Text style={styles.attachmentPickerText}>
                   {attachments.length === 0 ? "Add Photos" : `Add More (${attachments.length}/${MAX_FILES})`}
                 </Text>

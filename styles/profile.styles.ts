@@ -1,136 +1,161 @@
 import { StyleSheet } from "react-native";
+import { radii, spacing, shadows, fonts } from "../constants/tokens";
+import { Theme } from "../constants/themes";
 
-export const styles = StyleSheet.create({
+export const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: t.bg,
+  },
   safeArea: {
     flex: 1,
-    backgroundColor: "#F9FAFB", // Matched with dashboard
+    backgroundColor: t.bg,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F9FAFB",
+    backgroundColor: t.bg,
   },
   scrollContent: {
-    padding: 16,
-    paddingTop: 12,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: 120,
   },
-  headerCard: {
+
+  /* ===== CLEAN WHITE HEADER ===== */
+  header: {
+    backgroundColor: t.bg,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: 12,
+  },
+  headerTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    justifyContent: "space-between",
+    marginBottom: 22,
+  },
+  headerKicker: {
+    fontFamily: fonts.semibold,
+    fontSize: 12,
+    color: t.textTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    backgroundColor: t.surfaceAlt,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  profileInfo: {
+    flex: 1,
+    marginLeft: 14,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#111827", // Dark dashboard theme accent
+    width: 56,
+    height: 56,
+    borderRadius: 19,
+    backgroundColor: t.surfaceAlt,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    overflow: "hidden",
   },
   avatarText: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#FFFFFF", // White text on dark avatar
-  },
-  headerInfo: {
-    flex: 1,
-    justifyContent: "center",
+    fontFamily: fonts.extrabold,
+    fontSize: 22,
+    color: t.text,
   },
   userName: {
+    fontFamily: fonts.extrabold,
     fontSize: 20,
-    fontWeight: "700",
-    color: "#111827", // Dark gray for high contrast
-    marginBottom: 4,
+    color: t.text,
+    letterSpacing: -0.4,
   },
   userPhone: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 8,
+    fontFamily: fonts.medium,
+    fontSize: 13,
+    color: t.textSecondary,
+    marginTop: 2,
   },
   addressBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F9FAFB",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: t.accentTint,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radii.full,
     alignSelf: "flex-start",
+    marginTop: 8,
+    gap: 4,
   },
   userAddress: {
-    fontSize: 12,
-    color: "#4B5563",
-    marginLeft: 4,
-    fontWeight: "500",
+    fontFamily: fonts.bold,
+    fontSize: 11.5,
+    color: t.accent,
   },
+
+  /* ===== SECTION CARDS ===== */
   sectionContainer: {
-    marginBottom: 24,
+    marginBottom: spacing.xxl,
   },
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#6B7280",
-    marginBottom: 8,
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    color: t.textTertiary,
+    marginBottom: 10,
     marginLeft: 4,
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     textTransform: "uppercase",
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    backgroundColor: t.card,
+    borderRadius: radii.xl,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...shadows.sm,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 16,
+    paddingVertical: 15,
     paddingHorizontal: 16,
   },
   menuItemLeft: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   iconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: "#F9FAFB", // Neutral like dashboard highlights
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    backgroundColor: t.surfaceAlt,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 14,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
   },
   iconContainerDanger: {
-    backgroundColor: "#FEF2F2",
+    backgroundColor: t.dangerTint,
   },
   menuItemTitle: {
-    fontSize: 16,
-    color: "#1F2937",
-    fontWeight: "500",
+    fontFamily: fonts.semibold,
+    fontSize: 15,
+    color: t.text,
   },
   menuItemTitleDanger: {
-    color: "#EF4444",
+    color: t.danger,
   },
   divider: {
     height: 1,
-    backgroundColor: "#F3F4F6",
-    marginLeft: 68, // Aligned with the title text
+    backgroundColor: t.divider,
+    marginLeft: 72,
   },
   bottomPadding: {
     height: 40,

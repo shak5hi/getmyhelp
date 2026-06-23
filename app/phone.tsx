@@ -35,12 +35,10 @@ export default function PhoneScreen() {
       setError("");
 
       const phoneWithCode = `+91${phone}`;
-      console.log("🔄 Sending Firebase OTP to:", phoneWithCode);
 
       const confirmation = await signInWithPhoneNumber(getAuth(), phoneWithCode);
       setConfirmation(confirmation);
 
-      console.log("✅ Firebase OTP sent successfully");
       router.push({
         pathname: "/otp",
         params: { phone: phoneWithCode },

@@ -16,8 +16,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 
+import { useMemo } from "react";
 import { createForumPost } from "../../src/api/communityApi";
-import { communityStyles as styles } from "../../styles/community.styles";
+import { makeStyles } from "../../styles/community.styles";
+import { useTheme } from "../../src/ThemeContext";
 
 type PickedImage = {
   uri: string;
@@ -27,6 +29,8 @@ type PickedImage = {
 
 export default function CreatePost() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [content, setContent] = useState("");
   const [images, setImages] = useState<PickedImage[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -89,7 +93,7 @@ export default function CreatePost() {
           <TextInput
             style={[styles.createField, styles.createFieldMulti]}
             placeholder="What's on your mind? Share with your society…"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={theme.textTertiary}
             value={content}
             onChangeText={setContent}
             multiline
@@ -108,13 +112,13 @@ export default function CreatePost() {
                   style={styles.imageRemove}
                   onPress={() => removeImage(i)}
                 >
-                  <Ionicons name="close" size={12} color="#fff" />
+                  <Ionicons name="close" size={12} color={theme.onAccent} />
                 </TouchableOpacity>
               </View>
             ))}
             {images.length < 5 && (
               <TouchableOpacity style={styles.imagePickerAdd} onPress={pickImage}>
-                <Ionicons name="camera-outline" size={22} color="#6366F1" />
+                <Ionicons name="camera-outline" size={22} color={theme.accent} />
               </TouchableOpacity>
             )}
           </View>
@@ -125,7 +129,7 @@ export default function CreatePost() {
             disabled={!canSubmit}
           >
             {submitting ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={theme.onAccent} />
             ) : (
               <Text style={styles.submitBtnText}>Post</Text>
             )}

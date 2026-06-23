@@ -13,13 +13,17 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { createOTPInvite } from "../../src/api/visitorApi";
 
 const PURPOSES = ["delivery", "guest", "domestic", "vendor", "interview", "other"];
 
 export default function GenerateOTPScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [visitorName, setVisitorName] = useState("");
   const [visitorMobile, setVisitorMobile] = useState("");
   const [purpose, setPurpose] = useState("guest");
@@ -65,7 +69,7 @@ export default function GenerateOTPScreen() {
             value={visitorName}
             onChangeText={setVisitorName}
             placeholder="Full name"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={theme.textSecondary}
           />
 
           <Text style={styles.label}>Mobile Number *</Text>
@@ -74,7 +78,7 @@ export default function GenerateOTPScreen() {
             value={visitorMobile}
             onChangeText={setVisitorMobile}
             placeholder="10-digit mobile"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={theme.textSecondary}
             keyboardType="phone-pad"
           />
 
@@ -97,7 +101,7 @@ export default function GenerateOTPScreen() {
             value={flatNumber}
             onChangeText={setFlatNumber}
             placeholder="e.g. 301"
-            placeholderTextColor={colors.textSecondary}
+            placeholderTextColor={theme.textSecondary}
           />
 
           <TouchableOpacity
@@ -117,36 +121,36 @@ export default function GenerateOTPScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 8 },
-  subtitle: { fontSize: 13, color: colors.textSecondary, marginBottom: 24, lineHeight: 20 },
-  label: { fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 6, marginTop: 14 },
+  title: { fontSize: 20, fontWeight: "700", color: t.text, marginBottom: 8 },
+  subtitle: { fontSize: 13, color: t.textSecondary, marginBottom: 24, lineHeight: 20 },
+  label: { fontSize: 13, fontWeight: "600", color: t.textSecondary, marginBottom: 6, marginTop: 14 },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 15,
-    color: colors.textPrimary,
-    backgroundColor: colors.surface,
+    color: t.text,
+    backgroundColor: t.card,
   },
   purposeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
   },
-  chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { fontSize: 13, color: colors.textSecondary },
+  chipActive: { backgroundColor: t.accent, borderColor: t.accent },
+  chipText: { fontSize: 13, color: t.textSecondary },
   chipTextActive: { color: "#fff", fontWeight: "600" },
   submitBtn: {
     marginTop: 32,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: "center",

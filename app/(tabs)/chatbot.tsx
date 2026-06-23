@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../../src/config";
-import { dashboardStyles as styles } from "../../styles/dashboard.styles";
+import { fonts, radii } from "../../constants/tokens";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 
 type MessageType = {
   id: string;
@@ -22,6 +25,8 @@ type MessageType = {
 };
 
 export default function ChatbotScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -51,13 +56,13 @@ export default function ChatbotScreen() {
       const data = await response.json();
       if (data.session_id) {
         setSessionId(data.session_id);
-        
+
         // Fetch history for this session
         const historyRes = await fetch(`${config.apiUrl}/chatbot/sessions/${data.session_id}/messages`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const historyData = await historyRes.json();
-        
+
         if (historyData.messages && historyData.messages.length > 0) {
           const formattedMessages = historyData.messages.map((msg: any) => ({
             id: msg.id,
@@ -67,7 +72,6 @@ export default function ChatbotScreen() {
           }));
           setMessages(formattedMessages);
         } else if (data.greeting) {
-          // If no history, use greeting message from start session
           setMessages([{
             id: data.greeting.id || "welcome",
             text: data.greeting.text,
@@ -86,11 +90,10 @@ export default function ChatbotScreen() {
   const handleOptionClick = async (option: string) => {
     if (!sessionId) return;
 
-    // Add user message locally immediately
     const userMsgId = `user-${Date.now()}`;
     setMessages(prev => [...prev, { id: userMsgId, text: option, isBot: false }]);
     setIsTyping(true);
-    
+
     try {
       const token = await AsyncStorage.getItem("access_token");
       const response = await fetch(`${config.apiUrl}/chatbot/sessions/${sessionId}/messages`, {
@@ -157,19 +160,19 @@ export default function ChatbotScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
       <View style={styles.chatHeader}>
         <View>
           <Text style={styles.chatHeaderTitle}>AI Assistant</Text>
           <Text style={styles.chatHeaderSubtitle}>Powered by GetMyHelp</Text>
         </View>
         <Pressable onPress={resetChat} style={{ padding: 8 }}>
-          <Ionicons name="refresh-outline" size={24} color="#fff" />
+          <Ionicons name="refresh-outline" size={24} color={theme.onAccent} />
         </Pressable>
       </View>
-      
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
@@ -183,14 +186,14 @@ export default function ChatbotScreen() {
           ListFooterComponent={
             isTyping ? (
               <View style={[styles.messageBubble, styles.botMessage, { width: 60, paddingVertical: 8 }]}>
-                <ActivityIndicator size="small" color="#111827" />
+                <ActivityIndicator size="small" color={theme.accent} />
               </View>
             ) : null
           }
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           ListEmptyComponent={
             loading ? (
-              <ActivityIndicator size="large" color="#111827" style={{ marginTop: 20 }} />
+              <ActivityIndicator size="large" color={theme.accent} style={{ marginTop: 20 }} />
             ) : null
           }
         />
@@ -198,3 +201,61 @@ export default function ChatbotScreen() {
     </SafeAreaView>
   );
 }
+
+const makeStyles = (t: Theme) =>
+  StyleSheet.create({
+    screen: { flex: 1, backgroundColor: t.bg },
+    chatHeader: {
+      backgroundColor: t.accent,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      paddingBottom: 16,
+    },
+    chatHeaderTitle: { fontFamily: fonts.bold, fontSize: 18, color: t.onAccent },
+    chatHeaderSubtitle: {
+      fontFamily: fonts.medium,
+      fontSize: 13,
+      color: t.onAccent,
+      opacity: 0.85,
+      marginTop: 2,
+    },
+    messagesList: { padding: 20 },
+    messageBubble: {
+      maxWidth: "80%",
+      padding: 12,
+      borderRadius: radii.lg,
+      marginBottom: 4,
+    },
+    botMessage: {
+      backgroundColor: t.surfaceAlt,
+      alignSelf: "flex-start",
+      borderBottomLeftRadius: 4,
+    },
+    userMessage: {
+      backgroundColor: t.accent,
+      alignSelf: "flex-end",
+      borderBottomRightRadius: 4,
+    },
+    messageText: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 20 },
+    botMessageText: { color: t.text },
+    userMessageText: { color: t.onAccent },
+    optionsContainer: {
+      marginTop: 8,
+      marginBottom: 12,
+      gap: 8,
+      alignItems: "flex-start",
+    },
+    optionButton: {
+      backgroundColor: t.card,
+      borderWidth: 1.5,
+      borderColor: t.accent,
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: radii.lg,
+      alignSelf: "flex-start",
+    },
+    optionButtonText: { fontFamily: fonts.semibold, color: t.accent, fontSize: 14 },
+  });

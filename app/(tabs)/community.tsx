@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -20,11 +20,16 @@ import {
 } from "../../src/api/communityApi";
 import { useAnnouncementSocket } from "../../hooks/useAnnouncementSocket";
 import { useForumSocket } from "../../hooks/useForumSocket";
-import { communityStyles as styles } from "../../styles/community.styles";
-import { colors } from "../../constants/tokens";
+import { makeStyles } from "../../styles/community.styles";
+import { fonts } from "../../constants/tokens";
+import { useTheme } from "../../src/ThemeContext";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { ErrorState } from "../../components/ui/ErrorState";
 import { CategoryBadge } from "../../components/community/CategoryBadge";
+import SegmentedControl from "../../components/ui/SegmentedControl";
+
+const TABS: ActiveTab[] = ["announcements", "forum", "polls"];
 
 type ActiveTab = "announcements" | "forum" | "polls";
 
@@ -68,22 +73,27 @@ const avatarStyle = (name: string) =>
 
 export default function CommunityScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [activeTab, setActiveTab] = useState<ActiveTab>("announcements");
   const [societyId, setSocietyId] = useState<string | null>(null);
 
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [announcementLoading, setAnnouncementLoading] = useState(false);
   const [announcementRefreshing, setAnnouncementRefreshing] = useState(false);
+  const [announcementError, setAnnouncementError] = useState(false);
   const [search, setSearch] = useState("");
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [forumPosts, setForumPosts] = useState<any[]>([]);
   const [forumLoading, setForumLoading] = useState(false);
   const [forumRefreshing, setForumRefreshing] = useState(false);
+  const [forumError, setForumError] = useState(false);
 
   const [polls, setPolls] = useState<any[]>([]);
   const [pollsLoading, setPollsLoading] = useState(false);
   const [pollsRefreshing, setPollsRefreshing] = useState(false);
+  const [pollsError, setPollsError] = useState(false);
   const [pollSelections, setPollSelections] = useState<Record<string, (string | number)[]>>({});
   const [submittingPoll, setSubmittingPoll] = useState<string | null>(null);
   const [votedPollIds, setVotedPollIds] = useState<Set<string>>(new Set());
@@ -104,6 +114,7 @@ export default function CommunityScreen() {
   const loadAnnouncements = useCallback(
     async (page = 1, q = search, isRefresh = false) => {
       if (!isRefresh) setAnnouncementLoading(true);
+      setAnnouncementError(false);
       try {
         const json = await getAnnouncements(page, q);
         const rows: any[] =
@@ -118,6 +129,7 @@ export default function CommunityScreen() {
         else setAnnouncements((prev) => [...prev, ...rows]);
       } catch (e) {
         console.error("announcements:", e);
+        setAnnouncementError(true);
       } finally {
         setAnnouncementLoading(false);
         setAnnouncementRefreshing(false);
@@ -129,6 +141,7 @@ export default function CommunityScreen() {
   // ── Forum ─────────────────────────────────────────────────
   const loadForumPosts = useCallback(async (page = 1, isRefresh = false) => {
     if (!isRefresh) setForumLoading(true);
+    setForumError(false);
     try {
       const json = await getForumPosts(page);
       const rows: any[] =
@@ -143,6 +156,7 @@ export default function CommunityScreen() {
       else setForumPosts((prev) => [...prev, ...rows]);
     } catch (e) {
       console.error("forum:", e);
+      setForumError(true);
     } finally {
       setForumLoading(false);
       setForumRefreshing(false);
@@ -152,6 +166,7 @@ export default function CommunityScreen() {
   // ── Polls ─────────────────────────────────────────────────
   const loadPolls = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setPollsLoading(true);
+    setPollsError(false);
     try {
       const json = await getPolls();
       const rows: any[] =
@@ -165,6 +180,7 @@ export default function CommunityScreen() {
       setPolls(rows);
     } catch (e) {
       console.error("polls:", e);
+      setPollsError(true);
     } finally {
       setPollsLoading(false);
       setPollsRefreshing(false);
@@ -255,23 +271,6 @@ export default function CommunityScreen() {
   };
 
   // ── Renderers ──────────────────────────────────────────────
-  const renderTabBar = () => (
-    <View style={styles.tabContainer}>
-      {(["announcements", "forum", "polls"] as ActiveTab[]).map((tab) => (
-        <TouchableOpacity
-          key={tab}
-          style={[styles.tab, activeTab === tab && styles.activeTab]}
-          onPress={() => setActiveTab(tab)}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-            {tab === "announcements" ? "Notices" : tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
-
   const renderSkeleton = () => (
     <View style={{ paddingTop: 4 }}>
       {[1, 2, 3, 4].map((i) => (
@@ -304,13 +303,13 @@ export default function CommunityScreen() {
       </Text>
 
       <View style={styles.announcementMeta}>
-        <Ionicons name="time-outline" size={12} color="#9CA3AF" />
+        <Ionicons name="time-outline" size={12} color={theme.textTertiary} />
         <Text style={styles.announcementDate}>
           {formatDate(item.created_at ?? item.date ?? "")}
         </Text>
         <View style={styles.announcementDateRight}>
-          <Text style={[styles.announcementDate, { color: "#374151" }]}>View</Text>
-          <Ionicons name="chevron-forward" size={13} color="#374151" />
+          <Text style={[styles.announcementDate, { color: theme.textSecondary }]}>View</Text>
+          <Ionicons name="chevron-forward" size={13} color={theme.textSecondary} />
         </View>
       </View>
     </TouchableOpacity>
@@ -349,7 +348,7 @@ export default function CommunityScreen() {
               {formatDate(item.created_at ?? item.date ?? "")}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
+          <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
         </View>
 
         {/* Title */}
@@ -367,19 +366,19 @@ export default function CommunityScreen() {
         {/* Footer stats */}
         <View style={styles.forumFooter}>
           <View style={styles.forumStat}>
-            <Ionicons name="chatbubble-outline" size={13} color="#6B7280" />
+            <Ionicons name="chatbubble-outline" size={13} color={theme.textSecondary} />
             <Text style={styles.forumStatText}>
               {replyCount} {replyCount === 1 ? "reply" : "replies"}
             </Text>
           </View>
           {reactionCount > 0 && (
             <View style={styles.forumStat}>
-              <Ionicons name="heart-outline" size={13} color="#6B7280" />
+              <Ionicons name="heart-outline" size={13} color={theme.textSecondary} />
               <Text style={styles.forumStatText}>{reactionCount}</Text>
             </View>
           )}
           <View style={{ marginLeft: "auto" }}>
-            <Text style={[styles.forumAuthorTime, { color: colors.accent, fontWeight: "600" }]}>
+            <Text style={[styles.forumAuthorTime, { color: theme.accent, fontWeight: "600" }]}>
               Open thread
             </Text>
           </View>
@@ -390,7 +389,6 @@ export default function CommunityScreen() {
 
   const renderPoll = ({ item }: { item: any }) => {
     const isVoted = item.is_voted ?? item.voted ?? votedPollIds.has(String(item.id));
-    console.warn("POLL MULTI:", JSON.stringify({ id: item.id, is_multiple_choice: item.is_multiple_choice, is_multiple: item.is_multiple, allow_multiple: item.allow_multiple, multiple: item.multiple, type: item.type, poll_type: item.poll_type }));
     const isClosed =
       item.is_closed === true ||
       item.status === "closed" ||
@@ -461,7 +459,7 @@ export default function CommunityScreen() {
                       isSelected && (isMultiple ? styles.pollCheckboxSelected : styles.pollCircleSelected),
                     ]}
                   >
-                    {isSelected && <Ionicons name="checkmark" size={12} color="#fff" />}
+                    {isSelected && <Ionicons name="checkmark" size={12} color={theme.onAccent} />}
                   </View>
                   <Text style={[styles.pollOptionText, isSelected && styles.pollOptionTextSelected]}>
                     {opt.text ?? opt.label}
@@ -509,6 +507,13 @@ export default function CommunityScreen() {
       : activeTab === "forum"
       ? forumPosts
       : polls;
+
+  const isError =
+    activeTab === "announcements"
+      ? announcementError
+      : activeTab === "forum"
+      ? forumError
+      : pollsError;
 
   const onRefresh = () => {
     if (activeTab === "announcements") {
@@ -563,22 +568,28 @@ export default function CommunityScreen() {
 
   const ListHeader = (
     <>
-      {renderTabBar()}
+      <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 }}>
+        <SegmentedControl
+          segments={["Notices", "Forum", "Polls"]}
+          value={TABS.indexOf(activeTab)}
+          onChange={(i) => setActiveTab(TABS[i])}
+        />
+      </View>
 
       {activeTab === "announcements" && (
         <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={16} color="#9CA3AF" />
+          <Ionicons name="search-outline" size={16} color={theme.textTertiary} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search announcements…"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={theme.textTertiary}
             value={search}
             onChangeText={handleSearch}
             returnKeyType="search"
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => handleSearch("")}>
-              <Ionicons name="close-circle" size={17} color="#9CA3AF" />
+              <Ionicons name="close-circle" size={17} color={theme.textTertiary} />
             </TouchableOpacity>
           )}
         </View>
@@ -600,16 +611,12 @@ export default function CommunityScreen() {
   );
 
   return (
-    <SafeAreaView edges={["bottom"]} style={styles.container}>
+    <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={{ width: 4, height: 22, backgroundColor: colors.accent, borderRadius: 2, marginRight: 8 }} />
-            <Text style={styles.title}>Community</Text>
-          </View>
-          <Text style={[styles.subtitle, { marginLeft: 12 }]}>{SUBTITLE[activeTab]}</Text>
-        </View>
+      <View style={{ paddingHorizontal: 20, paddingTop: 26, paddingBottom: 8, backgroundColor: theme.bg }}>
+        <Text style={{ fontSize: 26, fontFamily: fonts.extrabold, color: theme.text, letterSpacing: -0.5 }}>
+          Community
+        </Text>
       </View>
 
       <FlatList
@@ -619,15 +626,17 @@ export default function CommunityScreen() {
         }
         ListHeaderComponent={ListHeader}
         renderItem={renderItem}
-        ListEmptyComponent={isLoading ? renderSkeleton() : renderEmpty()}
+        ListEmptyComponent={
+          isLoading ? renderSkeleton() : isError ? <ErrorState onRetry={onRefresh} /> : renderEmpty()
+        }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={onRefresh}
-            tintColor={colors.accent}
-            colors={[colors.accent]}
+            tintColor={theme.accent}
+            colors={[theme.accent]}
           />
         }
       />
@@ -638,7 +647,7 @@ export default function CommunityScreen() {
           onPress={() => router.push("/community/create-post")}
           activeOpacity={0.85}
         >
-          <Ionicons name="add" size={32} color="#fff" />
+          <Ionicons name="add" size={32} color={theme.onAccent} />
         </TouchableOpacity>
       )}
     </SafeAreaView>

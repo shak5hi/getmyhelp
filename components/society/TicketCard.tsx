@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, Pressable } from "react-native";
-import { societyStyles as styles } from "../../styles/society.styles";
+import { makeStyles } from "../../styles/society.styles";
+import { useTheme } from "../../src/ThemeContext";
 
 interface TicketProps {
   id: string;
@@ -33,6 +34,8 @@ export const TicketCard: React.FC<TicketProps> = ({
   createdAt,
   onPress,
 }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const statusCfg = STATUS_CONFIG[status] ?? STATUS_CONFIG["Closed"];
   const dotColor = PRIORITY_DOT_COLOR[priority] ?? PRIORITY_DOT_COLOR["Medium"];
 

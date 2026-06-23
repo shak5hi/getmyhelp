@@ -15,13 +15,17 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { createQRInvite } from "../../src/api/visitorApi";
 
 const PURPOSES = ["delivery", "guest", "domestic", "vendor", "interview", "other"];
 
 export default function GenerateQRScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [visitorName, setVisitorName] = useState("");
   const [visitorMobile, setVisitorMobile] = useState("");
   const [purpose, setPurpose] = useState("guest");
@@ -158,25 +162,25 @@ export default function GenerateQRScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 6, marginTop: 14 },
+  title: { fontSize: 20, fontWeight: "700", color: t.text, marginBottom: 20 },
+  label: { fontSize: 13, fontWeight: "600", color: t.textSecondary, marginBottom: 6, marginTop: 14 },
   input: {
-    borderWidth: 1, borderColor: colors.border, borderRadius: 8,
-    padding: 12, fontSize: 15, color: colors.textPrimary, backgroundColor: colors.surface,
+    borderWidth: 1, borderColor: t.border, borderRadius: 8,
+    padding: 12, fontSize: 15, color: t.text, backgroundColor: t.card,
   },
   purposeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   toggleRow: { flexDirection: "row", gap: 12 },
-  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: colors.surface },
+  chip: { borderWidth: 1, borderColor: t.border, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: t.card },
   toggleChip: { flex: 1, alignItems: "center" },
-  chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { fontSize: 13, color: colors.textSecondary },
+  chipActive: { backgroundColor: t.accent, borderColor: t.accent },
+  chipText: { fontSize: 13, color: t.textSecondary },
   chipTextActive: { color: "#fff", fontWeight: "600" },
-  dateBtn: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, backgroundColor: colors.surface },
-  dateBtnText: { fontSize: 14, color: colors.textPrimary },
-  submitBtn: { marginTop: 28, backgroundColor: colors.accent, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
+  dateBtn: { borderWidth: 1, borderColor: t.border, borderRadius: 8, padding: 12, backgroundColor: t.card },
+  dateBtnText: { fontSize: 14, color: t.text },
+  submitBtn: { marginTop: 28, backgroundColor: t.accent, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
   submitBtnDisabled: { opacity: 0.6 },
   submitBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
 });

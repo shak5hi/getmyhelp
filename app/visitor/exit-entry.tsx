@@ -2,12 +2,16 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { getVisitorDetail, markVisitorExit } from "../../src/api/visitorApi";
 
 export default function ExitEntryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [visitor, setVisitor] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +37,7 @@ export default function ExitEntryScreen() {
   if (!visitor) {
     return (
       <SafeAreaView style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={theme.accent} />
       </SafeAreaView>
     );
   }
@@ -47,7 +51,7 @@ export default function ExitEntryScreen() {
         <Text style={styles.info}>{visitor.mobile}</Text>
         <Text style={styles.info}>Purpose: {visitor.purpose}</Text>
         {visitor.flat_number && <Text style={styles.info}>Flat: {visitor.flat_number}</Text>}
-        <Text style={[styles.status, { color: visitor.status === "approved" || visitor.status === "checked_in" ? colors.success : colors.danger }]}>
+        <Text style={[styles.status, { color: visitor.status === "approved" || visitor.status === "checked_in" ? theme.success : theme.danger }]}>
           Status: {visitor.status}
         </Text>
       </View>
@@ -59,23 +63,23 @@ export default function ExitEntryScreen() {
       )}
 
       {isCheckedOut && (
-        <View style={[styles.resultBox, { backgroundColor: colors.successLight }]}>
-          <Text style={[styles.resultText, { color: colors.success }]}>Visitor has checked out</Text>
+        <View style={[styles.resultBox, { backgroundColor: theme.successTint }]}>
+          <Text style={[styles.resultText, { color: theme.success }]}>Visitor has checked out</Text>
         </View>
       )}
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 20 },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg, padding: 20 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  card: { backgroundColor: colors.surface, borderRadius: 12, padding: 16, marginBottom: 24 },
-  name: { fontSize: 18, fontWeight: "700", color: colors.textPrimary, marginBottom: 4 },
-  info: { fontSize: 14, color: colors.textSecondary, marginBottom: 2 },
+  card: { backgroundColor: t.card, borderRadius: 12, padding: 16, marginBottom: 24 },
+  name: { fontSize: 18, fontWeight: "700", color: t.text, marginBottom: 4 },
+  info: { fontSize: 14, color: t.textSecondary, marginBottom: 2 },
   status: { fontSize: 14, fontWeight: "600", marginTop: 8 },
   exitBtn: {
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: "center",

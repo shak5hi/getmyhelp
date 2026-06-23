@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -16,12 +16,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../../src/config";
-import { colors } from "../../constants/tokens";
-import { societyStyles as styles } from "../../styles/society.styles";
+import { fonts } from "../../constants/tokens";
+import { makeStyles } from "../../styles/society.styles";
+import { useTheme } from "../../src/ThemeContext";
+import SegmentedControl from "../../components/ui/SegmentedControl";
 import { TransactionCard } from "../../components/society/TransactionCard";
 import { TicketCard } from "../../components/society/TicketCard";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { ErrorState } from "../../components/ui/ErrorState";
 
 type ActiveTab = "finance" | "tickets";
 type FinanceType = "income" | "expense";
@@ -108,14 +111,18 @@ const extractFinanceRows = (json: any) => {
 
 export default function SocietyScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [activeTab, setActiveTab] = useState<ActiveTab>("finance");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(false);
   const [data, setData] = useState<any[]>([]);
   const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
+    setError(false);
     try {
       const token = await AsyncStorage.getItem("access_token");
       const userStr = await AsyncStorage.getItem("user");
@@ -167,8 +174,10 @@ export default function SocietyScreen() {
 
         setData(ticketList);
       }
-    } catch (error) {
-      console.error(`Error fetching ${activeTab}:`, error);
+    } catch (err) {
+      console.error(`Error fetching ${activeTab}:`, err);
+      setError(true);
+      setData([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -205,41 +214,32 @@ export default function SocietyScreen() {
 
     return (
       <>
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "finance" && styles.activeTab]}
-            onPress={() => setActiveTab("finance")}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.tabText, activeTab === "finance" && styles.activeTabText]}>Finance</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "tickets" && styles.activeTab]}
-            onPress={() => setActiveTab("tickets")}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.tabText, activeTab === "tickets" && styles.activeTabText]}>Tickets</Text>
-          </TouchableOpacity>
+        <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 }}>
+          <SegmentedControl
+            segments={["Finance", "Tickets"]}
+            value={activeTab === "finance" ? 0 : 1}
+            onChange={(i) => setActiveTab(i === 0 ? "finance" : "tickets")}
+          />
         </View>
 
         {/* Finance summary cards */}
         {activeTab === "finance" && !loading && data.length > 0 && (
           <View style={styles.summaryRow}>
-            <View style={[styles.summaryCard, { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0", borderWidth: 1 }]}>
-              <View style={[styles.summaryIconWrap, { backgroundColor: "#DCFCE7" }]}>
-                <Ionicons name="arrow-down-circle" size={18} color="#16A34A" />
+            <View style={[styles.summaryCard, { backgroundColor: theme.successTint, borderWidth: 0 }]}>
+              <View style={[styles.summaryIconWrap, { backgroundColor: "rgba(34,192,212,0.18)" }]}>
+                <Ionicons name="arrow-down-circle" size={18} color={theme.success} />
               </View>
-              <Text style={[styles.summaryLabel, { color: "#15803D" }]}>Total Income</Text>
-              <Text style={[styles.summaryValue, styles.summaryValueIncome]}>
+              <Text style={[styles.summaryLabel, { color: theme.success }]}>Total Income</Text>
+              <Text style={[styles.summaryValue, { color: theme.success }]}>
                 ₹{totalIncome.toLocaleString()}
               </Text>
             </View>
-            <View style={[styles.summaryCard, { backgroundColor: "#FFF1F2", borderColor: "#FECDD3", borderWidth: 1 }]}>
-              <View style={[styles.summaryIconWrap, { backgroundColor: "#FFE4E6" }]}>
-                <Ionicons name="arrow-up-circle" size={18} color="#E11D48" />
+            <View style={[styles.summaryCard, { backgroundColor: theme.dangerTint, borderWidth: 0 }]}>
+              <View style={[styles.summaryIconWrap, { backgroundColor: "rgba(242,92,174,0.18)" }]}>
+                <Ionicons name="arrow-up-circle" size={18} color={theme.danger} />
               </View>
-              <Text style={[styles.summaryLabel, { color: "#BE123C" }]}>Total Expenses</Text>
-              <Text style={[styles.summaryValue, styles.summaryValueExpense]}>
+              <Text style={[styles.summaryLabel, { color: theme.danger }]}>Total Expenses</Text>
+              <Text style={[styles.summaryValue, { color: theme.danger }]}>
                 ₹{totalExpense.toLocaleString()}
               </Text>
             </View>
@@ -249,7 +249,7 @@ export default function SocietyScreen() {
         {/* Count strip */}
         {!loading && data.length > 0 && (
           <View style={styles.countStrip}>
-            <Text style={styles.countStripText}>
+            <Text style={[styles.countStripText, { color: theme.textTertiary }]}>
               {data.length} {activeTab === "finance" ? "transactions" : "tickets"}
             </Text>
           </View>
@@ -279,18 +279,12 @@ export default function SocietyScreen() {
   );
 
   return (
-    <SafeAreaView edges={["bottom"]} style={styles.container}>
-      {/* Fixed top header — matches dashboard */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <View style={{ width: 4, height: 22, backgroundColor: colors.accent, borderRadius: 2, marginRight: 8 }} />
-            <Text style={styles.title}>Society</Text>
-          </View>
-          <Text style={[styles.subtitle, { marginLeft: 12 }]}>
-            {activeTab === "finance" ? "Transactions & billing" : "Support tickets"}
-          </Text>
-        </View>
+    <SafeAreaView edges={["top", "bottom"]} style={[styles.container, { backgroundColor: theme.bg }]}>
+      {/* Fixed top header */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 26, paddingBottom: 8, backgroundColor: theme.bg }}>
+        <Text style={{ fontSize: 26, fontFamily: fonts.extrabold, color: theme.text, letterSpacing: -0.5 }}>
+          Society
+        </Text>
       </View>
 
       <FlatList
@@ -341,10 +335,12 @@ export default function SocietyScreen() {
             );
           }
         }}
-        ListEmptyComponent={loading ? renderLoading() : renderEmpty()}
+        ListEmptyComponent={
+          loading ? renderLoading() : error ? <ErrorState onRetry={() => fetchData()} /> : renderEmpty()
+        }
         contentContainerStyle={activeTab === "finance" ? styles.financeList : styles.ticketList}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} colors={[theme.accent]} />
         }
       />
 

@@ -13,7 +13,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import {
   approveVisitor,
   getResidentVisitorDetail,
@@ -47,6 +49,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function ResidentVisitorDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [visitor, setVisitor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
@@ -94,7 +98,7 @@ export default function ResidentVisitorDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={theme.accent} />
       </SafeAreaView>
     );
   }
@@ -102,7 +106,7 @@ export default function ResidentVisitorDetailScreen() {
   if (!visitor) {
     return (
       <SafeAreaView style={styles.center}>
-        <Text style={{ color: colors.textSecondary }}>Visitor not found</Text>
+        <Text style={{ color: theme.textSecondary }}>Visitor not found</Text>
       </SafeAreaView>
     );
   }
@@ -116,7 +120,7 @@ export default function ResidentVisitorDetailScreen() {
           <Image source={{ uri: toFullUrl(visitor.selfie_url)! }} style={styles.selfie} />
         ) : (
           <View style={[styles.selfie, styles.selfiePlaceholder]}>
-            <Ionicons name="person-outline" size={48} color={colors.textTertiary} />
+            <Ionicons name="person-outline" size={48} color={theme.textTertiary} />
           </View>
         )}
 
@@ -201,27 +205,27 @@ export default function ResidentVisitorDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   content: { padding: 20, alignItems: "center" },
   selfie: { width: 120, height: 120, borderRadius: 60, marginBottom: 20 },
   selfiePlaceholder: {
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: t.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
   card: {
     width: "100%",
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     alignItems: "center",
   },
-  name: { fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 4 },
-  info: { fontSize: 15, color: colors.textSecondary, marginBottom: 2 },
-  date: { fontSize: 12, color: colors.textTertiary, marginTop: 6 },
+  name: { fontSize: 20, fontWeight: "700", color: t.text, marginBottom: 4 },
+  info: { fontSize: 15, color: t.textSecondary, marginBottom: 2 },
+  date: { fontSize: 12, color: t.textTertiary, marginTop: 6 },
   statusBox: {
     width: "100%",
     borderWidth: 1.5,
@@ -235,19 +239,19 @@ const styles = StyleSheet.create({
   btn: { flex: 1, paddingVertical: 14, borderRadius: 10, alignItems: "center" },
   approveBtn: { backgroundColor: "#16a34a" },
   rejectBtn: { backgroundColor: "#dc2626" },
-  cancelBtn: { backgroundColor: colors.surfaceAlt },
+  cancelBtn: { backgroundColor: t.surfaceAlt },
   btnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
-  cancelBtnText: { color: colors.textPrimary, fontSize: 15, fontWeight: "600" },
+  cancelBtnText: { color: t.text, fontSize: 15, fontWeight: "600" },
   rejectInput: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
     minHeight: 80,
     marginBottom: 12,
     textAlignVertical: "top",
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     width: "100%",
   },
 });

@@ -3,13 +3,17 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { useGuardVisitorSocket } from "../../hooks/useGuardVisitorSocket";
 import { getVisitorDetail } from "../../src/api/visitorApi";
 
 export default function PendingApprovalScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [visitor, setVisitor] = useState<any>(null);
   const [approvalStatus, setApprovalStatus] = useState<"pending" | "approved" | "rejected">("pending");
   const [rejectionNote, setRejectionNote] = useState<string>("");
@@ -56,15 +60,15 @@ export default function PendingApprovalScreen() {
 
       {approvalStatus === "pending" && (
         <View style={styles.waitBox}>
-          <ActivityIndicator color={colors.accent} size="large" />
+          <ActivityIndicator color={theme.accent} size="large" />
           <Text style={styles.waitText}>Waiting for resident approval...</Text>
           <Text style={styles.waitHint}>You can go back and add more visitors</Text>
         </View>
       )}
 
       {approvalStatus === "approved" && (
-        <View style={[styles.resultBox, { backgroundColor: colors.successLight }]}>
-          <Text style={[styles.resultText, { color: colors.success }]}>✓ Approved — Let visitor in</Text>
+        <View style={[styles.resultBox, { backgroundColor: theme.successTint }]}>
+          <Text style={[styles.resultText, { color: theme.success }]}>✓ Approved — Let visitor in</Text>
           <TouchableOpacity
             style={styles.exitBtn}
             onPress={() => router.replace(`/visitor/exit-entry?id=${id}`)}
@@ -75,8 +79,8 @@ export default function PendingApprovalScreen() {
       )}
 
       {approvalStatus === "rejected" && (
-        <View style={[styles.resultBox, { backgroundColor: colors.dangerLight }]}>
-          <Text style={[styles.resultText, { color: colors.danger }]}>✗ Rejected by resident</Text>
+        <View style={[styles.resultBox, { backgroundColor: theme.dangerTint }]}>
+          <Text style={[styles.resultText, { color: theme.danger }]}>✗ Rejected by resident</Text>
           {rejectionNote ? <Text style={styles.rejectNote}>{rejectionNote}</Text> : null}
         </View>
       )}
@@ -84,27 +88,27 @@ export default function PendingApprovalScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 20 },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg, padding: 20 },
   backBtn: { marginBottom: 16 },
-  backText: { fontSize: 14, color: colors.accent, fontWeight: "600" },
+  backText: { fontSize: 14, color: t.accent, fontWeight: "600" },
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
-  visitorName: { fontSize: 18, fontWeight: "700", color: colors.textPrimary, marginBottom: 4 },
-  info: { fontSize: 14, color: colors.textSecondary, marginBottom: 2 },
+  visitorName: { fontSize: 18, fontWeight: "700", color: t.text, marginBottom: 4 },
+  info: { fontSize: 14, color: t.textSecondary, marginBottom: 2 },
   waitBox: { alignItems: "center", marginTop: 32, gap: 12 },
-  waitText: { fontSize: 16, color: colors.textSecondary },
-  waitHint: { fontSize: 13, color: colors.textTertiary },
+  waitText: { fontSize: 16, color: t.textSecondary },
+  waitHint: { fontSize: 13, color: t.textTertiary },
   resultBox: { borderRadius: 12, padding: 20, alignItems: "center", gap: 12 },
   resultText: { fontSize: 18, fontWeight: "700" },
-  rejectNote: { fontSize: 14, color: colors.textSecondary },
+  rejectNote: { fontSize: 14, color: t.textSecondary },
   exitBtn: {
     marginTop: 8,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

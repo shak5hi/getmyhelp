@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { colors } from "../../constants/tokens";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { getVisitorHistory } from "../../src/api/visitorApi";
 
 const STATUS_COLOR: Record<string, string> = {
@@ -47,6 +48,8 @@ function formatDate(s: string) {
 
 export default function VisitorHistoryScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [visitors, setVisitors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -79,7 +82,7 @@ export default function VisitorHistoryScreen() {
 
   useFocusEffect(useCallback(() => { load(true); }, []));
 
-  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={colors.accent} />;
+  if (loading) return <ActivityIndicator style={{ marginTop: 40 }} color={theme.accent} />;
 
   return (
     <FlatList
@@ -96,7 +99,7 @@ export default function VisitorHistoryScreen() {
       onEndReachedThreshold={0.3}
       ListEmptyComponent={<Text style={styles.empty}>No visitors yet</Text>}
       ListFooterComponent={
-        loadingMore ? <ActivityIndicator style={{ padding: 16 }} color={colors.accent} /> : null
+        loadingMore ? <ActivityIndicator style={{ padding: 16 }} color={theme.accent} /> : null
       }
       renderItem={({ item }) => (
         <TouchableOpacity
@@ -119,22 +122,22 @@ export default function VisitorHistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: t.card,
+    borderRadius: 16,
+    padding: 16,
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   left: { flex: 1, marginRight: 8 },
-  name: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
-  meta: { fontSize: 12, color: colors.textSecondary, marginTop: 1 },
-  date: { fontSize: 11, color: colors.textTertiary, marginTop: 2 },
+  name: { fontSize: 14, fontWeight: "600", color: t.text },
+  meta: { fontSize: 12, color: t.textSecondary, marginTop: 1 },
+  date: { fontSize: 11, color: t.textTertiary, marginTop: 2 },
   badge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   badgeText: { color: "#fff", fontSize: 11, fontWeight: "600" },
-  empty: { textAlign: "center", color: colors.textSecondary, marginTop: 40 },
+  empty: { textAlign: "center", color: t.textSecondary, marginTop: 40 },
 });

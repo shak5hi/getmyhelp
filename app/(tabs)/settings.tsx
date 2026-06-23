@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { 
   View, 
   Text, 
@@ -11,9 +11,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../../src/config";
-import { styles } from "../../styles/settings.styles";
+import { makeStyles } from "../../styles/settings.styles";
+import { useTheme } from "../../src/ThemeContext";
 
 export default function SettingsScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [pushEnabled, setPushEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [smsEnabled, setSmsEnabled] = useState(false);
@@ -69,12 +72,12 @@ export default function SettingsScreen() {
           <View style={styles.settingRow}>
              <View style={styles.settingRowLeft}>
                <View style={[styles.iconContainer, styles.iconPrimary]}>
-                 <Ionicons name="notifications-outline" size={20} color="#111827" />
+                 <Ionicons name="notifications-outline" size={20} color={theme.text} />
                </View>
                <Text style={styles.settingTitle}>Push Notifications</Text>
              </View>
              <Switch
-                trackColor={{ false: "#E5E7EB", true: "#10B981" }}
+                trackColor={{ false: theme.surfaceAlt, true: theme.success }}
                 thumbColor={"#FFFFFF"}
                 onValueChange={() => setPushEnabled(prev => !prev)}
                 value={pushEnabled}
@@ -84,12 +87,12 @@ export default function SettingsScreen() {
           <View style={styles.settingRow}>
              <View style={styles.settingRowLeft}>
                <View style={[styles.iconContainer, styles.iconPrimary]}>
-                 <Ionicons name="mail-outline" size={20} color="#111827" />
+                 <Ionicons name="mail-outline" size={20} color={theme.text} />
                </View>
                <Text style={styles.settingTitle}>Email Alerts</Text>
              </View>
              <Switch
-                trackColor={{ false: "#E5E7EB", true: "#10B981" }}
+                trackColor={{ false: theme.surfaceAlt, true: theme.success }}
                 thumbColor={"#FFFFFF"}
                 onValueChange={() => setEmailEnabled(prev => !prev)}
                 value={emailEnabled}
@@ -99,12 +102,12 @@ export default function SettingsScreen() {
           <View style={[styles.settingRow, styles.settingRowNoBorder]}>
              <View style={styles.settingRowLeft}>
                <View style={[styles.iconContainer, styles.iconPrimary]}>
-                 <Ionicons name="chatbubble-outline" size={20} color="#111827" />
+                 <Ionicons name="chatbubble-outline" size={20} color={theme.text} />
                </View>
                <Text style={styles.settingTitle}>SMS Updates</Text>
              </View>
              <Switch
-                trackColor={{ false: "#E5E7EB", true: "#10B981" }}
+                trackColor={{ false: theme.surfaceAlt, true: theme.success }}
                 thumbColor={"#FFFFFF"}
                 onValueChange={() => setSmsEnabled(prev => !prev)}
                 value={smsEnabled}
@@ -118,21 +121,21 @@ export default function SettingsScreen() {
           <TouchableOpacity style={styles.settingRow} onPress={() => handleAction("Change Phone Number")}>
              <View style={styles.settingRowLeft}>
                <View style={[styles.iconContainer, styles.iconPrimary]}>
-                 <Ionicons name="call-outline" size={20} color="#111827" />
+                 <Ionicons name="call-outline" size={20} color={theme.text} />
                </View>
                <Text style={styles.settingTitle}>Change Phone Number</Text>
              </View>
-             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+             <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.settingRow, styles.settingRowNoBorder]} onPress={() => handleAction("Update Address")}>
              <View style={styles.settingRowLeft}>
                <View style={[styles.iconContainer, styles.iconPrimary]}>
-                 <Ionicons name="location-outline" size={20} color="#111827" />
+                 <Ionicons name="location-outline" size={20} color={theme.text} />
                </View>
                <Text style={styles.settingTitle}>Update Address</Text>
              </View>
-             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+             <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
           </TouchableOpacity>
         </View>
 
@@ -142,7 +145,7 @@ export default function SettingsScreen() {
           <View style={styles.settingRow}>
              <View style={styles.settingRowLeft}>
                <View style={[styles.iconContainer, styles.iconWarning]}>
-                 <Ionicons name="calendar-outline" size={20} color="#F59E0B" />
+                 <Ionicons name="calendar-outline" size={20} color={theme.warning} />
                </View>
                <Text style={styles.settingTitle}>Backup Days Remaining</Text>
              </View>
@@ -152,11 +155,11 @@ export default function SettingsScreen() {
           <TouchableOpacity style={[styles.settingRow, styles.settingRowNoBorder]} onPress={() => handleAction("Language Settings")}>
              <View style={styles.settingRowLeft}>
                <View style={[styles.iconContainer, styles.iconInfo]}>
-                 <Ionicons name="language-outline" size={20} color="#4F46E5" />
+                 <Ionicons name="language-outline" size={20} color={theme.accent} />
                </View>
                <Text style={styles.settingTitle}>Language Settings</Text>
              </View>
-             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+             <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />
           </TouchableOpacity>
         </View>
 

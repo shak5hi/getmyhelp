@@ -16,7 +16,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import config from "../../src/config";
 import { createVisitor } from "../../src/api/visitorApi";
 
@@ -29,6 +31,8 @@ interface Tower {
 
 export default function NewVisitorScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [purpose, setPurpose] = useState("guest");
@@ -169,7 +173,7 @@ export default function NewVisitorScreen() {
               <Text style={styles.label}>Tower *</Text>
               <View style={styles.towerRow}>
                 {towersLoading ? (
-                  <ActivityIndicator size="small" color={colors.accent} />
+                  <ActivityIndicator size="small" color={theme.accent} />
                 ) : (
                   towers.map((t) => (
                     <TouchableOpacity
@@ -225,43 +229,43 @@ export default function NewVisitorScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: "600", color: colors.textSecondary, marginBottom: 6, marginTop: 14 },
+  title: { fontSize: 20, fontWeight: "700", color: t.text, marginBottom: 20 },
+  label: { fontSize: 13, fontWeight: "600", color: t.textSecondary, marginBottom: 6, marginTop: 14 },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 15,
-    color: colors.textPrimary,
-    backgroundColor: colors.surface,
+    color: t.text,
+    backgroundColor: t.card,
   },
   purposeRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   purposeChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
   },
-  purposeChipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  purposeChipText: { fontSize: 13, color: colors.textSecondary },
+  purposeChipActive: { backgroundColor: t.accent, borderColor: t.accent },
+  purposeChipText: { fontSize: 13, color: t.textSecondary },
   purposeChipTextActive: { color: "#fff", fontWeight: "600" },
   towerRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   towerChip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
   },
-  towerChipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  towerChipText: { fontSize: 14, color: colors.textSecondary, fontWeight: "500" },
+  towerChipActive: { backgroundColor: t.accent, borderColor: t.accent },
+  towerChipText: { fontSize: 14, color: t.textSecondary, fontWeight: "500" },
   towerChipTextActive: { color: "#fff", fontWeight: "700" },
   selfieBox: {
     width: 120,
@@ -278,7 +282,7 @@ const styles = StyleSheet.create({
   selfieHint: { color: "#888", fontSize: 12, textAlign: "center" },
   submitBtn: {
     marginTop: 28,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: "center",

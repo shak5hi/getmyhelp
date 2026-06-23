@@ -11,11 +11,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { getOTPInvites, revokeOTPInvite } from "../../src/api/visitorApi";
 
 export default function OTPInviteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [invite, setInvite] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [revoking, setRevoking] = useState(false);
@@ -77,7 +81,7 @@ export default function OTPInviteDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={theme.accent} />
       </SafeAreaView>
     );
   }
@@ -85,7 +89,7 @@ export default function OTPInviteDetailScreen() {
   if (!invite) {
     return (
       <SafeAreaView style={styles.center}>
-        <Text style={{ color: colors.textSecondary }}>Invite not found</Text>
+        <Text style={{ color: theme.textSecondary }}>Invite not found</Text>
       </SafeAreaView>
     );
   }
@@ -97,7 +101,7 @@ export default function OTPInviteDetailScreen() {
         <Text style={styles.otpHint}>Entry OTP</Text>
         <Text style={[styles.otpCode, !isActive && styles.otpCodeInactive]}>{invite.otp_code}</Text>
         {invite.is_used && <Text style={styles.statusBadge}>USED</Text>}
-        {invite.is_revoked && <Text style={[styles.statusBadge, { backgroundColor: "#fee2e2", color: colors.danger }]}>REVOKED</Text>}
+        {invite.is_revoked && <Text style={[styles.statusBadge, { backgroundColor: "#fee2e2", color: theme.danger }]}>REVOKED</Text>}
         {isExpired && !invite.is_used && !invite.is_revoked && (
           <Text style={[styles.statusBadge, { backgroundColor: "#fef9c3", color: "#92400e" }]}>EXPIRED</Text>
         )}
@@ -110,7 +114,7 @@ export default function OTPInviteDetailScreen() {
 
       {isActive && (
         <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-          <Ionicons name="share-outline" size={18} color={colors.accent} />
+          <Ionicons name="share-outline" size={18} color={theme.accent} />
           <Text style={styles.shareBtnText}>Share OTP with Guest</Text>
         </TouchableOpacity>
       )}
@@ -135,21 +139,21 @@ export default function OTPInviteDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 20 },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg, padding: 20 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   otpCard: {
     alignItems: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: 20,
     paddingVertical: 32,
     paddingHorizontal: 24,
     marginBottom: 16,
   },
-  otpCardInactive: { backgroundColor: colors.surface },
+  otpCardInactive: { backgroundColor: t.card },
   otpHint: { fontSize: 13, fontWeight: "600", color: "rgba(255,255,255,0.8)", marginBottom: 8, letterSpacing: 1 },
   otpCode: { fontSize: 52, fontWeight: "800", color: "#fff", letterSpacing: 10 },
-  otpCodeInactive: { color: colors.textSecondary },
+  otpCodeInactive: { color: t.textSecondary },
   statusBadge: {
     marginTop: 12,
     paddingHorizontal: 14,
@@ -168,15 +172,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     borderWidth: 1.5,
-    borderColor: colors.accent,
+    borderColor: t.accent,
     borderRadius: 10,
     paddingVertical: 10,
     marginBottom: 16,
   },
-  shareBtnText: { color: colors.accent, fontWeight: "700", fontSize: 15 },
-  card: { backgroundColor: colors.surface, borderRadius: 12, padding: 16, marginBottom: 24 },
-  name: { fontSize: 18, fontWeight: "700", color: colors.textPrimary, marginBottom: 4 },
-  info: { fontSize: 14, color: colors.textSecondary, marginBottom: 2 },
-  revokeBtn: { backgroundColor: colors.danger, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
+  shareBtnText: { color: t.accent, fontWeight: "700", fontSize: 15 },
+  card: { backgroundColor: t.card, borderRadius: 12, padding: 16, marginBottom: 24 },
+  name: { fontSize: 18, fontWeight: "700", color: t.text, marginBottom: 4 },
+  info: { fontSize: 14, color: t.textSecondary, marginBottom: 2 },
+  revokeBtn: { backgroundColor: t.danger, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
   revokeBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
 });

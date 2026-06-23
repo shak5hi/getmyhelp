@@ -1,11 +1,25 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
-import { TouchableOpacity, View, Text } from "react-native";
+import { TouchableOpacity, View, Text, TextInput } from "react-native";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+} from "@expo-google-fonts/inter";
 import { LanguageProvider } from "../src/LanguageContext";
 import { NotificationProvider, useNotifications } from "../src/NotificationContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { ThemeProvider, useTheme } from "../src/ThemeContext";
 import VisitorApprovalModal from "../components/visitor/VisitorApprovalModal";
+
+function ThemedStatusBar() {
+  const { theme } = useTheme();
+  return <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />;
+}
 
 function NotificationBell() {
   const router = useRouter();
@@ -34,14 +48,27 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     "Newsreader-Regular": require("../assets/fonts/Newsreader-Regular.ttf"),
     "Newsreader-SemiBold": require("../assets/fonts/Newsreader-SemiBold.ttf"),
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
   });
 
   if (!fontsLoaded) return null;
 
+  // Global default typeface for any text that doesn't set its own family.
+  (Text as any).defaultProps = (Text as any).defaultProps || {};
+  (Text as any).defaultProps.style = { fontFamily: "Inter_400Regular" };
+  (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
+  (TextInput as any).defaultProps.style = { fontFamily: "Inter_400Regular" };
+
   return (
+    <ThemeProvider>
     <SafeAreaProvider>
       <LanguageProvider>
         <NotificationProvider>
+          <ThemedStatusBar />
           <VisitorApprovalModal />
           <Stack
             screenOptions={{
@@ -73,6 +100,7 @@ export default function RootLayout() {
             }}
           >
             <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="phone" />
             <Stack.Screen name="otp" />
             <Stack.Screen name="location" />
@@ -101,6 +129,7 @@ export default function RootLayout() {
         </NotificationProvider>
       </LanguageProvider>
     </SafeAreaProvider>
+    </ThemeProvider>
   );
 }
 

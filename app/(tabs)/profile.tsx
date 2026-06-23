@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import config from "../../src/config";
-import { styles } from "../../styles/profile.styles";
+import { makeStyles } from "../../styles/profile.styles";
+import { useTheme } from "../../src/ThemeContext";
 
 // --- TYPES ---
 type UserData = {
@@ -24,47 +24,52 @@ type UserData = {
 
 // --- COMPONENTS ---
 const ProfileHeader = ({ user }: { user: UserData | null }) => {
-  if (!user) {
-    return (
-      <View style={styles.headerCard}>
-        <View style={styles.avatar}>
-          <Ionicons name="person" size={24} color="#4F46E5" />
-        </View>
-        <View style={styles.headerInfo}>
-          <Text style={styles.userName}>Guest User</Text>
-          <Text style={styles.userPhone}>Please log in</Text>
-        </View>
-      </View>
-    );
-  }
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const initial = user?.name?.charAt(0)?.toUpperCase() || "U";
 
   return (
-    <View style={styles.headerCard}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{user.name?.charAt(0)?.toUpperCase() || "U"}</Text>
+    <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <View style={styles.headerTopRow}>
+        <Text style={styles.headerKicker}>Profile</Text>
+        <TouchableOpacity style={styles.headerBtn} onPress={() => router.push("/(tabs)/settings")}>
+          <Ionicons name="settings-outline" size={20} color={theme.textSecondary} />
+        </TouchableOpacity>
       </View>
-      <View style={styles.headerInfo}>
-        <Text style={styles.userName}>{user.name}</Text>
-        <Text style={styles.userPhone}>{user.phone}</Text>
-        {user.society && user.tower && (
-          <View style={styles.addressBadge}>
-            <Ionicons name="location-outline" size={12} color="#4B5563" />
-            <Text style={styles.userAddress}>
-              {user.society}, {user.tower}
-            </Text>
-          </View>
-        )}
+
+      <View style={styles.profileRow}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{initial}</Text>
+        </View>
+        <View style={styles.profileInfo}>
+          <Text style={styles.userName} numberOfLines={1}>{user?.name || "Guest User"}</Text>
+          <Text style={styles.userPhone}>{user?.phone || "Please log in"}</Text>
+          {user?.society && user?.tower && (
+            <View style={styles.addressBadge}>
+              <Ionicons name="location-sharp" size={11} color={theme.accent} />
+              <Text style={styles.userAddress} numberOfLines={1}>
+                {user.society}, {user.tower}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );
 };
 
-const SectionCard = ({ title, children }: { title?: string; children: React.ReactNode }) => (
-  <View style={styles.sectionContainer}>
-    {title && <Text style={styles.sectionTitle}>{title}</Text>}
-    <View style={styles.card}>{children}</View>
-  </View>
-);
+const SectionCard = ({ title, children }: { title?: string; children: React.ReactNode }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  return (
+    <View style={styles.sectionContainer}>
+      {title && <Text style={styles.sectionTitle}>{title}</Text>}
+      <View style={styles.card}>{children}</View>
+    </View>
+  );
+};
 
 const MenuItem = ({
   icon,
@@ -80,24 +85,30 @@ const MenuItem = ({
   showChevron?: boolean;
   danger?: boolean;
   isLast?: boolean;
-}) => (
-  <>
-    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.menuItemLeft}>
-        <View style={[styles.iconContainer, danger && styles.iconContainerDanger]}>
-          <Ionicons name={icon} size={20} color={danger ? "#EF4444" : "#111827"} />
+}) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  return (
+    <>
+      <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+        <View style={styles.menuItemLeft}>
+          <View style={[styles.iconContainer, danger && styles.iconContainerDanger]}>
+            <Ionicons name={icon} size={20} color={danger ? theme.danger : theme.textSecondary} />
+          </View>
+          <Text style={[styles.menuItemTitle, danger && styles.menuItemTitleDanger]}>{title}</Text>
         </View>
-        <Text style={[styles.menuItemTitle, danger && styles.menuItemTitleDanger]}>{title}</Text>
-      </View>
-      {showChevron && <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />}
-    </TouchableOpacity>
-    {!isLast && <View style={styles.divider} />}
-  </>
-);
+        {showChevron && <Ionicons name="chevron-forward" size={20} color={theme.textTertiary} />}
+      </TouchableOpacity>
+      {!isLast && <View style={styles.divider} />}
+    </>
+  );
+};
 
 // --- MAIN SCREEN ---
 export default function ProfileScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -177,111 +188,37 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleActionPress = (action: string) => {
-    if (action.includes("Subscription")) {
-      router.push("/(tabs)/subscriptions");
-    } else {
-      console.log(`Action triggered: ${action}`);
-      Alert.alert("Coming Soon", `${action} functionality will be available in the next update.`);
-    }
-  };
-
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4F46E5" />
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        {/* 1. USER INFO CARD */}
-        <ProfileHeader user={user} />
+    <View style={styles.screen}>
+      {/* 1. GRADIENT PROFILE HEADER */}
+      <ProfileHeader user={user} />
 
-        {/* 2. YOUR SUBSCRIPTION */}
-        <SectionCard title="YOUR SUBSCRIPTION">
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+        {/* ACCOUNT */}
+        <SectionCard title="ACCOUNT">
           <MenuItem
             icon="card-outline"
-            title="View Current Subscription"
-            onPress={() => handleActionPress("View Subscription")}
+            title="Manage Subscription"
+            onPress={() => router.push("/(tabs)/subscriptions")}
           />
-          <MenuItem
-            icon="add-circle-outline"
-            title="Add Subscription"
-            onPress={() => handleActionPress("Add Subscription")}
-          />
-          <MenuItem
-            icon="refresh-circle-outline"
-            title="Update Subscription"
-            isLast
-            onPress={() => handleActionPress("Update Subscription")}
-          />
-        </SectionCard>
-
-        {/* 3. PAYMENTS & BILLING */}
-        <SectionCard title="PAYMENTS & BILLING">
-          <MenuItem
-            icon="receipt-outline"
-            title="Payment History"
-            onPress={() => handleActionPress("Payment History")}
-          />
-          <MenuItem
-            icon="document-text-outline"
-            title="Billing Details"
-            isLast
-            onPress={() => handleActionPress("Billing Details")}
-          />
-        </SectionCard>
-
-        {/* 4. HELP & SUPPORT */}
-        <SectionCard title="HELP & SUPPORT">
-          <MenuItem
-            icon="alert-circle-outline"
-            title="Raise a Complaint"
-            onPress={() => handleActionPress("Raise Complaint")}
-          />
-          <MenuItem
-            icon="chatbubbles-outline"
-            title="Chat Support"
-            onPress={() => handleActionPress("Chat Support")}
-          />
-          <MenuItem
-            icon="call-outline"
-            title="Call Support"
-            onPress={() => handleActionPress("Call Support")}
-          />
-          <MenuItem
-            icon="help-circle-outline"
-            title="FAQs"
-            isLast
-            onPress={() => handleActionPress("FAQs")}
-          />
-        </SectionCard>
-
-        {/* 5. PREFERENCES */}
-        <SectionCard title="PREFERENCES">
           <MenuItem
             icon="settings-outline"
             title="Settings"
-            onPress={() => router.push("/(tabs)/settings")}
-          />
-          <MenuItem
-            icon="document-lock-outline"
-            title="Terms & Conditions"
-            onPress={() => handleActionPress("Terms & Conditions")}
-          />
-          <MenuItem
-            icon="shield-checkmark-outline"
-            title="Privacy Policy"
             isLast
-            onPress={() => handleActionPress("Privacy Policy")}
+            onPress={() => router.push("/(tabs)/settings")}
           />
         </SectionCard>
 
-        {/* 6. LOGOUT BUTTON */}
+        {/* LOGOUT */}
         <SectionCard>
           <MenuItem
             icon="log-out-outline"
@@ -295,6 +232,6 @@ export default function ProfileScreen() {
         
         <View style={styles.bottomPadding} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

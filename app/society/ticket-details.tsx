@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -16,13 +16,16 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as WebBrowser from "expo-web-browser";
 import config from "../../src/config";
-import { societyStyles as styles } from "../../styles/society.styles";
+import { makeStyles } from "../../styles/society.styles";
+import { useTheme } from "../../src/ThemeContext";
 import { CommentItem } from "../../components/society/CommentItem";
 import { Skeleton } from "../../components/ui/Skeleton";
 
 export default function TicketDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [loading, setLoading] = useState(true);
   const [ticket, setTicket] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
@@ -186,13 +189,13 @@ export default function TicketDetailsScreen() {
                 );
               })()}
               {ticket?.type && (
-                <View style={[styles.statusBadge, { backgroundColor: "#F3F4F6", flexDirection: "row", alignItems: "center", gap: 4 }]}>
+                <View style={[styles.statusBadge, { backgroundColor: theme.surfaceAlt, flexDirection: "row", alignItems: "center", gap: 4 }]}>
                   <Ionicons
                     name={ticket.type === "private" ? "lock-closed" : "people"}
                     size={11}
-                    color="#6B7280"
+                    color={theme.textSecondary}
                   />
-                  <Text style={[styles.statusText, { color: "#6B7280" }]}>
+                  <Text style={[styles.statusText, { color: theme.textSecondary }]}>
                     {ticket.type}
                   </Text>
                 </View>
@@ -205,13 +208,13 @@ export default function TicketDetailsScreen() {
 
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <View style={styles.priorityContainer}>
-                <Ionicons name="calendar-outline" size={14} color="#64748B" />
+                <Ionicons name="calendar-outline" size={14} color={theme.textTertiary} />
                 <Text style={styles.priorityText}>
                   {new Date(ticket?.created_at).toLocaleDateString()}
                 </Text>
               </View>
               <View style={styles.priorityContainer}>
-                <Ionicons name="pricetag-outline" size={14} color="#64748B" />
+                <Ionicons name="pricetag-outline" size={14} color={theme.textTertiary} />
                 <Text style={styles.priorityText}>{ticket?.category}</Text>
               </View>
             </View>
@@ -240,8 +243,8 @@ export default function TicketDetailsScreen() {
                           />
                         ) : (
                           <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: 4 }}>
-                            <Ionicons name="document-text" size={28} color="#9CA3AF" />
-                            <Text style={{ fontSize: 10, color: "#9CA3AF", textAlign: "center", paddingHorizontal: 4 }} numberOfLines={2}>
+                            <Ionicons name="document-text" size={28} color={theme.textTertiary} />
+                            <Text style={{ fontSize: 10, color: theme.textTertiary, textAlign: "center", paddingHorizontal: 4 }} numberOfLines={2}>
                               {att.original_filename || "File"}
                             </Text>
                           </View>
@@ -263,7 +266,7 @@ export default function TicketDetailsScreen() {
           <View style={styles.commentContainer}>
             {comments.length === 0 ? (
               <View style={{ alignItems: "center", paddingVertical: 20 }}>
-                <Text style={{ color: "#94A3B8", fontSize: 14 }}>No activity yet</Text>
+                <Text style={{ color: theme.textTertiary, fontSize: 14 }}>No activity yet</Text>
               </View>
             ) : (
               comments.map((item, index) => (

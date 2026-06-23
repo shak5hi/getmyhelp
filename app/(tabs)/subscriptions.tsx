@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -17,9 +17,12 @@ import {
   selectSubscription, 
   requestSubscriptionCancellation 
 } from "../../src/api/subscriptionApi";
-import { styles } from "../../styles/subscriptions.styles";
+import { makeStyles } from "../../styles/subscriptions.styles";
+import { useTheme } from "../../src/ThemeContext";
 
 export default function SubscriptionsScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [currentSubscriptions, setCurrentSubscriptions] = useState<any[]>([]);
   const [availablePlans, setAvailablePlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,13 +111,13 @@ export default function SubscriptionsScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#111827" />
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
 
   return (
-    <SafeAreaView edges={["bottom"]} style={styles.container}>
+    <SafeAreaView edges={["top", "bottom"]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
         <Text style={styles.header}>Subscriptions</Text>
@@ -125,7 +128,7 @@ export default function SubscriptionsScreen() {
 
         {currentSubscriptions.length === 0 ? (
           <View style={styles.emptyState}>
-            <Ionicons name="card-outline" size={48} color="#9CA3AF" />
+            <Ionicons name="card-outline" size={48} color={theme.textTertiary} />
             <Text style={styles.emptyStateTitle}>No Active Subscriptions</Text>
             <Text style={styles.emptyStateText}>
               You don't have any ongoing plans. Explore our deals below to get started.
@@ -136,7 +139,7 @@ export default function SubscriptionsScreen() {
             <View key={sub.id || index} style={styles.activeCard}>
               <View style={styles.activeCardHeader}>
                 <View style={styles.activeBadge}>
-                  <Ionicons name="checkmark-circle" size={14} color="#10B981" />
+                  <Ionicons name="checkmark-circle" size={14} color={theme.success} />
                   <Text style={styles.activeBadgeText}>{sub.status?.toUpperCase() || "ACTIVE"}</Text>
                 </View>
               </View>
@@ -162,7 +165,7 @@ export default function SubscriptionsScreen() {
         <Text style={styles.sectionTitle}>Available Plans</Text>
 
         {availablePlans.length === 0 ? (
-          <Text style={{ color: "#64748B", textAlign: "center", marginVertical: 16 }}>
+          <Text style={{ color: theme.textSecondary, textAlign: "center", marginVertical: 16 }}>
             No standard plans loaded.
           </Text>
         ) : (
@@ -170,7 +173,7 @@ export default function SubscriptionsScreen() {
             <View key={plan.id || index} style={styles.availableCard}>
               <Text style={styles.availablePlanName}>{plan.name || "Plan"}</Text>
               <Text style={styles.availablePlanPrice}>
-                ₹{plan.price ?? plan.base_price ?? "—"} <Text style={{ fontSize: 16, color: "#64748B", fontWeight: "600" }}>/month</Text>
+                ₹{plan.price ?? plan.base_price ?? "—"} <Text style={{ fontSize: 16, color: theme.textSecondary, fontWeight: "600" }}>/month</Text>
               </Text>
 
               <TouchableOpacity 
@@ -178,7 +181,7 @@ export default function SubscriptionsScreen() {
                 onPress={() => handleAddSubscription(plan.id, plan.name)}
               >
                 <Text style={styles.subscribeButtonText}>Subscribe Now</Text>
-                <Ionicons name="arrow-forward" size={16} color="#4F46E5" />
+                <Ionicons name="arrow-forward" size={16} color={theme.accent} />
               </TouchableOpacity>
             </View>
           ))

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { getAttendanceHistory, AttendanceStatus } from "../src/api/attendanceApi";
 import { mediaUrl } from "../src/config";
-import { colors, radii, spacing } from "../constants/tokens";
+import { radii, spacing } from "../constants/tokens";
+import { useTheme } from "../src/ThemeContext";
+import { Theme } from "../constants/themes";
 import { EmptyState } from "../components/ui/EmptyState";
 
 interface AttendanceRecord {
@@ -38,8 +40,8 @@ interface HistoryData {
 const monthKey = (d = new Date()) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
-const statusColor = (status: AttendanceStatus) =>
-  status === "absent" ? colors.danger : status === "late" ? colors.warning : colors.success;
+const statusColor = (status: AttendanceStatus, t: Theme) =>
+  status === "absent" ? t.danger : status === "late" ? t.warning : t.success;
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -48,6 +50,8 @@ const formatDate = (iso: string) => {
 };
 
 export default function AttendanceHistoryScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [data, setData] = useState<HistoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -78,7 +82,7 @@ export default function AttendanceHistoryScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.accent} />
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }
@@ -98,9 +102,9 @@ export default function AttendanceHistoryScreen() {
           <Text style={styles.pctLabel}>Attendance</Text>
         </View>
         <View style={styles.statsBlock}>
-          <Stat label="Present" value={data?.total_present ?? 0} color={colors.success} />
-          <Stat label="Absent" value={data?.total_absent ?? 0} color={colors.danger} />
-          <Stat label="Late" value={data?.total_late ?? 0} color={colors.warning} />
+          <Stat label="Present" value={data?.total_present ?? 0} color={theme.success} />
+          <Stat label="Absent" value={data?.total_absent ?? 0} color={theme.danger} />
+          <Stat label="Late" value={data?.total_late ?? 0} color={theme.warning} />
         </View>
       </View>
 
@@ -119,7 +123,7 @@ export default function AttendanceHistoryScreen() {
                 <Image source={{ uri: img }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatar, styles.avatarFallback]}>
-                  <Ionicons name="person" size={16} color={colors.accent} />
+                  <Ionicons name="person" size={16} color={theme.accent} />
                 </View>
               )}
               <View style={styles.recordInfo}>
@@ -133,8 +137,8 @@ export default function AttendanceHistoryScreen() {
               {rec.photo_url ? (
                 <Image source={{ uri: mediaUrl(rec.photo_url)! }} style={styles.proof} />
               ) : null}
-              <View style={[styles.statusPill, { backgroundColor: `${statusColor(rec.status)}1A` }]}>
-                <Text style={[styles.statusText, { color: statusColor(rec.status) }]}>
+              <View style={[styles.statusPill, { backgroundColor: `${statusColor(rec.status, theme)}1A` }]}>
+                <Text style={[styles.statusText, { color: statusColor(rec.status, theme) }]}>
                   {rec.status.toUpperCase()}
                 </Text>
               </View>
@@ -149,6 +153,8 @@ export default function AttendanceHistoryScreen() {
 }
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.stat}>
       <Text style={[styles.statValue, { color }]}>{value}</Text>
@@ -157,10 +163,10 @@ function Stat({ label, value, color }: { label: string; value: number; color: st
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
   },
   content: {
     padding: spacing.lg,
@@ -169,15 +175,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
   },
   summaryCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     padding: spacing.lg,
     marginBottom: spacing.lg,
   },
@@ -186,16 +192,16 @@ const styles = StyleSheet.create({
     paddingRight: spacing.lg,
     marginRight: spacing.lg,
     borderRightWidth: 1,
-    borderRightColor: colors.divider,
+    borderRightColor: t.divider,
   },
   pctValue: {
     fontSize: 28,
     fontWeight: "800",
-    color: colors.accent,
+    color: t.accent,
   },
   pctLabel: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     fontWeight: "600",
   },
   statsBlock: {
@@ -212,17 +218,17 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     fontWeight: "600",
     marginTop: 2,
   },
   recordRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
@@ -232,7 +238,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   avatarFallback: {
-    backgroundColor: colors.accentLight,
+    backgroundColor: t.accentTint,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -243,11 +249,11 @@ const styles = StyleSheet.create({
   recordDate: {
     fontSize: 14,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
   },
   recordProvider: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     marginTop: 2,
   },
   proof: {

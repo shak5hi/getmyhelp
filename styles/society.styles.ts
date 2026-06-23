@@ -1,21 +1,22 @@
 import { StyleSheet } from "react-native";
-import { colors, shadows, radii } from "../constants/tokens";
+import { shadows, radii } from "../constants/tokens";
+import { Theme } from "../constants/themes";
 
-export const societyStyles = StyleSheet.create({
+export const makeStyles = (t: Theme) => StyleSheet.create({
   // ── Shell ──────────────────────────────────────────────
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
   },
 
   // ── Fixed page header (title bar) ─────────────────────
   header: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     paddingHorizontal: 20,
     paddingTop: 6,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: t.border,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -26,12 +27,12 @@ export const societyStyles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "800",
-    color: colors.textPrimary,
+    color: t.text,
     letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     marginTop: 2,
     fontWeight: "500",
   },
@@ -39,7 +40,7 @@ export const societyStyles = StyleSheet.create({
   // ── Segmented tab switcher ─────────────────────────────
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: "#E5E7EB",
+    backgroundColor: t.surfaceAlt,
     borderRadius: radii.md,
     marginHorizontal: 16,
     marginTop: 14,
@@ -53,7 +54,7 @@ export const societyStyles = StyleSheet.create({
     borderRadius: 10,
   },
   activeTab: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -63,10 +64,10 @@ export const societyStyles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#9CA3AF",
+    color: t.textTertiary,
   },
   activeTabText: {
-    color: colors.accent,
+    color: t.accent,
   },
 
   // ── List content container ─────────────────────────────
@@ -88,11 +89,11 @@ export const societyStyles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.lg,
     padding: 12,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     ...shadows.sm,
   },
   summaryIconWrap: {
@@ -106,7 +107,7 @@ export const societyStyles = StyleSheet.create({
   summaryLabel: {
     fontSize: 11,
     fontWeight: "600",
-    color: colors.textTertiary,
+    color: t.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 0.4,
     marginBottom: 2,
@@ -114,13 +115,13 @@ export const societyStyles = StyleSheet.create({
   summaryValue: {
     fontSize: 17,
     fontWeight: "800",
-    color: colors.textPrimary,
+    color: t.text,
   },
   summaryValueIncome: {
-    color: colors.success,
+    color: t.success,
   },
   summaryValueExpense: {
-    color: colors.danger,
+    color: t.danger,
   },
 
   // ── Count strip ───────────────────────────────────────
@@ -131,14 +132,14 @@ export const societyStyles = StyleSheet.create({
   countStripText: {
     fontSize: 12,
     fontWeight: "600",
-    color: colors.textTertiary,
+    color: t.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
 
   // ── Transaction card ───────────────────────────────────
   transactionCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.lg,
     padding: 16,
     marginBottom: 10,
@@ -155,10 +156,10 @@ export const societyStyles = StyleSheet.create({
     marginRight: 14,
   },
   incomeIcon: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: t.successTint,
   },
   expenseIcon: {
-    backgroundColor: colors.dangerLight,
+    backgroundColor: t.dangerTint,
   },
   transactionInfo: {
     flex: 1,
@@ -166,12 +167,12 @@ export const societyStyles = StyleSheet.create({
   transactionCategory: {
     fontSize: 15,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
     marginBottom: 2,
   },
   transactionDate: {
     fontSize: 13,
-    color: colors.textTertiary,
+    color: t.textTertiary,
     fontWeight: "500",
   },
   transactionRight: {
@@ -182,15 +183,15 @@ export const societyStyles = StyleSheet.create({
     fontWeight: "700",
   },
   incomeAmount: {
-    color: colors.success,
+    color: t.success,
   },
   expenseAmount: {
-    color: colors.danger,
+    color: t.danger,
   },
 
   // ── Ticket card (no left border) ──────────────────────
   ticketCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.lg,
     padding: 16,
     marginBottom: 10,
@@ -205,7 +206,7 @@ export const societyStyles = StyleSheet.create({
   ticketTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
     flex: 1,
     marginRight: 10,
     lineHeight: 22,
@@ -238,12 +239,12 @@ export const societyStyles = StyleSheet.create({
   },
   priorityText: {
     fontSize: 11,
-    color: colors.textTertiary,
+    color: t.textTertiary,
     fontWeight: "500",
   },
   ticketDate: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     fontWeight: "500",
   },
 
@@ -255,10 +256,10 @@ export const societyStyles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: colors.accent,
+    shadowColor: t.accent,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -268,7 +269,7 @@ export const societyStyles = StyleSheet.create({
   // ── Create Ticket form ─────────────────────────────────
   formContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
     padding: 16,
   },
   inputGroup: {
@@ -277,18 +278,18 @@ export const societyStyles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: "600",
-    color: colors.textSecondary,
+    color: t.textSecondary,
     marginBottom: 8,
     marginLeft: 2,
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderRadius: radii.md,
     padding: 14,
     fontSize: 15,
-    color: colors.textPrimary,
+    color: t.text,
     ...shadows.sm,
   },
   textArea: {
@@ -297,20 +298,20 @@ export const societyStyles = StyleSheet.create({
     paddingTop: 14,
   },
   submitButton: {
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: 14,
     padding: 16,
     alignItems: "center",
     marginTop: 8,
     marginBottom: 32,
-    shadowColor: colors.accent,
+    shadowColor: t.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 4,
   },
   submitButtonText: {
-    color: colors.surface,
+    color: t.card,
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.3,
@@ -319,30 +320,30 @@ export const societyStyles = StyleSheet.create({
   // ── Ticket type selector ───────────────────────────────
   typeButton: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderRadius: 14,
     padding: 14,
     alignItems: "center",
     gap: 4,
   },
   typeButtonActive: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accentLight,
+    borderColor: t.accent,
+    backgroundColor: t.accentTint,
   },
   typeButtonText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#9CA3AF",
+    color: t.textTertiary,
     marginTop: 4,
   },
   typeButtonTextActive: {
-    color: colors.accent,
+    color: t.accent,
   },
   typeButtonSub: {
     fontSize: 11,
-    color: "#9CA3AF",
+    color: t.textTertiary,
     fontWeight: "400",
     textAlign: "center",
   },
@@ -370,24 +371,24 @@ export const societyStyles = StyleSheet.create({
     position: "absolute",
     top: -4,
     right: -4,
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: 10,
   },
   attachmentPicker: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
     borderRadius: radii.md,
     padding: 14,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderStyle: "dashed",
   },
   attachmentPickerText: {
     fontSize: 14,
     fontWeight: "600",
-    color: colors.textSecondary,
+    color: t.textSecondary,
   },
 
   // ── Attachment row in detail view ──────────────────────
@@ -401,7 +402,7 @@ export const societyStyles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: radii.md,
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: t.surfaceAlt,
     overflow: "hidden",
   },
   detailAttachImage: {
@@ -411,7 +412,7 @@ export const societyStyles = StyleSheet.create({
 
   // ── Ticket detail ──────────────────────────────────────
   detailHeader: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     padding: 20,
     marginHorizontal: 16,
     marginTop: 12,
@@ -422,13 +423,13 @@ export const societyStyles = StyleSheet.create({
   detailTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: colors.textPrimary,
+    color: t.text,
     marginBottom: 12,
   },
   detailDescription: {
     fontSize: 15,
     lineHeight: 24,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     marginBottom: 16,
   },
 
@@ -446,12 +447,12 @@ export const societyStyles = StyleSheet.create({
   },
   myComment: {
     alignSelf: "flex-end",
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderBottomRightRadius: 4,
   },
   otherComment: {
     alignSelf: "flex-start",
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderBottomLeftRadius: 4,
     ...shadows.sm,
   },
@@ -460,10 +461,10 @@ export const societyStyles = StyleSheet.create({
     lineHeight: 20,
   },
   myCommentText: {
-    color: "#FFFFFF",
+    color: t.onAccent,
   },
   otherCommentText: {
-    color: colors.textPrimary,
+    color: t.text,
   },
   commentTime: {
     fontSize: 11,
@@ -474,38 +475,38 @@ export const societyStyles = StyleSheet.create({
     color: "rgba(255,255,255,0.6)",
   },
   otherCommentTime: {
-    color: colors.textTertiary,
+    color: t.textTertiary,
   },
   commentInputContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderTopWidth: 1,
-    borderTopColor: colors.divider,
+    borderTopColor: t.divider,
   },
   commentInput: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     paddingHorizontal: 16,
     paddingVertical: 10,
     marginRight: 10,
     fontSize: 15,
-    color: colors.textPrimary,
+    color: t.text,
     maxHeight: 100,
   },
   sendButton: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: colors.accent,
+    shadowColor: t.accent,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -522,13 +523,13 @@ export const societyStyles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
     marginTop: 16,
     textAlign: "center",
   },
   emptyText: {
     fontSize: 14,
-    color: colors.textTertiary,
+    color: t.textTertiary,
     textAlign: "center",
     marginTop: 8,
     lineHeight: 22,
@@ -536,7 +537,7 @@ export const societyStyles = StyleSheet.create({
 
   // ── Skeleton loader ────────────────────────────────────
   skeleton: {
-    backgroundColor: colors.border,
+    backgroundColor: t.border,
     borderRadius: radii.sm,
     overflow: "hidden",
   },
@@ -544,11 +545,11 @@ export const societyStyles = StyleSheet.create({
   // ── Transaction detail modal (light themed) ────────────
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: t.overlay,
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     padding: 24,
@@ -563,7 +564,7 @@ export const societyStyles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: colors.textPrimary,
+    color: t.text,
   },
   modalSection: {
     marginBottom: 20,
@@ -571,14 +572,14 @@ export const societyStyles = StyleSheet.create({
   modalLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: colors.textTertiary,
+    color: t.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 0.6,
     marginBottom: 6,
   },
   modalValue: {
     fontSize: 16,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     fontWeight: "500",
     lineHeight: 24,
   },
@@ -589,31 +590,31 @@ export const societyStyles = StyleSheet.create({
   attachmentItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: t.surfaceAlt,
     padding: 12,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
   },
   attachmentName: {
     flex: 1,
     fontSize: 14,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     marginLeft: 10,
     fontWeight: "500",
   },
   closeButton: {
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: t.surfaceAlt,
     padding: 16,
     borderRadius: 14,
     alignItems: "center",
     marginTop: 8,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
   },
   closeButtonText: {
     fontSize: 16,
     fontWeight: "700",
-    color: colors.textSecondary,
+    color: t.textSecondary,
   },
 });

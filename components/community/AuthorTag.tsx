@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 
 type Props = {
   name: string;
@@ -7,6 +9,8 @@ type Props = {
 };
 
 export function AuthorTag({ name, timestamp }: Props) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const initials = name
     ? name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
     : "?";
@@ -36,33 +40,34 @@ export function AuthorTag({ name, timestamp }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#6366F1",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  time: {
-    fontSize: 12,
-    color: "#9CA3AF",
-    marginTop: 1,
-  },
-});
+const makeStyles = (t: Theme) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+    avatar: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: t.accent,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    avatarText: {
+      color: t.onAccent,
+      fontSize: 13,
+      fontWeight: "700",
+    },
+    name: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: t.text,
+    },
+    time: {
+      fontSize: 12,
+      color: t.textTertiary,
+      marginTop: 1,
+    },
+  });

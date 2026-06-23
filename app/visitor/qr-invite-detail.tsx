@@ -14,12 +14,16 @@ import QRCode from "react-native-qrcode-svg";
 import ViewShot, { captureRef } from "react-native-view-shot";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { getQRInviteDetail, revokeQRInvite } from "../../src/api/visitorApi";
 
 export default function QRInviteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [invite, setInvite] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [revoking, setRevoking] = useState(false);
@@ -103,7 +107,7 @@ export default function QRInviteDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={theme.accent} />
       </SafeAreaView>
     );
   }
@@ -111,7 +115,7 @@ export default function QRInviteDetailScreen() {
   if (!invite) {
     return (
       <SafeAreaView style={styles.center}>
-        <Text style={{ color: colors.textSecondary }}>Invite not found</Text>
+        <Text style={{ color: theme.textSecondary }}>Invite not found</Text>
       </SafeAreaView>
     );
   }
@@ -135,10 +139,10 @@ export default function QRInviteDetailScreen() {
       {!invite.is_revoked && (
         <TouchableOpacity style={styles.shareBtn} onPress={handleShare} disabled={sharing}>
           {sharing ? (
-            <ActivityIndicator color={colors.accent} size="small" />
+            <ActivityIndicator color={theme.accent} size="small" />
           ) : (
             <>
-              <Ionicons name="share-outline" size={18} color={colors.accent} />
+              <Ionicons name="share-outline" size={18} color={theme.accent} />
               <Text style={styles.shareBtnText}>Share Invite</Text>
             </>
           )}
@@ -165,8 +169,8 @@ export default function QRInviteDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 20 },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg, padding: 20 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   qrBox: {
     alignItems: "center",
@@ -186,22 +190,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#fee2e2",
     borderRadius: 12,
   },
-  revokedText: { fontSize: 24, fontWeight: "800", color: colors.danger },
+  revokedText: { fontSize: 24, fontWeight: "800", color: t.danger },
   shareBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
     borderWidth: 1.5,
-    borderColor: colors.accent,
+    borderColor: t.accent,
     borderRadius: 10,
     paddingVertical: 10,
     marginBottom: 16,
   },
-  shareBtnText: { color: colors.accent, fontWeight: "700", fontSize: 15 },
-  card: { backgroundColor: colors.surface, borderRadius: 12, padding: 16, marginBottom: 24 },
-  name: { fontSize: 18, fontWeight: "700", color: colors.textPrimary, marginBottom: 4 },
-  info: { fontSize: 14, color: colors.textSecondary, marginBottom: 2 },
-  revokeBtn: { backgroundColor: colors.danger, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
+  shareBtnText: { color: t.accent, fontWeight: "700", fontSize: 15 },
+  card: { backgroundColor: t.card, borderRadius: 12, padding: 16, marginBottom: 24 },
+  name: { fontSize: 18, fontWeight: "700", color: t.text, marginBottom: 4 },
+  info: { fontSize: 14, color: t.textSecondary, marginBottom: 2 },
+  revokeBtn: { backgroundColor: t.danger, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
   revokeBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
 });

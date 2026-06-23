@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   StyleSheet,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import {
   getTodaysProviders,
@@ -18,12 +17,10 @@ import {
   TodayProvider,
 } from "../src/api/attendanceApi";
 import { mediaUrl } from "../src/config";
-import { colors, radii, spacing } from "../constants/tokens";
+import { fonts } from "../constants/tokens";
+import { useTheme } from "../src/ThemeContext";
+import { Theme } from "../constants/themes";
 
-const statusColor = (status: AttendanceStatus) =>
-  status === "absent" ? colors.danger : status === "late" ? colors.warning : colors.success;
-
-// Optionally capture a proof photo. Never blocks marking if camera is denied/cancelled.
 const capturePhoto = async (): Promise<AttendancePhoto | null> => {
   try {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -38,7 +35,13 @@ const capturePhoto = async (): Promise<AttendancePhoto | null> => {
 };
 
 export default function TodaysHelp() {
-  const router = useRouter();
+  const { theme } = useTheme();
+  const s = useMemo(() => makeStyles(theme), [theme]);
+  const statusColor = (status: AttendanceStatus) =>
+    status === "absent" ? theme.danger : status === "late" ? theme.warning : theme.success;
+  const statusTint = (status: AttendanceStatus) =>
+    status === "absent" ? theme.dangerTint : status === "late" ? theme.warningTint : theme.successTint;
+
   const [items, setItems] = useState<TodayProvider[]>([]);
   const [loading, setLoading] = useState(true);
   const [markingId, setMarkingId] = useState<string | null>(null);
@@ -48,8 +51,7 @@ export default function TodaysHelp() {
     try {
       const res = await getTodaysProviders();
       setItems(Array.isArray(res?.data) ? res.data : []);
-    } catch (err) {
-      console.log("Today's Help fetch error:", err);
+    } catch {
       setItems([]);
     } finally {
       setLoading(false);
@@ -76,11 +78,10 @@ export default function TodaysHelp() {
           )
         );
       } else {
-        // 403 (maid no longer assigned) or other error — refresh from server.
         load();
       }
-    } catch (err) {
-      console.log("Mark attendance error:", err);
+    } catch {
+      load();
     } finally {
       setMarkingId(null);
     }
@@ -88,83 +89,92 @@ export default function TodaysHelp() {
 
   if (loading) {
     return (
-      <View style={[styles.card, styles.centered]}>
-        <ActivityIndicator color={colors.accent} />
+      <View style={[s.card, s.centered]}>
+        <ActivityIndicator color={theme.accent} />
       </View>
     );
   }
 
   if (items.length === 0) {
-    return null; // dashboard already shows a "No Maid Assigned" hero when there's nothing scheduled
+    return (
+      <View style={s.card}>
+        <View style={s.emptyIcon}>
+          <Ionicons name="home-outline" size={22} color={theme.textTertiary} />
+        </View>
+        <Text style={s.emptyText}>No help scheduled today</Text>
+      </View>
+    );
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>Today's Help</Text>
-        <TouchableOpacity onPress={() => router.push("/attendance-history" as any)} hitSlop={8}>
-          <Text style={styles.historyLink}>History</Text>
-        </TouchableOpacity>
-      </View>
-
+    <View style={{ gap: 12 }}>
       {items.map((item, index) => {
         const { provider } = item;
         const img = mediaUrl(provider.profile_image);
         const busy = markingId === provider.id;
+        const fmtTime = item.marked_at
+          ? new Date(item.marked_at).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })
+          : null;
         return (
-          <View
-            key={item.assignment_id ?? `${item.provider.id}-${index}`}
-            style={[styles.row, index < items.length - 1 && styles.rowDivider]}
-          >
-            {img ? (
-              <Image source={{ uri: img }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarFallback]}>
-                <Ionicons name="person" size={18} color={colors.accent} />
+          <View key={item.assignment_id ?? `${provider.id}-${index}`} style={s.card}>
+            <View style={s.row}>
+              {img ? (
+                <Image source={{ uri: img }} style={s.avatar} />
+              ) : (
+                <View style={[s.avatar, s.avatarFallback]}>
+                  <Ionicons name="person" size={20} color={theme.accent} />
+                </View>
+              )}
+              <View style={s.info}>
+                <Text style={s.name} numberOfLines={1}>
+                  {provider.first_name} {provider.last_name || ""}
+                </Text>
+                <Text style={s.role} numberOfLines={1}>
+                  {item.assigned_services?.join(", ") || "Home help"}
+                </Text>
               </View>
-            )}
-
-            <View style={styles.info}>
-              <Text style={styles.name} numberOfLines={1}>
-                {provider.first_name} {provider.last_name || ""}
-              </Text>
-              <Text style={styles.services} numberOfLines={1}>
-                {item.assigned_services?.join(", ") || "Daily Help"}
-              </Text>
+              {item.status ? (
+                <View style={[s.badge, { backgroundColor: statusTint(item.status) }]}>
+                  <Text style={[s.badgeText, { color: statusColor(item.status) }]}>
+                    {item.status === "present" ? "Present" : item.status === "absent" ? "Absent" : "Late"}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={s.scheduled}>Scheduled</Text>
+              )}
             </View>
 
             {item.status ? (
               <TouchableOpacity
-                style={[styles.statusPill, { backgroundColor: `${statusColor(item.status)}1A` }]}
+                style={s.amendRow}
                 onPress={() =>
                   setItems((prev) => prev.map((x, i) => (i === index ? { ...x, status: null } : x)))
                 }
               >
-                <Text style={[styles.statusText, { color: statusColor(item.status) }]}>
-                  {item.status.toUpperCase()}
+                <Ionicons name="checkmark-circle" size={16} color={statusColor(item.status)} />
+                <Text style={s.amendText}>
+                  {item.status === "present" && fmtTime ? `Arrived at ${fmtTime}` : "Tap to change"}
                 </Text>
-                <Ionicons
-                  name="pencil"
-                  size={11}
-                  color={statusColor(item.status)}
-                  style={{ marginLeft: 4 }}
-                />
               </TouchableOpacity>
             ) : busy ? (
-              <ActivityIndicator color={colors.accent} style={{ marginLeft: spacing.sm }} />
+              <View style={s.amendRow}>
+                <ActivityIndicator color={theme.accent} size="small" />
+              </View>
             ) : (
-              <View style={styles.actions}>
+              <View style={s.actions}>
                 <TouchableOpacity
-                  style={[styles.actionBtn, styles.presentBtn]}
+                  style={[s.actionBtn, { backgroundColor: theme.accent }]}
+                  activeOpacity={0.88}
                   onPress={() => mark(item, "present")}
                 >
-                  <Text style={styles.presentText}>Present</Text>
+                  <Text style={[s.actionText, { color: "#FFFFFF" }]}>Mark Present</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.actionBtn, styles.absentBtn]}
+                  style={[s.actionBtn, s.actionGhost]}
+                  activeOpacity={0.7}
                   onPress={() => mark(item, "absent")}
                 >
-                  <Text style={styles.absentText}>Absent</Text>
+                  <Text style={[s.actionText, { color: theme.textSecondary }]}>Absent</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -175,104 +185,46 @@ export default function TodaysHelp() {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  centered: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 80,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: spacing.md,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: colors.textPrimary,
-  },
-  historyLink: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.accent,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing.md,
-  },
-  rowDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-  },
-  avatarFallback: {
-    backgroundColor: colors.accentLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  info: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: colors.textPrimary,
-  },
-  services: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  statusPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: radii.full,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.3,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  actionBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: radii.sm,
-  },
-  presentBtn: {
-    backgroundColor: colors.success,
-  },
-  presentText: {
-    color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  absentBtn: {
-    backgroundColor: colors.dangerLight,
-  },
-  absentText: {
-    color: colors.danger,
-    fontSize: 13,
-    fontWeight: "700",
-  },
-});
+const makeStyles = (t: Theme) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: t.card,
+      borderRadius: 24,
+      borderWidth: t.mode === "light" ? 1 : 0,
+      borderColor: t.border,
+      padding: 18,
+    },
+    centered: { alignItems: "center", justifyContent: "center", minHeight: 90 },
+    emptyIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      backgroundColor: t.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      alignSelf: "center",
+      marginBottom: 10,
+    },
+    emptyText: { fontFamily: fonts.medium, fontSize: 14, color: t.textSecondary, textAlign: "center" },
+    row: { flexDirection: "row", alignItems: "center" },
+    avatar: { width: 48, height: 48, borderRadius: 16 },
+    avatarFallback: { backgroundColor: t.accentTint, alignItems: "center", justifyContent: "center" },
+    info: { flex: 1, marginLeft: 14 },
+    name: { fontFamily: fonts.semibold, fontSize: 16, color: t.text, letterSpacing: -0.2 },
+    role: { fontFamily: fonts.regular, fontSize: 13, color: t.textSecondary, marginTop: 2 },
+    scheduled: { fontFamily: fonts.medium, fontSize: 13, color: t.textTertiary },
+    badge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
+    badgeText: { fontFamily: fonts.semibold, fontSize: 12 },
+    actions: { flexDirection: "row", gap: 10, marginTop: 16 },
+    actionBtn: {
+      flex: 1,
+      height: 46,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    actionGhost: { flex: 0, paddingHorizontal: 18, backgroundColor: t.surface },
+    actionText: { fontFamily: fonts.semibold, fontSize: 14 },
+    amendRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14 },
+    amendText: { fontFamily: fonts.regular, fontSize: 13, color: t.textSecondary },
+  });

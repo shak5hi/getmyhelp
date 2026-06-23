@@ -11,13 +11,17 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { verifyOTP } from "../../src/api/visitorApi";
 
 export default function VerifyOTPScreen() {
   const router = useRouter();
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [result, setResult] = useState<any>(null);
   const ref0 = useRef<TextInput>(null);
   const ref1 = useRef<TextInput>(null);
@@ -94,7 +98,7 @@ export default function VerifyOTPScreen() {
           style={[styles.actionBtn, styles.exitBtn]}
           onPress={() => router.replace("/(guard-tabs)/visitor-list")}
         >
-          <Text style={[styles.actionBtnText, { color: colors.textPrimary }]}>Go to Visitor List</Text>
+          <Text style={[styles.actionBtnText, { color: theme.text }]}>Go to Visitor List</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -103,7 +107,7 @@ export default function VerifyOTPScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Ionicons name="keypad-outline" size={40} color={colors.accent} style={{ marginBottom: 16 }} />
+        <Ionicons name="keypad-outline" size={40} color={theme.accent} style={{ marginBottom: 16 }} />
         <Text style={styles.title}>Enter Visitor OTP</Text>
         <Text style={styles.subtitle}>Ask the visitor for their 6-digit OTP shared by the resident</Text>
 
@@ -139,27 +143,27 @@ export default function VerifyOTPScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   content: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
-  title: { fontSize: 22, fontWeight: "700", color: colors.textPrimary, marginBottom: 8, textAlign: "center" },
-  subtitle: { fontSize: 14, color: colors.textSecondary, textAlign: "center", marginBottom: 36, lineHeight: 20 },
+  title: { fontSize: 22, fontWeight: "700", color: t.text, marginBottom: 8, textAlign: "center" },
+  subtitle: { fontSize: 14, color: t.textSecondary, textAlign: "center", marginBottom: 36, lineHeight: 20 },
   otpRow: { flexDirection: "row", gap: 10, marginBottom: 40 },
   otpBox: {
     width: 44,
     height: 54,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: t.border,
     borderRadius: 10,
     fontSize: 24,
     fontWeight: "700",
-    color: colors.textPrimary,
-    backgroundColor: colors.surface,
+    color: t.text,
+    backgroundColor: t.card,
   },
-  otpBoxFilled: { borderColor: colors.accent, backgroundColor: colors.accent + "10" },
+  otpBoxFilled: { borderColor: t.accent, backgroundColor: t.accent + "10" },
   verifyBtn: {
     width: "100%",
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: "center",
@@ -169,15 +173,15 @@ const styles = StyleSheet.create({
   // success state
   successCard: {
     margin: 24,
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: 20,
     padding: 32,
     alignItems: "center",
   },
   successIcon: { marginBottom: 12 },
   successTitle: { fontSize: 22, fontWeight: "800", color: "#16a34a", marginBottom: 16 },
-  successName: { fontSize: 20, fontWeight: "700", color: colors.textPrimary, marginBottom: 4 },
-  successSub: { fontSize: 14, color: colors.textSecondary, marginBottom: 2, textAlign: "center" },
+  successName: { fontSize: 20, fontWeight: "700", color: t.text, marginBottom: 4 },
+  successSub: { fontSize: 14, color: t.textSecondary, marginBottom: 2, textAlign: "center" },
   checkedInBadge: {
     marginTop: 16,
     backgroundColor: "#dcfce7",
@@ -189,11 +193,11 @@ const styles = StyleSheet.create({
   actionBtn: {
     marginHorizontal: 24,
     marginBottom: 12,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: "center",
   },
-  exitBtn: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  exitBtn: { backgroundColor: t.card, borderWidth: 1, borderColor: t.border },
   actionBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 });

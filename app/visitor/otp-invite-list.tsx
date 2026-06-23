@@ -10,11 +10,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { colors } from "../../constants/tokens";
+import { useMemo } from "react";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import { getOTPInvites } from "../../src/api/visitorApi";
 
 export default function OTPInviteListScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [invites, setInvites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -32,7 +36,7 @@ export default function OTPInviteListScreen() {
   useFocusEffect(useCallback(() => { load(); }, []));
 
   const statusColor = (invite: any) => {
-    if (invite.is_revoked) return colors.danger;
+    if (invite.is_revoked) return theme.danger;
     if (invite.is_used) return "#6b7280";
     if (new Date(invite.expires_at) < new Date()) return "#d97706";
     return "#16a34a";
@@ -63,14 +67,14 @@ export default function OTPInviteListScreen() {
       <View style={[styles.statusPill, { borderColor: statusColor(item) }]}>
         <Text style={[styles.statusText, { color: statusColor(item) }]}>{statusLabel(item)}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} style={{ marginLeft: 4 }} />
+      <Ionicons name="chevron-forward" size={16} color={theme.textSecondary} style={{ marginLeft: 4 }} />
     </TouchableOpacity>
   );
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={theme.accent} />
       </View>
     );
   }
@@ -84,37 +88,37 @@ export default function OTPInviteListScreen() {
       contentContainerStyle={invites.length === 0 ? styles.empty : { paddingVertical: 8 }}
       ListEmptyComponent={
         <View style={styles.center}>
-          <Ionicons name="keypad-outline" size={40} color={colors.textSecondary} style={{ marginBottom: 12 }} />
-          <Text style={{ color: colors.textSecondary, fontSize: 15 }}>No OTP invites yet</Text>
+          <Ionicons name="keypad-outline" size={40} color={theme.textSecondary} style={{ marginBottom: 12 }} />
+          <Text style={{ color: theme.textSecondary, fontSize: 15 }}>No OTP invites yet</Text>
         </View>
       }
     />
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 40 },
   empty: { flex: 1 },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     marginHorizontal: 16,
     marginVertical: 6,
     borderRadius: 12,
     padding: 14,
   },
   otpBadge: {
-    backgroundColor: colors.accent + "18",
+    backgroundColor: t.accent + "18",
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginRight: 12,
   },
-  otpCode: { fontSize: 16, fontWeight: "800", color: colors.accent, letterSpacing: 3 },
+  otpCode: { fontSize: 16, fontWeight: "800", color: t.accent, letterSpacing: 3 },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: "600", color: colors.textPrimary },
-  sub: { fontSize: 12, color: colors.textSecondary, marginTop: 1, textTransform: "capitalize" },
+  name: { fontSize: 15, fontWeight: "600", color: t.text },
+  sub: { fontSize: 12, color: t.textSecondary, marginTop: 1, textTransform: "capitalize" },
   statusPill: {
     borderWidth: 1,
     borderRadius: 12,

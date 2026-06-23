@@ -62,7 +62,6 @@ export default function OtpScreen() {
 
   // ✅ VERIFY OTP + SAVE ACCESS TOKEN
   const handleVerify = async () => {
-    console.log("INSIDE handleVerify🔍 VERIFYING OTP:", otp, "FOR PHONE:", phone);
     if (otp.length !== 6) {
       setError(i18n.t("otpError"));
       return;
@@ -81,7 +80,6 @@ export default function OtpScreen() {
 
       const credential = await confirmation.confirm(otp);
       const idToken = await credential.user.getIdToken();
-      console.log("✅ Firebase OTP verified");
 
       // 2. Exchange Firebase ID token for app access_token
       const response = await fetch(`${config.apiUrl}/customer/firebase-verify`, {
@@ -97,9 +95,7 @@ export default function OtpScreen() {
       let data;
       try {
         data = text ? JSON.parse(text) : {};
-        console.log("🔍 FULL FIREBASE VERIFY RESPONSE:", data);
       } catch (e) {
-        console.log("⚠️ Response is not JSON. Raw text start:", text.substring(0, 100));
         data = { message: "Server error: backend returned HTML instead of JSON." };
       }
 
@@ -125,7 +121,6 @@ export default function OtpScreen() {
 
       if (!accessToken) {
         setError("Login failed: No access token received");
-        console.log("❌ No access token in response:", data);
         return;
       }
 
@@ -141,11 +136,9 @@ export default function OtpScreen() {
         await AsyncStorage.setItem("user_role", customer.user_role);
       }
 
-      console.log("🔐 ACCESS TOKEN SAVED:", accessToken);
 
       // ── Guard: skip onboarding entirely ──
       if (customer?.user_role === "guard") {
-        console.log("✅ [otp] Guard login — routing to guard tabs");
         cleanupOtpState();
         router.replace("/(guard-tabs)/visitor-list");
         return;
@@ -162,7 +155,6 @@ export default function OtpScreen() {
 
       if (societyId && flatNumber) {
         // Pre-registered resident — all details already on the account
-        console.log("✅ [otp] Pre-registered resident — skipping onboarding");
         await AsyncStorage.setItem("selected_society_id", String(societyId));
         if (towerId) {
           await AsyncStorage.setItem("selected_tower_id", String(towerId));
@@ -185,7 +177,6 @@ export default function OtpScreen() {
         const pFlat    = p?.flat_number ?? p?.flatNumber;
 
         if (pSociety && pFlat) {
-          console.log("✅ [otp] Returning user detected via Profile API");
           await AsyncStorage.setItem("selected_society_id", String(pSociety));
           if (p?.tower_id ?? p?.towerId) {
             await AsyncStorage.setItem("selected_tower_id", String(p.tower_id ?? p.towerId));
@@ -201,16 +192,28 @@ export default function OtpScreen() {
           return;
         }
       } catch (profileErr) {
-        console.log("⚠️ [otp] Profile check failed:", profileErr);
       }
 
       // New unknown user — send to location/onboarding
-      console.log("🚀 [otp] New user — navigating to /location");
       cleanupOtpState();
       router.replace("/location");
-    } catch (err) {
-      console.log("❌ OTP VERIFY ERROR:", err);
-      setError("Network error. Please try again.");
+    } catch (err: any) {
+      const code: string = err?.code || "";
+      let msg = "Something went wrong. Please try again.";
+      if (code.includes("invalid-verification-code")) {
+        msg = "Incorrect OTP. Please check the code and try again.";
+      } else if (code.includes("session-expired") || code.includes("code-expired")) {
+        msg = "This OTP has expired. Tap Resend to get a new code.";
+      } else if (code.includes("network-request-failed")) {
+        msg = "Can't reach the verification server. Check your internet and try again.";
+      } else if (code.includes("too-many-requests")) {
+        msg = "Too many attempts. Please wait a while and try again.";
+      } else if (code.includes("missing-client-identifier") || code.includes("app-not-authorized")) {
+        msg = "App verification failed (Firebase SHA / config). Contact support.";
+      } else if (err?.message) {
+        msg = err.message;
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -222,7 +225,6 @@ export default function OtpScreen() {
       setLoading(true);
       setError("");
 
-      console.log("🔄 Resending Firebase OTP to:", phone);
 
       const confirmation = await signInWithPhoneNumber(getAuth(), phone);
       setConfirmation(confirmation);
@@ -232,7 +234,6 @@ export default function OtpScreen() {
       setResendActive(true);
       Alert.alert("Success", "New OTP has been sent!");
     } catch (err: any) {
-      console.log("❌ Resend error:", err);
       if (err.code === "auth/too-many-requests") {
         setError("Too many attempts. Please try again later.");
       } else {

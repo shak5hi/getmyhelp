@@ -1,21 +1,22 @@
 import { StyleSheet } from "react-native";
-import { colors, shadows, radii } from "../constants/tokens";
+import { shadows, radii } from "../constants/tokens";
+import { Theme } from "../constants/themes";
 
-export const communityStyles = StyleSheet.create({
+export const makeStyles = (t: Theme) => StyleSheet.create({
   // ── Shell ────────────────────────────────────────────────
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
   },
 
   // ── Fixed page header ────────────────────────────────────
   header: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     paddingHorizontal: 20,
     paddingTop: 6,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: t.border,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -26,12 +27,12 @@ export const communityStyles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "800",
-    color: colors.textPrimary,
+    color: t.text,
     letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     marginTop: 2,
     fontWeight: "500",
   },
@@ -39,7 +40,7 @@ export const communityStyles = StyleSheet.create({
   // ── Segmented tab bar ────────────────────────────────────
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: "#E5E7EB",
+    backgroundColor: t.surfaceAlt,
     borderRadius: radii.md,
     marginHorizontal: 16,
     marginTop: 14,
@@ -53,7 +54,7 @@ export const communityStyles = StyleSheet.create({
     borderRadius: 10,
   },
   activeTab: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -63,17 +64,17 @@ export const communityStyles = StyleSheet.create({
   tabText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#9CA3AF",
+    color: t.textTertiary,
   },
   activeTabText: {
-    color: colors.accent,
+    color: t.accent,
   },
 
   // ── Search bar ───────────────────────────────────────────
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.surfaceAlt,
+    backgroundColor: t.surfaceAlt,
     borderRadius: radii.md,
     marginHorizontal: 16,
     marginBottom: 12,
@@ -81,12 +82,12 @@ export const communityStyles = StyleSheet.create({
     paddingVertical: 10,
     gap: 8,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: colors.textPrimary,
+    color: t.text,
     fontWeight: "500",
   },
 
@@ -98,7 +99,7 @@ export const communityStyles = StyleSheet.create({
   countStripText: {
     fontSize: 12,
     fontWeight: "600",
-    color: colors.textTertiary,
+    color: t.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
@@ -111,7 +112,7 @@ export const communityStyles = StyleSheet.create({
 
   // ── Announcement card ────────────────────────────────────
   announcementCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.lg,
     padding: 16,
     marginBottom: 10,
@@ -128,7 +129,7 @@ export const communityStyles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
   },
   announcementBadgesRow: {
     flexDirection: "row",
@@ -139,13 +140,13 @@ export const communityStyles = StyleSheet.create({
   announcementTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
     marginBottom: 5,
     lineHeight: 21,
   },
   announcementBody: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     lineHeight: 20,
   },
   announcementMeta: {
@@ -154,12 +155,12 @@ export const communityStyles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: colors.divider,
+    borderTopColor: t.divider,
     gap: 6,
   },
   announcementDate: {
     fontSize: 12,
-    color: colors.textTertiary,
+    color: t.textTertiary,
     fontWeight: "500",
   },
   announcementDateRight: {
@@ -171,7 +172,7 @@ export const communityStyles = StyleSheet.create({
 
   // ── Forum post card ──────────────────────────────────────
   forumCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.lg,
     padding: 16,
     marginBottom: 10,
@@ -197,23 +198,23 @@ export const communityStyles = StyleSheet.create({
   forumAuthorName: {
     fontSize: 13,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
   },
   forumAuthorTime: {
     fontSize: 11,
-    color: colors.textTertiary,
+    color: t.textTertiary,
     marginTop: 1,
   },
   forumTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
     marginBottom: 12,
     lineHeight: 21,
   },
   forumBody: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     lineHeight: 19,
     marginBottom: 12,
   },
@@ -223,7 +224,7 @@ export const communityStyles = StyleSheet.create({
     gap: 14,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: colors.divider,
+    borderTopColor: t.divider,
   },
   forumStat: {
     flexDirection: "row",
@@ -232,13 +233,13 @@ export const communityStyles = StyleSheet.create({
   },
   forumStatText: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     fontWeight: "600",
   },
 
   // ── Poll card ────────────────────────────────────────────
   pollCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.lg,
     padding: 16,
     marginBottom: 10,
@@ -247,19 +248,19 @@ export const communityStyles = StyleSheet.create({
   pollTitle: {
     fontSize: 15,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
     marginBottom: 4,
     lineHeight: 21,
   },
   pollMeta: {
     fontSize: 12,
-    color: colors.textTertiary,
+    color: t.textTertiary,
     marginBottom: 14,
     fontWeight: "500",
   },
   pollClosedBadge: {
     alignSelf: "flex-start",
-    backgroundColor: colors.dangerLight,
+    backgroundColor: t.dangerTint,
     borderRadius: radii.sm,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -268,7 +269,7 @@ export const communityStyles = StyleSheet.create({
   pollClosedBadgeText: {
     fontSize: 11,
     fontWeight: "700",
-    color: colors.danger,
+    color: t.danger,
     textTransform: "uppercase",
     letterSpacing: 0.4,
   },
@@ -277,24 +278,24 @@ export const communityStyles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
     gap: 10,
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
     borderRadius: 10,
     padding: 12,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: t.border,
   },
   pollOptionSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accentLight,
+    borderColor: t.accent,
+    backgroundColor: t.accentTint,
   },
   pollOptionText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     flex: 1,
     fontWeight: "500",
   },
   pollOptionTextSelected: {
-    color: colors.textPrimary,
+    color: t.text,
     fontWeight: "700",
   },
   pollCircle: {
@@ -302,47 +303,47 @@ export const communityStyles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: "#D1D5DB",
+    borderColor: t.border,
     justifyContent: "center",
     alignItems: "center",
   },
   pollCircleSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent,
+    borderColor: t.accent,
+    backgroundColor: t.accent,
   },
   pollCheckbox: {
     width: 20,
     height: 20,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: "#D1D5DB",
+    borderColor: t.border,
     justifyContent: "center",
     alignItems: "center",
   },
   pollCheckboxSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent,
+    borderColor: t.accent,
+    backgroundColor: t.accent,
   },
   pollSubmitBtn: {
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: radii.md,
     paddingVertical: 13,
     alignItems: "center",
     marginTop: 6,
-    shadowColor: colors.accent,
+    shadowColor: t.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 4,
   },
   pollSubmitText: {
-    color: colors.surface,
+    color: t.card,
     fontWeight: "700",
     fontSize: 14,
     letterSpacing: 0.2,
   },
   pollSubmitDisabled: {
-    backgroundColor: "#9CA3AF",
+    backgroundColor: t.textTertiary,
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -359,7 +360,7 @@ export const communityStyles = StyleSheet.create({
   },
   barLabelText: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     flex: 1,
     fontWeight: "500",
     marginRight: 8,
@@ -367,25 +368,25 @@ export const communityStyles = StyleSheet.create({
   barLabelPct: {
     fontSize: 13,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
   },
   barBg: {
     height: 8,
-    backgroundColor: colors.border,
+    backgroundColor: t.border,
     borderRadius: 4,
     overflow: "hidden",
   },
   barFill: {
     height: "100%",
-    backgroundColor: colors.textTertiary,
+    backgroundColor: t.textTertiary,
     borderRadius: 4,
   },
   barFillWinner: {
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
   },
   pollClosed: {
     fontSize: 12,
-    color: colors.danger,
+    color: t.danger,
     fontWeight: "600",
     marginTop: 10,
     textAlign: "center",
@@ -399,10 +400,10 @@ export const communityStyles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: colors.accent,
+    shadowColor: t.accent,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.35,
     shadowRadius: 12,
@@ -412,7 +413,7 @@ export const communityStyles = StyleSheet.create({
   // ── Detail screen ────────────────────────────────────────
   detailContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
   },
   detailScroll: {
     padding: 16,
@@ -421,13 +422,13 @@ export const communityStyles = StyleSheet.create({
   detailTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: colors.textPrimary,
+    color: t.text,
     marginBottom: 12,
     lineHeight: 28,
   },
   detailBody: {
     fontSize: 15,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     lineHeight: 24,
     marginTop: 14,
   },
@@ -443,21 +444,21 @@ export const communityStyles = StyleSheet.create({
     paddingVertical: 10,
     paddingBottom: 14,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.surface,
+    borderTopColor: t.border,
+    backgroundColor: t.card,
     gap: 8,
   },
   replyInput: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     paddingHorizontal: 16,
     paddingVertical: 10,
     paddingTop: 10,
     fontSize: 14,
-    color: colors.textPrimary,
+    color: t.text,
     maxHeight: 100,
     minHeight: 42,
   },
@@ -465,10 +466,10 @@ export const communityStyles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: colors.accent,
+    shadowColor: t.accent,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -490,7 +491,7 @@ export const communityStyles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#6366F1",
+    backgroundColor: t.accent,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 6,
@@ -498,7 +499,7 @@ export const communityStyles = StyleSheet.create({
     alignSelf: "flex-end",
   },
   bubbleAvatarText: {
-    color: "#fff",
+    color: t.onAccent,
     fontSize: 10,
     fontWeight: "700",
   },
@@ -508,29 +509,29 @@ export const communityStyles = StyleSheet.create({
     paddingVertical: 8,
   },
   bubbleOwn: {
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderBottomRightRadius: 4,
   },
   bubbleOther: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
     ...shadows.sm,
   },
   bubbleAuthor: {
     fontSize: 11,
     fontWeight: "700",
-    color: colors.accent,
+    color: t.accent,
     marginBottom: 2,
   },
   bubbleText: {
     fontSize: 14,
-    color: colors.textPrimary,
+    color: t.text,
     lineHeight: 20,
   },
   bubbleTextOwn: {
-    color: "#fff",
+    color: t.onAccent,
   },
   bubbleFooter: {
     flexDirection: "row",
@@ -546,7 +547,7 @@ export const communityStyles = StyleSheet.create({
   },
   bubbleTime: {
     fontSize: 10,
-    color: colors.textTertiary,
+    color: t.textTertiary,
   },
   bubbleTimeOwn: {
     color: "rgba(255,255,255,0.6)",
@@ -555,7 +556,7 @@ export const communityStyles = StyleSheet.create({
   // ── Quoted message inside bubble ─────────────────────────
   quotedBox: {
     borderLeftWidth: 3,
-    borderLeftColor: colors.accent,
+    borderLeftColor: t.accent,
     paddingLeft: 6,
     paddingVertical: 3,
     marginBottom: 5,
@@ -569,7 +570,7 @@ export const communityStyles = StyleSheet.create({
   quotedAuthor: {
     fontSize: 11,
     fontWeight: "700",
-    color: colors.accent,
+    color: t.accent,
     marginBottom: 1,
   },
   quotedAuthorOwn: {
@@ -577,7 +578,7 @@ export const communityStyles = StyleSheet.create({
   },
   quotedText: {
     fontSize: 12,
-    color: "#6B7280",
+    color: t.textSecondary,
     lineHeight: 16,
   },
   quotedTextOwn: {
@@ -585,7 +586,7 @@ export const communityStyles = StyleSheet.create({
   },
 
   replyCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.md,
     padding: 12,
     marginBottom: 8,
@@ -593,19 +594,19 @@ export const communityStyles = StyleSheet.create({
   },
   replyText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     lineHeight: 20,
     marginTop: 6,
   },
   createField: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.md,
     padding: 14,
     marginBottom: 12,
     fontSize: 15,
-    color: colors.textPrimary,
+    color: t.text,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.border,
   },
   createFieldMulti: {
     minHeight: 120,
@@ -622,11 +623,11 @@ export const communityStyles = StyleSheet.create({
     height: 72,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: colors.accent,
+    borderColor: t.accent,
     borderStyle: "dashed",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.background,
+    backgroundColor: t.bg,
   },
   imagePickerThumb: {
     width: 72,
@@ -650,37 +651,37 @@ export const communityStyles = StyleSheet.create({
     alignItems: "center",
   },
   submitBtn: {
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     borderRadius: 14,
     paddingVertical: 15,
     alignItems: "center",
     marginTop: 4,
-    shadowColor: colors.accent,
+    shadowColor: t.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 4,
   },
   submitBtnText: {
-    color: colors.surface,
+    color: t.card,
     fontWeight: "700",
     fontSize: 15,
     letterSpacing: 0.2,
   },
   submitBtnDisabled: {
-    backgroundColor: "#9CA3AF",
+    backgroundColor: t.textTertiary,
     shadowOpacity: 0,
     elevation: 0,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: t.border,
     marginVertical: 16,
   },
   sectionLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: colors.textSecondary,
+    color: t.textSecondary,
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: 10,

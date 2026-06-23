@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,9 @@ import {
   markAllNotificationsRead,
 } from "../src/api/communityApi";
 import { useNotifications } from "../src/NotificationContext";
-import { colors, radii, shadows } from "../constants/tokens";
+import { radii, shadows } from "../constants/tokens";
+import { useTheme } from "../src/ThemeContext";
+import { Theme } from "../constants/themes";
 
 const formatRelative = (s: string) => {
   try {
@@ -32,6 +34,8 @@ const formatRelative = (s: string) => {
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { decrement, clear } = useNotifications();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,7 +126,7 @@ export default function NotificationsScreen() {
         )}
         <Text style={styles.time}>{formatRelative(item.created_at ?? "")}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={16} color="#D1D5DB" />
+      <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
     </TouchableOpacity>
   );
 
@@ -130,7 +134,7 @@ export default function NotificationsScreen() {
     return (
       <SafeAreaView edges={["bottom"]} style={styles.container}>
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={colors.accent} />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       </SafeAreaView>
     );
@@ -154,7 +158,7 @@ export default function NotificationsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Ionicons name="notifications-off-outline" size={48} color="#D1D5DB" />
+            <Ionicons name="notifications-off-outline" size={48} color={theme.textTertiary} />
             <Text style={styles.emptyText}>No notifications yet</Text>
           </View>
         }
@@ -164,7 +168,7 @@ export default function NotificationsScreen() {
         onEndReachedThreshold={0.3}
         ListFooterComponent={
           loadingMore ? (
-            <ActivityIndicator style={{ padding: 16 }} color={colors.accent} />
+            <ActivityIndicator style={{ padding: 16 }} color={theme.accent} />
           ) : null
         }
       />
@@ -172,11 +176,11 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.bg },
   listContent: { padding: 16, paddingBottom: 40 },
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: t.card,
     borderRadius: radii.md,
     padding: 14,
     marginBottom: 10,
@@ -186,35 +190,35 @@ const styles = StyleSheet.create({
   },
   cardUnread: {
     borderLeftWidth: 3,
-    borderLeftColor: colors.accent,
+    borderLeftColor: t.accent,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.accent,
+    backgroundColor: t.accent,
     marginRight: 10,
     flexShrink: 0,
   },
   title: {
     fontSize: 14,
     fontWeight: "500",
-    color: colors.textSecondary,
+    color: t.textSecondary,
     marginBottom: 3,
   },
   titleUnread: {
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: t.text,
   },
   body: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: t.textSecondary,
     lineHeight: 18,
     marginBottom: 5,
   },
   time: {
     fontSize: 12,
-    color: colors.textTertiary,
+    color: t.textTertiary,
     fontWeight: "500",
   },
   markAllBtn: {
@@ -225,7 +229,7 @@ const styles = StyleSheet.create({
   markAllText: {
     fontSize: 13,
     fontWeight: "700",
-    color: colors.accent,
+    color: t.accent,
   },
   empty: {
     alignItems: "center",
@@ -234,7 +238,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 15,
-    color: colors.textTertiary,
+    color: t.textTertiary,
     fontWeight: "500",
   },
 });

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -12,12 +12,16 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../src/config";
+import { useTheme } from "../src/ThemeContext";
+import { Theme } from "../constants/themes";
 
 const DAYS_MAP = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export default function AssignmentDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [loading, setLoading] = useState(true);
   const [assignment, setAssignment] = useState<any>(null);
 
@@ -51,7 +55,7 @@ export default function AssignmentDetailsScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#111827" />
+        <ActivityIndicator size="large" color={theme.text} />
       </View>
     );
   }
@@ -78,7 +82,7 @@ export default function AssignmentDetailsScreen() {
         <Text style={styles.role}>{assignment.assigned_services?.join(" • ")}</Text>
         
         <View style={styles.ratingBadge}>
-          <Ionicons name="star" size={16} color="#F59E0B" />
+          <Ionicons name="star" size={16} color={theme.warning} />
           <Text style={styles.ratingText}>{provider.rating || "N/A"}</Text>
           <View style={styles.dot} />
           <Text style={styles.experienceText}>{provider.years_experience} Years Exp.</Text>
@@ -109,7 +113,7 @@ export default function AssignmentDetailsScreen() {
       
       <View style={styles.infoCard}>
         <View style={styles.scheduleRow}>
-          <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+          <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
           <View style={styles.scheduleContent}>
             <Text style={styles.infoLabel}>Days of Week</Text>
             <Text style={styles.infoValue}>
@@ -121,7 +125,7 @@ export default function AssignmentDetailsScreen() {
         <View style={styles.scheduleDivider} />
         
         <View style={styles.scheduleRow}>
-          <Ionicons name="time-outline" size={20} color="#6B7280" />
+          <Ionicons name="time-outline" size={20} color={theme.textSecondary} />
           <View style={styles.scheduleContent}>
             <Text style={styles.infoLabel}>Time Slots</Text>
             <Text style={styles.infoValue}>
@@ -139,7 +143,7 @@ export default function AssignmentDetailsScreen() {
       <View style={styles.servicesGrid}>
         {assignment.assigned_services?.map((service: string, index: number) => (
           <View key={index} style={styles.serviceChip}>
-            <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+            <Ionicons name="checkmark-circle" size={18} color={theme.success} />
             <Text style={styles.serviceText}>{service}</Text>
           </View>
         ))}
@@ -152,13 +156,13 @@ export default function AssignmentDetailsScreen() {
       
       <Pressable style={styles.contactCard}>
         <View style={styles.contactIcon}>
-          <Ionicons name="call" size={20} color="#fff" />
+          <Ionicons name="call" size={20} color={theme.onAccent} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.contactLabel}>Phone Number</Text>
           <Text style={styles.contactValue}>+91 {provider.phone}</Text>
         </View>
-        <Ionicons name="chatbox-ellipses-outline" size={24} color="#111827" />
+        <Ionicons name="chatbox-ellipses-outline" size={24} color={theme.text} />
       </Pressable>
 
       <View style={{ height: 40 }} />
@@ -166,10 +170,10 @@ export default function AssignmentDetailsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: t.bg,
   },
   content: {
     padding: 24,
@@ -180,7 +184,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   errorText: {
-    color: "#EF4444",
+    color: t.danger,
     fontSize: 16,
     fontWeight: "600",
   },
@@ -194,7 +198,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginBottom: 16,
     borderWidth: 4,
-    borderColor: "#fff",
+    borderColor: t.card,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -203,52 +207,52 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#111827",
+    color: t.text,
     marginBottom: 4,
   },
   role: {
     fontSize: 15,
-    color: "#6B7280",
+    color: t.textSecondary,
     fontWeight: "500",
     marginBottom: 12,
   },
   ratingBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: t.card,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: t.border,
   },
   ratingText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#111827",
+    color: t.text,
     marginLeft: 4,
   },
   dot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#D1D5DB",
+    backgroundColor: t.textTertiary,
     marginHorizontal: 8,
   },
   experienceText: {
     fontSize: 13,
-    color: "#6B7280",
+    color: t.textSecondary,
     fontWeight: "600",
   },
   statusCard: {
-    backgroundColor: "#fff",
+    backgroundColor: t.card,
     borderRadius: 20,
     padding: 20,
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: t.border,
   },
   statusItem: {
     flex: 1,
@@ -257,11 +261,11 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: "100%",
-    backgroundColor: "#E5E7EB",
+    backgroundColor: t.border,
   },
   statusLabel: {
     fontSize: 12,
-    color: "#9CA3AF",
+    color: t.textTertiary,
     textTransform: "uppercase",
     fontWeight: "700",
     letterSpacing: 0.5,
@@ -273,20 +277,20 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   statusActive: {
-    backgroundColor: "#D1FAE5",
+    backgroundColor: t.successTint,
   },
   statusInactive: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: t.surfaceAlt,
   },
   statusBadgeText: {
     fontSize: 11,
     fontWeight: "800",
-    color: "#065F46",
+    color: t.success,
   },
   statusValue: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#111827",
+    color: t.text,
   },
   sectionHeader: {
     marginBottom: 12,
@@ -294,16 +298,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#374151",
+    color: t.text,
     letterSpacing: -0.2,
   },
   infoCard: {
-    backgroundColor: "#fff",
+    backgroundColor: t.card,
     borderRadius: 20,
     padding: 20,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: t.border,
   },
   scheduleRow: {
     flexDirection: "row",
@@ -315,19 +319,19 @@ const styles = StyleSheet.create({
   },
   scheduleDivider: {
     height: 1,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: t.surfaceAlt,
     marginVertical: 16,
     marginLeft: 32,
   },
   infoLabel: {
     fontSize: 13,
-    color: "#6B7280",
+    color: t.textSecondary,
     fontWeight: "600",
     marginBottom: 4,
   },
   infoValue: {
     fontSize: 15,
-    color: "#111827",
+    color: t.text,
     fontWeight: "700",
     lineHeight: 22,
   },
@@ -340,45 +344,45 @@ const styles = StyleSheet.create({
   serviceChip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EEF2FF",
+    backgroundColor: t.accentTint,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#E0E7FF",
+    borderColor: t.accentTint,
   },
   serviceText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#4338CA",
+    color: t.accent,
     marginLeft: 6,
   },
   contactCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: t.card,
     padding: 16,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: t.border,
   },
   contactIcon: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#111827",
+    backgroundColor: t.accent,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
   },
   contactLabel: {
     fontSize: 12,
-    color: "#6B7280",
+    color: t.textSecondary,
     fontWeight: "600",
   },
   contactValue: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#111827",
+    color: t.text,
   },
 });

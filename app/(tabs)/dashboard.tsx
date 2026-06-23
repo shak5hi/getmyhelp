@@ -1,498 +1,394 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import config from "../../src/config";
 import { useLanguage } from "../../src/LanguageContext";
-import { dashboardStyles as styles } from "../../styles/dashboard.styles";
-import { colors } from "../../constants/tokens";
+import { fonts } from "../../constants/tokens";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 import TodaysHelp from "../../components/TodaysHelp";
-import { LinearGradient } from "expo-linear-gradient";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ThemeToggle from "../../components/ThemeToggle";
+import { getPendingApprovals } from "../../src/api/visitorApi";
 
-// Chatbot Types
-type MessageType = {
-  id: string;
-  text: string;
-  isBot: boolean;
-  options?: string[];
-};
+type SummaryLine = { icon: keyof typeof Ionicons.glyphMap; text: string; onPress?: () => void };
 
-type FlowState =
-  | "main"
-  | "maid_attendance"
-  | "replacement_backup"
-  | "replacement_when"
-  | "replacement_type"
-  | "replacement_confirm"
-  | "services_hub"
-  | "service_detail"
-  | "subscription_plan"
-  | "payments_billing"
-  | "profile_settings"
-  | "help_support";
-
-let messageCounter = 0;
+// translucent foregrounds that always sit on the terracotta gradient hero
+const ON_HERO = "rgba(255,250,245,0.95)";
+const ON_HERO_DIM = "rgba(255,247,240,0.70)";
+const HERO_GLASS = "rgba(255,255,255,0.16)";
 
 export default function DashboardScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const s = useMemo(() => makeStyles(theme), [theme]);
   useLanguage();
 
-  // API state
-  const [customerName, setCustomerName] = useState("user");
-  const [customerImage, setCustomerImage] = useState<string | null>(null);
-  const [locationLabel, setLocationLabel] = useState("Your Home");
-  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
-  const [availablePlans, setAvailablePlans] = useState<any[]>([]);
-  const [loadingSubscription, setLoadingSubscription] = useState(true);
-  const [assignments, setAssignments] = useState<any[]>([]);
+  const [name, setName] = useState("there");
+  const [image, setImage] = useState<string | null>(null);
+  const [location, setLocation] = useState("");
+  const [assignmentsCount, setAssignmentsCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
 
-  // UI state
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const load = useCallback(async () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
       const userStr = await AsyncStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
-      const customerId = user?.id;
+      if (!token || !user?.id) return;
+      const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
-      if (!customerId || !token) return;
-
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-
-      // 1. Fetch active assignments
-      console.log(`🔍 Fetching assignments for customer`);
-      const assignmentsRes = await fetch(
-        `${config.apiUrl}/customer/assignments`,
-        { headers }
+      const raw =
+        (user?.first_name && String(user.first_name).trim()) ||
+        (user?.name && String(user.name).trim()) ||
+        "there";
+      setName(raw.charAt(0).toUpperCase() + raw.slice(1));
+      setImage(user?.profile_image || null);
+      setLocation(
+        [user?.society_name, user?.tower_name, user?.flat_number ? `Flat ${user.flat_number}` : null]
+          .filter(Boolean)
+          .join("  ·  ") || "Your home"
       );
-      
-      console.log(`📊 Assignments Status: ${assignmentsRes.status}`);
-      
-      if (!assignmentsRes.ok) {
-        console.log(`⚠️ Assignments fetch failed: ${assignmentsRes.status}`);
-        setAssignments([]);
-      } else {
-        const assignmentsData = await assignmentsRes.json();
-        const assignmentsList = assignmentsData.data || [];
-        console.log("🔍 Assignments Response:", JSON.stringify(assignmentsList, null, 2));
 
-        if (assignmentsList.length > 0) {
-          const mappedAssignments = assignmentsList.map((acc: any) => {
-            const provider = acc.provider;
-            const fullName = `${provider.first_name} ${provider.last_name}`.trim() || "Assigned Maid";
-            const profileImage = provider.profile_image || null;
-            
-            return {
-              id: acc.id,
-              name: fullName,
-              role: acc.assigned_services?.[0] || "Daily Help",
-              since: acc.start_date
-                ? new Date(acc.start_date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
-                : "Active",
-              image: profileImage,
-              daysPresent: "—",
-              nextService: "—",
-              providerId: provider.id
-            };
-          });
-          setAssignments(mappedAssignments);
-        } else {
-          setAssignments([]);
-        }
-      }
+      try {
+        const r = await fetch(`${config.apiUrl}/customer/assignments`, { headers });
+        const j = await r.json();
+        setAssignmentsCount(Array.isArray(j?.data) ? j.data.length : 0);
+      } catch {}
 
+      try {
+        const p = await getPendingApprovals();
+        const list = p?.data?.items ?? p?.data ?? p?.items ?? [];
+        setPendingCount(Array.isArray(list) ? list.length : 0);
+      } catch {}
 
-      // 3. Prefer common name fields, fall back to 'user'
-      const rawName =
-        (user?.first_name && user.first_name.trim()) ||
-        (user?.firstName && user.firstName.trim()) ||
-        (user?.name && user.name.trim()) ||
-        "user";
+      try {
+        const sr = await fetch(`${config.apiUrl}/admin/customers/${user.id}/subscriptions`, { headers });
+        const sj = await sr.json();
+        const active = sj?.subscriptions?.find((x: any) => x.status === "active") || sj?.subscriptions?.[0];
+        setDaysRemaining(active?.days_remaining ?? null);
+      } catch {}
+    } catch {}
+  }, []);
 
-      const formattedName =
-        rawName.length > 0 ? rawName.charAt(0).toUpperCase() + rawName.slice(1) : "User";
+  useEffect(() => {
+    load();
+  }, [load]);
 
-      setCustomerName(formattedName);
-      setCustomerImage(user?.profile_image || null);
-      setLocationLabel(user?.flat_number ? `Flat ${user.flat_number}` : "Your Home");
-
-      // 4. Fetch current subscription
-      const subRes = await fetch(
-        `${config.apiUrl}/admin/customers/${customerId}/subscriptions`,
-        { headers }
-      );
-      const subData = await subRes.json();
-
-      const activeSub =
-        subData?.subscriptions?.find((s: any) => s.status === "active") ||
-        subData?.subscriptions?.[0];
-
-      if (activeSub) {
-        setCurrentSubscription(activeSub);
-        setSelectedPlanId(activeSub.plan_id || activeSub.id);
-      }
-
-      // 5. Fetch available plans
-      const plansRes = await fetch(
-        `${config.apiUrl}/admin/subscriptions/available-for-customer/${customerId}`,
-        { headers }
-      );
-      const plansData = await plansRes.json();
-
-      if (plansData?.subscriptions) setAvailablePlans(plansData.subscriptions);
-      else if (Array.isArray(plansData)) setAvailablePlans(plansData);
-    } catch (err) {
-      console.log("❌ Dashboard fetch error:", err);
-    } finally {
-      setLoadingSubscription(false);
-    }
+  const greeting = () => {
+    const h = new Date().getHours();
+    return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
   };
+  const today = new Date()
+    .toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })
+    .replace(",", " ·")
+    .toUpperCase();
+  const initials = name ? name.trim().split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() : "?";
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 17) return "Good Afternoon";
-    return "Good Evening";
-  };
+  const summary: SummaryLine[] = [];
+  if (assignmentsCount > 0) summary.push({ icon: "sparkles-outline", text: "Home help scheduled today" });
+  if (pendingCount > 0)
+    summary.push({
+      icon: "person-add-outline",
+      text: `${pendingCount} visitor approval${pendingCount > 1 ? "s" : ""} pending`,
+      onPress: () => router.push("/(tabs)/visitors"),
+    });
+  if (daysRemaining != null && daysRemaining <= 7)
+    summary.push({
+      icon: "card-outline",
+      text: `Plan renews in ${daysRemaining} days`,
+      onPress: () => router.push("/(tabs)/subscriptions"),
+    });
 
-  const getInitials = (name: string) => {
-    if (!name) return "?";
-    const names = name.trim().split(" ");
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    }
-    return names[0].substring(0, 2).toUpperCase();
-  };
-
-  const handleUpdateSubscription = async () => {
-    if (!selectedPlanId) {
-      Alert.alert("Select a Plan", "Please choose a subscription plan first.");
-      return;
-    }
-
-    try {
-      const token = await AsyncStorage.getItem("access_token");
-      if (!token) {
-        Alert.alert("Error", "You are not logged in.");
-        return;
-      }
-
-      const response = await fetch(`${config.apiUrl}/customer/select-subscription`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ plan_id: selectedPlanId }),
-      });
-
-      if (response.ok) {
-        Alert.alert(
-          "Success ✅",
-          "Your subscription has been updated successfully!",
-          [{ text: "Great!" }]
-        );
-        fetchDashboardData(); // Refresh current subscription
-        setSubscriptionModalVisible(false);
-      } else {
-        const data = await response.json();
-        Alert.alert("Error", data.detail || "Failed to update subscription. Please try again.");
-      }
-    } catch (err) {
-      Alert.alert("Error", "Network error. Please check your connection.");
-    }
-  };
-
-  const openChat = () => {
-    router.push("/(tabs)/chatbot");
-  };
-
-  const resetToMain = () => {
-    // Legacy reset logic removed
-  };
-
-  const renderMessage = ({ item }: { item: any }) => null; // Legacy renderer removed
+  const quick: { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void }[] = [
+    { label: "Invite Visitor", icon: "person-add", onPress: () => router.push("/(tabs)/visitors") },
+    { label: "Raise Ticket", icon: "construct", onPress: () => router.push("/society/create-ticket") },
+    { label: "Community", icon: "chatbubbles", onPress: () => router.push("/(tabs)/community") },
+    { label: "Attendance", icon: "calendar", onPress: () => router.push("/attendance-history") },
+  ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* atmospheric warm glow anchored top-right */}
+      <LinearGradient
+        colors={[theme.accentTint, "transparent"]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0.1, y: 0.55 }}
+        style={s.glow}
+        pointerEvents="none"
+      />
 
-        {/* GRADIENT HEADER */}
-        <LinearGradient
-          colors={[colors.gradientStart, colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[styles.headerGradient, { paddingTop: insets.top + 14 }]}
-        >
-          <View style={styles.headerTopRow}>
-            <TouchableOpacity style={styles.headerIconBtn} onPress={() => router.push("/(tabs)/settings")}>
-              <Ionicons name="menu" size={22} color="#FFFFFF" />
-            </TouchableOpacity>
+      <ScrollView
+        contentContainerStyle={[s.scroll, { paddingTop: insets.top + 14 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* TOP BAR */}
+        <Animated.View entering={FadeInDown.duration(450)} style={s.topBar}>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} activeOpacity={0.85} style={s.avatar}>
+            {image ? <Image source={{ uri: image }} style={s.avatarImg} /> : <Text style={s.avatarText}>{initials}</Text>}
+          </TouchableOpacity>
+          <View style={{ flex: 1 }} />
+          <TouchableOpacity style={s.iconBtn} onPress={() => router.push("/notifications")} activeOpacity={0.7}>
+            <Ionicons name="notifications-outline" size={20} color={theme.text} />
+          </TouchableOpacity>
+          <View style={{ width: 10 }} />
+          <ThemeToggle />
+        </Animated.View>
 
-            <View style={styles.headerLocation}>
-              <Ionicons name="location-sharp" size={14} color="#FFFFFF" />
-              <Text style={styles.headerLocationText} numberOfLines={1}>{locationLabel}</Text>
-              <Ionicons name="chevron-down" size={14} color="#FFFFFF" />
-            </View>
-
-            <TouchableOpacity style={styles.headerAvatar} onPress={() => router.push("/(tabs)/profile")}>
-              {customerImage ? (
-                <Image source={{ uri: customerImage }} style={styles.avatarImage} />
-              ) : (
-                <View style={styles.headerAvatarInitials}>
-                  <Text style={styles.headerAvatarInitialsText}>{getInitials(customerName)}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+        {/* GREETING — editorial serif */}
+        <Animated.View entering={FadeInDown.delay(60).duration(500)} style={s.greetBlock}>
+          <Text style={s.eyebrow}>{today}</Text>
+          <Text style={s.greetLine}>
+            {greeting()}, <Text style={s.greetName}>{name}.</Text>
+          </Text>
+          <View style={s.locRow}>
+            <Ionicons name="location-outline" size={13} color={theme.textTertiary} />
+            <Text style={s.location} numberOfLines={1}>{location}</Text>
           </View>
+        </Animated.View>
 
-          <Text style={styles.headerGreeting}>Hi {customerName}!</Text>
-          <Text style={styles.headerSubtitle}>What can we help you with today?</Text>
-
-          <Pressable style={styles.searchBar} onPress={openChat}>
-            <Ionicons name="search" size={18} color={colors.textTertiary} />
-            <Text style={styles.searchPlaceholder}>Search services, tickets…</Text>
-          </Pressable>
-        </LinearGradient>
-
-        {/* BODY */}
-        <View style={styles.body}>
-
-          {/* SERVICES LIST */}
-          <View>
-            <Text style={styles.sectionLabel}>Services</Text>
-            <View style={styles.serviceList}>
-              {[
-                { label: "My Society", desc: "Notices, payments & contacts", icon: "business", color: "#2563EB", bg: "#EFF6FF", onPress: () => router.push("/(tabs)/society") },
-                { label: "Raise a Ticket", desc: "Report an issue to your society", icon: "construct", color: "#EA580C", bg: "#FFF7ED", onPress: () => router.push("/society/create-ticket") },
-                { label: "Subscription Plans", desc: "Manage your home help plan", icon: "diamond", color: "#9333EA", bg: "#F5EBFF", onPress: () => router.push("/(tabs)/subscriptions") },
-                { label: "Visitors", desc: "Invite & approve your guests", icon: "people", color: "#16A34A", bg: "#F0FDF4", onPress: () => router.push("/(tabs)/visitors") },
-                { label: "Support", desc: "Chat with our help assistant", icon: "headset", color: "#E11D48", bg: "#FFF1F2", onPress: openChat },
-              ].map((s, i, arr) => (
-                <TouchableOpacity
-                  key={s.label}
-                  style={[styles.serviceRow, i < arr.length - 1 && styles.serviceRowDivider]}
-                  activeOpacity={0.7}
-                  onPress={s.onPress}
-                >
-                  <View style={[styles.serviceIcon, { backgroundColor: s.bg }]}>
-                    <Ionicons name={s.icon as any} size={20} color={s.color} />
-                  </View>
-                  <View style={styles.serviceTextWrap}>
-                    <Text style={styles.serviceTitle}>{s.label}</Text>
-                    <Text style={styles.serviceDesc} numberOfLines={1}>{s.desc}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* HERO SECTION / ALERT */}
-          {assignments.length > 0 ? (
-            assignments.map((assignedMaid) => (
-              <View key={assignedMaid.id} style={styles.heroCard}>
-                <View style={styles.heroText}>
-                  <Text style={styles.heroLabel}>Your Maid</Text>
-                  <Text style={styles.heroName}>{assignedMaid.name}</Text>
-                  <Text style={styles.heroRole}>{assignedMaid.role}</Text>
-                  <Text style={styles.heroDate}>Since {assignedMaid.since}</Text>
-                  <Pressable
-                    style={styles.heroButton}
-                    onPress={() => router.push({
-                      pathname: "/assignment-details",
-                      params: { id: assignedMaid.id }
-                    })}
+        {/* TODAY HERO — terracotta gradient */}
+        <Animated.View entering={FadeInDown.delay(120).duration(500)}>
+          <LinearGradient
+            colors={theme.accentGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={s.hero}
+          >
+            <View style={s.heroCircle} pointerEvents="none" />
+            <View style={s.heroCircleSm} pointerEvents="none" />
+            <Text style={s.heroLabel}>TODAY</Text>
+            {summary.length === 0 ? (
+              <View style={{ marginTop: 10 }}>
+                <Text style={s.heroBig}>You&apos;re all caught up.</Text>
+                <Text style={s.heroSub}>Nothing needs your attention right now. Enjoy the calm. ☀️</Text>
+              </View>
+            ) : (
+              <View style={{ gap: 12, marginTop: 16 }}>
+                {summary.map((line, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    disabled={!line.onPress}
+                    onPress={line.onPress}
+                    activeOpacity={0.7}
+                    style={s.heroLine}
                   >
-                    <Text style={styles.heroButtonText}>View Details</Text>
-                  </Pressable>
-                </View>
-                {assignedMaid.image ? (
-                  <Image source={{ uri: assignedMaid.image }} style={styles.heroImage} />
-                ) : (
-                  <View style={[styles.heroImage, styles.heroInitials]}>
-                    <Text style={styles.heroInitialsText}>{getInitials(assignedMaid.name)}</Text>
-                  </View>
-                )}
+                    <View style={s.heroDot}>
+                      <Ionicons name={line.icon} size={15} color={theme.onAccent} />
+                    </View>
+                    <Text style={s.heroText} numberOfLines={1}>{line.text}</Text>
+                    {line.onPress && <Ionicons name="arrow-forward" size={16} color={ON_HERO_DIM} />}
+                  </TouchableOpacity>
+                ))}
               </View>
-            ))
-          ) : (
-            <View style={styles.alertCard}>
-              <View style={styles.alertIconContainer}>
-                <Ionicons name="alert-circle" size={28} color="#9A3412" />
-              </View>
-              <View style={styles.alertContent}>
-                <Text style={styles.alertTitle}>No Maid Assigned</Text>
-                <Text style={styles.alertText}>It looks like you don't have a maid assigned to your flat yet.</Text>
-                <Pressable
-                  style={styles.alertButton}
-                  onPress={() => Alert.alert("Contact AOA", "Please contact the Apartment Owners Association (AOA) to assign a maid.")}
-                >
-                  <Text style={styles.alertButtonText}>Contact AOA</Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
+            )}
+          </LinearGradient>
+        </Animated.View>
 
-          {/* TODAY'S HELP — resident-marked maid attendance */}
+        {/* TODAY'S HELP */}
+        <Animated.View entering={FadeInDown.delay(180).duration(500)}>
+          <SectionTitle theme={theme}>Today&apos;s Help</SectionTitle>
           <TodaysHelp />
+        </Animated.View>
 
-          {/* SUBSCRIPTION PROMO BANNER */}
-          <Pressable style={styles.promoBanner} onPress={() => setSubscriptionModalVisible(true)}>
-            <View style={styles.promoTextWrap}>
-              <Text style={styles.promoLabel}>YOUR PLAN</Text>
-              <Text style={styles.promoTitle} numberOfLines={1}>
-                {loadingSubscription ? "Loading…" : currentSubscription?.plan_name || "No active plan"}
-              </Text>
-              <Text style={styles.promoSubtitle}>
-                {currentSubscription?.days_remaining != null
-                  ? `${currentSubscription.days_remaining} days remaining`
-                  : "Tap to explore plans"}
-              </Text>
-              <View style={styles.promoButton}>
-                <Text style={styles.promoButtonText}>Manage Plan</Text>
-              </View>
-            </View>
-            <View style={styles.promoIconCircle}>
-              <Ionicons name="diamond" size={30} color="#FFFFFF" />
-            </View>
-          </Pressable>
-        </View>
+        {/* QUICK ACTIONS — 2×2 grid */}
+        <Animated.View entering={FadeInDown.delay(240).duration(500)} style={{ marginTop: 30 }}>
+          <SectionTitle theme={theme}>Quick actions</SectionTitle>
+          <View style={s.quickGrid}>
+            {quick.map((q) => (
+              <TouchableOpacity key={q.label} style={s.quick} activeOpacity={0.8} onPress={q.onPress}>
+                <View style={s.quickIcon}>
+                  <Ionicons name={q.icon} size={21} color={theme.accent} />
+                </View>
+                <Text style={s.quickLabel} numberOfLines={1}>{q.label}</Text>
+                <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} style={s.quickChevron} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Animated.View>
+
+        <View style={{ height: 56 }} />
       </ScrollView>
 
-      {/* SUBSCRIPTION MODAL */}
-      <Modal
-        visible={subscriptionModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setSubscriptionModalVisible(false)}
+      {/* AI ASSISTANT — labelled pill FAB */}
+      <TouchableOpacity
+        style={[s.fabWrap, { bottom: insets.bottom + 88 }]}
+        activeOpacity={0.9}
+        onPress={() => router.push("/(tabs)/chatbot")}
       >
-        <Pressable style={styles.modalOverlay} onPress={() => setSubscriptionModalVisible(false)}>
-          <Pressable style={styles.subscriptionModalContainer} onPress={(e) => e.stopPropagation()}>
-
-            <View style={styles.subscriptionModalHeader}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.subscriptionModalTitle}>Manage Subscription</Text>
-                <Text style={styles.subscriptionModalSubtitle}>Choose the plan that fits your needs</Text>
-              </View>
-              <Pressable onPress={() => setSubscriptionModalVisible(false)} hitSlop={8}>
-                <Ionicons name="close-circle" size={32} color="#64748B" />
-              </Pressable>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-              <View style={{ padding: 24 }}>
-
-                {/* Current Plan Info */}
-                <View style={styles.currentPlanSection}>
-                  <View style={styles.currentPlanBadge}>
-                    <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                    <Text style={styles.currentPlanBadgeText}>Active Plan</Text>
-                  </View>
-                  <Text style={styles.modalCurrentPlanName}>{currentSubscription?.plan_name || "No Plan"}</Text>
-                  <Text style={styles.modalCurrentPlanPrice}>₹{currentSubscription?.amount_paid || "—"}/month</Text>
-                  <View style={styles.planValidityContainer}>
-                    <Ionicons name="time-outline" size={18} color="#6366F1" />
-                    <Text style={styles.planValidityText}>Valid for {currentSubscription?.days_remaining ?? "—"} more days</Text>
-                  </View>
-                </View>
-
-                {/* Available Plans */}
-                <Text style={styles.sectionTitle}>Available Plans</Text>
-
-                {availablePlans.length > 0 ? (
-                  availablePlans.map((plan: any, index: number) => (
-                    <Pressable
-                      key={plan.id || index}
-                      style={[styles.planCard, selectedPlanId === (plan.id) && styles.planCardActive]}
-                      onPress={() => setSelectedPlanId(plan.id)}
-                    >
-                      {selectedPlanId === (plan.id) && (
-                        <View style={styles.activePlanIndicator}>
-                          <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-                        </View>
-                      )}
-                      <View style={styles.planCardHeader}>
-                        <Text style={[styles.planCardName, selectedPlanId === (plan.id) && styles.planCardNameActive]}>
-                          {plan.name}
-                        </Text>
-                      </View>
-                      <View style={styles.planCardPricing}>
-                        <Text style={[styles.planCardPrice, selectedPlanId === (plan.id) && styles.planCardPriceActive]}>
-                          ₹{plan.price ?? plan.base_price ?? "—"}
-                        </Text>
-                        <Text style={styles.planCardPeriod}>/month</Text>
-                      </View>
-                      <View style={styles.planCardFeatures}>
-                        <View style={styles.featureItem}>
-                          <Ionicons name="checkmark" size={16} color="#10B981" />
-                          <Text style={styles.featureText}>Daily maid service</Text>
-                        </View>
-                        <View style={styles.featureItem}>
-                          <Ionicons name="checkmark" size={16} color="#10B981" />
-                          <Text style={styles.featureText}>24/7 support</Text>
-                        </View>
-                      </View>
-                    </Pressable>
-                  ))
-                ) : (
-                  !loadingSubscription && (
-                    <Text style={{ color: "#64748B", textAlign: "center", marginVertical: 16 }}>
-                      No plans available at the moment.
-                    </Text>
-                  )
-                )}
-
-                {/* Update Button */}
-                <Pressable
-                  style={styles.modalUpdateButton}
-                  onPress={() => {
-                    handleUpdateSubscription();
-                    setSubscriptionModalVisible(false);
-                  }}
-                >
-                  <Text style={styles.modalUpdateButtonText}>Update Subscription</Text>
-                  <Ionicons name="arrow-forward" size={20} color="#fff" />
-                </Pressable>
-
-                <View style={styles.modalFooterInfo}>
-                  <Ionicons name="information-circle-outline" size={20} color="#64748B" />
-                  <Text style={styles.modalFooterText}>Changes will take effect in the next billing cycle</Text>
-                </View>
-
-              </View>
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
-
-      {/* Legacy Chat Modal Removed */}
+        <LinearGradient colors={theme.accentGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.fab}>
+          <Ionicons name="sparkles" size={18} color={theme.onAccent} />
+          <Text style={s.fabText}>Ask AI</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 }
+
+function SectionTitle({ theme, children }: { theme: Theme; children: React.ReactNode }) {
+  const s = useMemo(() => makeStyles(theme), [theme]);
+  return (
+    <View style={s.sectionRow}>
+      <View style={s.sectionBar} />
+      <Text style={s.section}>{children}</Text>
+    </View>
+  );
+}
+
+const makeStyles = (t: Theme) =>
+  StyleSheet.create({
+    scroll: { paddingHorizontal: 20, paddingBottom: 40 },
+    glow: { position: "absolute", top: 0, right: 0, left: 0, height: 320 },
+
+    topBar: { flexDirection: "row", alignItems: "center", marginBottom: 22 },
+    avatar: {
+      width: 46,
+      height: 46,
+      borderRadius: 16,
+      backgroundColor: t.accentTint,
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",
+    },
+    avatarImg: { width: "100%", height: "100%" },
+    avatarText: { fontFamily: fonts.semibold, fontSize: 15, color: t.accent },
+    iconBtn: {
+      width: 42,
+      height: 42,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    greetBlock: { marginBottom: 24 },
+    eyebrow: {
+      fontFamily: fonts.semibold,
+      fontSize: 11,
+      letterSpacing: 1.4,
+      color: t.textTertiary,
+      marginBottom: 8,
+    },
+    greetLine: {
+      fontFamily: fonts.serif,
+      fontSize: 30,
+      lineHeight: 36,
+      color: t.text,
+      letterSpacing: -0.3,
+    },
+    greetName: { fontFamily: fonts.serifSemibold, color: t.accent },
+    locRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8 },
+    location: { fontFamily: fonts.regular, fontSize: 12.5, color: t.textSecondary, flexShrink: 1 },
+
+    hero: {
+      borderRadius: 28,
+      padding: 24,
+      marginBottom: 34,
+      overflow: "hidden",
+      ...t.heroShadow,
+    },
+    heroCircle: {
+      position: "absolute",
+      top: -54,
+      right: -34,
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: "rgba(255,255,255,0.10)",
+    },
+    heroCircleSm: {
+      position: "absolute",
+      bottom: -30,
+      right: 44,
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: "rgba(255,255,255,0.07)",
+    },
+    heroLabel: {
+      fontFamily: fonts.semibold,
+      fontSize: 11,
+      letterSpacing: 2,
+      color: ON_HERO_DIM,
+    },
+    heroBig: {
+      fontFamily: fonts.serifSemibold,
+      fontSize: 24,
+      lineHeight: 30,
+      color: ON_HERO,
+      letterSpacing: -0.3,
+    },
+    heroSub: {
+      fontFamily: fonts.regular,
+      fontSize: 13.5,
+      lineHeight: 19,
+      color: ON_HERO_DIM,
+      marginTop: 7,
+    },
+    heroLine: { flexDirection: "row", alignItems: "center", gap: 12 },
+    heroDot: {
+      width: 32,
+      height: 32,
+      borderRadius: 11,
+      backgroundColor: HERO_GLASS,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    heroText: { flex: 1, fontFamily: fonts.medium, fontSize: 15, color: ON_HERO },
+
+    sectionRow: { flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 15 },
+    sectionBar: { width: 3, height: 17, borderRadius: 2, backgroundColor: t.accent },
+    section: { fontFamily: fonts.serifSemibold, fontSize: 19, color: t.text, letterSpacing: -0.2 },
+
+    quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+    quick: {
+      flexBasis: "47%",
+      flexGrow: 1,
+      backgroundColor: t.card,
+      borderWidth: t.mode === "light" ? 1 : 0,
+      borderColor: t.border,
+      borderRadius: 20,
+      padding: 16,
+      ...(t.mode === "light" ? {} : { backgroundColor: t.surface }),
+    },
+    quickIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 13,
+      backgroundColor: t.accentTint,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 12,
+    },
+    quickLabel: { fontFamily: fonts.semibold, fontSize: 14, color: t.text, letterSpacing: -0.2 },
+    // (quick labels already 14 — comfortably above the a11y floor)
+    quickChevron: { position: "absolute", top: 18, right: 16 },
+
+    fabWrap: {
+      position: "absolute",
+      right: 20,
+      borderRadius: 26,
+      shadowColor: t.accent,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.45,
+      shadowRadius: 16,
+      elevation: 8,
+    },
+    fab: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
+      height: 52,
+      paddingHorizontal: 20,
+      borderRadius: 26,
+    },
+    fabText: { fontFamily: fonts.semibold, fontSize: 14.5, color: t.onAccent, letterSpacing: -0.2 },
+  });

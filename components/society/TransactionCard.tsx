@@ -1,7 +1,8 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useMemo } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { societyStyles as styles } from "../../styles/society.styles";
+import { makeStyles } from "../../styles/society.styles";
+import { useTheme } from "../../src/ThemeContext";
 
 interface TransactionProps {
   amount: number;
@@ -24,6 +25,8 @@ export const TransactionCard: React.FC<TransactionProps> = ({
   attachments,
   onPress,
 }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const isIncome = type === "income";
 
   return (
@@ -37,14 +40,14 @@ export const TransactionCard: React.FC<TransactionProps> = ({
         <Ionicons
           name={isIncome ? "arrow-down-circle" : "arrow-up-circle"}
           size={24}
-          color={isIncome ? "#10B981" : "#EF4444"}
+          color={isIncome ? theme.success : theme.danger}
         />
       </View>
       <View style={styles.transactionInfo}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={styles.transactionCategory}>{category}</Text>
           {(hasAttachment || (attachments && attachments.length > 0)) && (
-            <Ionicons name="attach" size={16} color="#94A3B8" style={{ marginLeft: 4 }} />
+            <Ionicons name="attach" size={16} color={theme.textTertiary} style={{ marginLeft: 4 }} />
           )}
         </View>
         <Text style={styles.transactionDate}>
