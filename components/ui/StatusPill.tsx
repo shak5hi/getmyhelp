@@ -53,7 +53,7 @@ export function StatusPill({
   );
 }
 
-// Map a free-text ticket/visitor status string to a tone.
+// Map a free-text ticket status string to a tone.
 export function ticketStatusTone(status?: string): StatusTone {
   const s = (status || "").toLowerCase();
   if (s.includes("progress")) return "warning";
@@ -61,6 +61,17 @@ export function ticketStatusTone(status?: string): StatusTone {
   if (s.includes("reject") || s.includes("cancel")) return "danger";
   if (s.includes("closed")) return "neutral";
   return "info"; // open / new
+}
+
+// Map a visitor lifecycle status (pending/approved/checked_in/…) to a tone.
+export function visitorStatusTone(status?: string): StatusTone {
+  switch ((status || "").toLowerCase()) {
+    case "approved": return "success";
+    case "pending": return "warning";
+    case "rejected": return "danger";
+    case "checked_in": return "info";
+    default: return "neutral"; // checked_out / expired / unknown
+  }
 }
 
 const makeStyles = (_t: Theme) =>

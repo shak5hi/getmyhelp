@@ -22,20 +22,12 @@ import {
   rejectVisitor,
 } from "../../src/api/visitorApi";
 import config from "../../src/config";
+import { StatusPill, visitorStatusTone } from "../../components/ui/StatusPill";
 
 const toFullUrl = (url: string | null | undefined): string | null => {
   if (!url) return null;
   if (url.startsWith("http")) return url;
   return `${config.fileBaseUrl}${url}`;
-};
-
-const STATUS_COLOR: Record<string, string> = {
-  pending: "#f59e0b",
-  approved: "#16a34a",
-  rejected: "#dc2626",
-  checked_in: "#2563eb",
-  checked_out: "#6b7280",
-  expired: "#9ca3af",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -138,12 +130,11 @@ export default function ResidentVisitorDetailScreen() {
           )}
         </View>
 
-        <View
-          style={[styles.statusBox, { borderColor: STATUS_COLOR[visitor.status] ?? "#888" }]}
-        >
-          <Text style={[styles.statusText, { color: STATUS_COLOR[visitor.status] ?? "#888" }]}>
-            {STATUS_LABEL[visitor.status] ?? visitor.status}
-          </Text>
+        <View style={styles.statusBox}>
+          <StatusPill
+            tone={visitorStatusTone(visitor.status)}
+            label={STATUS_LABEL[visitor.status] ?? visitor.status}
+          />
         </View>
 
         {isPending && !showReject && (
@@ -228,17 +219,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   date: { fontSize: 12, color: t.textTertiary, marginTop: 6 },
   statusBox: {
     width: "100%",
-    borderWidth: 1.5,
-    borderRadius: 10,
-    padding: 14,
     alignItems: "center",
     marginBottom: 24,
   },
-  statusText: { fontSize: 15, fontWeight: "700" },
   actionRow: { flexDirection: "row", gap: 12, width: "100%" },
   btn: { flex: 1, paddingVertical: 14, borderRadius: 10, alignItems: "center" },
-  approveBtn: { backgroundColor: "#16a34a" },
-  rejectBtn: { backgroundColor: "#dc2626" },
+  approveBtn: { backgroundColor: t.success },
+  rejectBtn: { backgroundColor: t.danger },
   cancelBtn: { backgroundColor: t.surfaceAlt },
   btnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
   cancelBtnText: { color: t.text, fontSize: 15, fontWeight: "600" },

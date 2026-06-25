@@ -12,15 +12,7 @@ import {
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import { getVisitorHistory } from "../../src/api/visitorApi";
-
-const STATUS_COLOR: Record<string, string> = {
-  pending: "#f59e0b",
-  approved: "#16a34a",
-  rejected: "#dc2626",
-  checked_in: "#2563eb",
-  checked_out: "#6b7280",
-  expired: "#9ca3af",
-};
+import { StatusPill, visitorStatusTone } from "../../components/ui/StatusPill";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Waiting",
@@ -113,9 +105,10 @@ export default function VisitorHistoryScreen() {
               <Text style={styles.date}>{formatDate(item.created_at)}</Text>
             )}
           </View>
-          <View style={[styles.badge, { backgroundColor: STATUS_COLOR[item.status] ?? "#888" }]}>
-            <Text style={styles.badgeText}>{STATUS_LABEL[item.status] ?? item.status}</Text>
-          </View>
+          <StatusPill
+            tone={visitorStatusTone(item.status)}
+            label={STATUS_LABEL[item.status] ?? item.status}
+          />
         </TouchableOpacity>
       )}
     />
@@ -137,7 +130,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   name: { fontSize: 14, fontWeight: "600", color: t.text },
   meta: { fontSize: 12, color: t.textSecondary, marginTop: 1 },
   date: { fontSize: 11, color: t.textTertiary, marginTop: 2 },
-  badge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeText: { color: "#fff", fontSize: 11, fontWeight: "600" },
   empty: { textAlign: "center", color: t.textSecondary, marginTop: 40 },
 });
