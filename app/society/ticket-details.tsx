@@ -20,6 +20,7 @@ import { makeStyles } from "../../styles/society.styles";
 import { useTheme } from "../../src/ThemeContext";
 import { CommentItem } from "../../components/society/CommentItem";
 import { Skeleton } from "../../components/ui/Skeleton";
+import { StatusPill, ticketStatusTone } from "../../components/ui/StatusPill";
 
 export default function TicketDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -152,15 +153,6 @@ export default function TicketDetailsScreen() {
     );
   }
 
-  const getStatusColor = (status: string) => {
-    const s = status?.toLowerCase() || "";
-    if (s.includes("open"))     return { bg: "#F3F4F6",  text: "#374151"  };
-    if (s.includes("progress")) return { bg: "#FEF3C7",  text: "#92400E"  };
-    if (s.includes("closed"))   return { bg: "#F3F4F6",  text: "#6B7280"  };
-    if (s.includes("resolved")) return { bg: "#D1FAE5",  text: "#065F46"  };
-    return { bg: "#F3F4F6", text: "#6B7280" };
-  };
-
   const attachments: any[] = ticket?.attachments || [];
 
   return (
@@ -178,16 +170,9 @@ export default function TicketDetailsScreen() {
           <View style={styles.detailHeader}>
             <Text style={[styles.title, { fontSize: 20, marginBottom: 8 }]} numberOfLines={2}>{ticket?.title}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
-              {(() => {
-                const sc = getStatusColor(ticket?.status);
-                return (
-                  <View style={[styles.statusBadge, { backgroundColor: sc.bg }]}>
-                    <Text style={[styles.statusText, { color: sc.text }]}>
-                      {ticket?.status}
-                    </Text>
-                  </View>
-                );
-              })()}
+              {ticket?.status && (
+                <StatusPill tone={ticketStatusTone(ticket.status)} label={ticket.status} />
+              )}
               {ticket?.type && (
                 <View style={[styles.statusBadge, { backgroundColor: theme.surfaceAlt, flexDirection: "row", alignItems: "center", gap: 4 }]}>
                   <Ionicons

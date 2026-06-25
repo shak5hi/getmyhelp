@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { View, Text, Pressable } from "react-native";
 import { makeStyles } from "../../styles/society.styles";
 import { useTheme } from "../../src/ThemeContext";
+import { StatusPill, ticketStatusTone } from "../ui/StatusPill";
 
 interface TicketProps {
   id: string;
@@ -12,13 +13,6 @@ interface TicketProps {
   type?: "common" | "private";
   onPress: () => void;
 }
-
-const STATUS_CONFIG: Record<string, { bg: string; text: string }> = {
-  "Open":        { bg: "#F3F4F6", text: "#374151" },
-  "In Progress": { bg: "#FEF3C7", text: "#92400E" },
-  "Resolved":    { bg: "#D1FAE5", text: "#065F46" },
-  "Closed":      { bg: "#F3F4F6", text: "#6B7280" },
-};
 
 const PRIORITY_DOT_COLOR: Record<string, string> = {
   "High":   "#F87171",
@@ -36,7 +30,6 @@ export const TicketCard: React.FC<TicketProps> = ({
 }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const statusCfg = STATUS_CONFIG[status] ?? STATUS_CONFIG["Closed"];
   const dotColor = PRIORITY_DOT_COLOR[priority] ?? PRIORITY_DOT_COLOR["Medium"];
 
   return (
@@ -48,9 +41,7 @@ export const TicketCard: React.FC<TicketProps> = ({
         <Text style={styles.ticketTitle} numberOfLines={2}>
           {title}
         </Text>
-        <View style={[styles.statusBadge, { backgroundColor: statusCfg.bg }]}>
-          <Text style={[styles.statusText, { color: statusCfg.text }]}>{status}</Text>
-        </View>
+        <StatusPill tone={ticketStatusTone(status)} label={status} />
       </View>
 
       <View style={styles.ticketFooter}>
