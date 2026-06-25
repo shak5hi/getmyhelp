@@ -272,30 +272,34 @@ response-type layer for the API · onboarding profile-completion/welcome.
 
 # Phase 6 — Visual design direction
 
-The brief ("solid colors, avoid gradients, Linear/Stripe/Notion calm")
-**partially revises the earlier dashboard work** (terracotta gradient hero +
-decorative circles). Recommendation: **keep the warm "Terracotta & Ink" identity
-and the Newsreader serif — distinctive and on-context — but convert the gradient
-hero to a solid accent surface** so the system is gradient-free and consistent.
-One identity, executed in solids.
+> **BRAND PIVOT (2026-06-25):** the identity was changed to match the **"gh"
+> logo** — a vivid violet→magenta gradient. The earlier "Terracotta & Ink"
+> direction is superseded. New identity: **"Violet & Magenta"** — the logo
+> gradient (`#7C2AE8 → #E91E8C`) for brand moments, a solid orchid-magenta accent
+> from its midpoint, on cool lilac paper / deep plum-black. Because every screen
+> now consumes `useTheme()` (Phase 2), this was a single-file change in
+> `constants/themes.ts` that reskinned the whole app, both modes. The Newsreader
+> serif headings are kept. Unlike the prior "go fully solid" note, the logo *is* a
+> gradient, so the brand gradient is retained for hero/FAB/brand moments; solids
+> elsewhere.
 
-### Color (solid, themed — the contract both modes must implement)
+### Color (themed — the contract both modes implement, as shipped)
 
 | Role | Light | Dark |
 |---|---|---|
-| `bg` | `#F7F2EA` warm paper | `#14110D` espresso |
-| `surface` | `#FFFFFF` | `#1E1913` |
-| `card` | `#FFFFFF` | `#241E17` |
-| `border` | `#EAE1D3` | `#332A20` |
-| `text` | `#241C16` | `#F4ECE0` |
-| `textSecondary` | `#7A6E61` | `#B6A795` |
-| `accent` (terracotta) | `#C2522E` | `#E8763F` |
-| `success` (sage) | `#3E7A52` | `#6BBE85` |
+| `bg` | `#FAF7FD` lilac paper | `#130C1A` plum-black |
+| `surface` | `#FFFFFF` | `#1C1326` |
+| `card` | `#FFFFFF` | `#221730` |
+| `border` | `#E8DEF3` | `#352544` |
+| `text` | `#1F1229` | `#F3ECFA` |
+| `textSecondary` | `#6B5F7B` | `#B6A6C8` |
+| `accent` (orchid-magenta) | `#A21CAF` | `#D556EE` |
+| `accentGradient` (logo) | `#7C2AE8 → #E91E8C` | `#9A4BF5 → #F23C9A` |
+| `success` | `#2E9E5B` | `#5FD08A` |
 | `warning` (brass) | `#9A6A1B` | `#E8B24A` |
-| `danger` | `#C2413B` | `#E8736B` |
+| `danger` | `#D11F35` | `#F2606B` |
 
-(These already exist in `constants/themes.ts` — the move is to make *every screen
-consume them* and drop `accentGradient`.)
+(These live in `constants/themes.ts`; every screen consumes them via `useTheme()`.)
 
 ### Typography
 - **Display/headings:** Newsreader (serif) — greetings, screen titles, section headers.
@@ -382,7 +386,7 @@ sheet ending in a QR/OTP choice + share.
   - Added `components/ui/ErrorState.tsx` (with retry); wired into `society.tsx` + `community.tsx` (errors now show a retry UI instead of looking empty).
   - Raised tab-label font 10.5→12.
   - Verified: no new TypeScript errors (same pre-existing baseline).
-- [~] **Phase 2 — Design-system unification** (migrate all screens to `useTheme()`, auth guard, API layer) — in progress
+- [x] **Phase 2 — Design-system unification** (migrate all screens to `useTheme()`, auth guard, API layer) — **COMPLETE (2026-06-25).** Whole app responds to the theme toggle; central API client + 401 session guard landed. Remaining: incremental rollout of the client to ~18 inline-`fetch` screens + per-endpoint response typing (non-blocking — tracked under Wave 4).
   - **Pattern established:** each `styles/*.ts` becomes `export const makeStyles = (t: Theme) => StyleSheet.create({...})`; each screen/component does `const { theme } = useTheme(); const styles = useMemo(() => makeStyles(theme), [theme]);` and uses `theme.*` for inline colors. Token map: `background→bg`, `surface→card`, `textPrimary→text`, `accentLight→accentTint`, `secondary*→success*`, `highlight*→danger*`, `*Light→*Tint`, `textInverse→onAccent`, `divider→divider`, `surfaceAlt→surfaceAlt`.
   - **Theme tokens added:** `surfaceAlt`, `divider` (both palettes).
   - **Wave 1 done (2026-06-23, tsc-verified, no new errors):** shared components `SegmentedControl`, `PrimaryButton`, `EmptyState`, `ErrorState`; tabs **Subscriptions, Settings, Profile** (+ their style files). Settings' hardcoded light hex fully replaced. Home was already themed.
@@ -391,10 +395,25 @@ sheet ending in a QR/OTP choice + share.
     - Community cluster: `community.styles.ts`→factory, `community.tsx`, `AuthorTag` (was invisible-on-dark), `announcement-detail`, `create-post`, `forum-thread`. (`CategoryBadge`/`PriorityBadge`/`EmojiReactionBar`/`ImageGallery` left as semantic pastel pills — fine in both themes.)
     - Visitors: `visitors.tsx` tab + `visitor-history` + `qr-invite-list` + `otp-invite-list` (each had a local StyleSheet). Deleted dead `styles/visitor.styles.ts` (unused; also cleared its baseline TS error).
     - **All 5 resident tabs (Home, Society, Community, Visitors, Profile) + Subscriptions/Settings now respond to the toggle.**
-  - **Wave 2 remaining (secondary surfaces):** 7 visitor detail/generate screens (`exit-entry`, `generate-otp`, `generate-qr`, `otp-invite-detail`, `pending-approval`, `qr-invite-detail`, `resident-detail`), `chatbot` tab (uses `dashboardStyles` + hardcoded hex), `notifications`, `attendance-history`, `assignment-details`, Guard app (5 screens), pre-login auth/onboarding, root header in `app/_layout.tsx`.
-  - **Wave 3 (separate sub-item):** auth/401 guard + central API/token helper + response typing.
+  - **Wave 3 done (2026-06-25, tsc-verified — 0 errors, baseline was 9):** the last un-themed surfaces.
+    - **Root navigation header** (`app/_layout.tsx`): extracted the `Stack` into a `RootNavigator` child so it can call `useTheme()` (RootLayout renders the provider, so it's above context). Header now sets `headerStyle.backgroundColor=surface`, `headerTintColor`/`headerTitleStyle=text`, and the back-chevron + notification-bell icons use `theme.text` (were hardcoded `#2E3A46`, broken in dark). Notification badge uses `theme.danger`. **Fixed 3 baseline tsc errors here** (typed `styles` via `StyleSheet.create`; removed deprecated `headerBackTitleVisible` and the non-native-stack `headerPressColor`/`headerLeftContainerStyle`/`headerRightContainerStyle` options — 16px insets folded into the bubble wrappers instead).
+    - **Guard app:** `(guard-tabs)/_layout.tsx` was the only file still importing `tokens.colors` → now `useTheme()`. The 5 guard screens already had `useTheme` factories; cleaned residual neutral hardcodes (`new-visitor` selfie box `#eee`/`#888`, `qr-scanner` permission view `#333` text + added themed bg). Left semantic status pills + on-color `#fff` as-is (same exception as community badges).
+    - **Pre-login auth/onboarding (the old blue palette):** converted style files to factories — `phone.styles`→`makePhoneStyles`, `otp.styles`→`makeOtpStyles`, `location.styles`→`makeLocationStyles` (**deduped 3 duplicate keys → fixed 3 baseline TS1117 errors**; added `primaryButtonDisabled`/`errorContainer` → **fixed 2 baseline manual-location errors**), `societyDetectedStyles`→`makeSocietyDetectedStyles` (shared by `location` + `society-detected`), `tower.styles`→`makeTowerStyles`, `home.styles`→`makeHomeStyles`. Wired screens `phone`, `otp`, `manual-location`, `location`, `society-detected`, `tower`, `index` to `useTheme()` + themed their inline hex (inputs, spinners, language modal, error text). `styles/house.styles.ts` confirmed dead/unused.
+    - **chatbot/notifications/attendance-history/assignment-details:** verified already themed (the 2-day-old "remaining" note was stale).
+    - **Also fixed** the pre-existing `Skeleton.tsx` tsc error (typed `width`/`height` as `DimensionValue`).
+    - **Net: every screen in the app — resident tabs, all detail routes, Guard app, and the pre-login flow — now responds to the theme toggle. The dual-design-system finding (the review's #1 critical issue) is resolved.**
+  - **Wave 4 done (2026-06-25, tsc-verified — 0 errors): auth/401 guard + central API client.**
+    - **`src/api/client.ts`** — one place that injects the bearer token, sets JSON headers (skips them for `FormData`), parses responses gracefully (non-JSON 500 → consistent empty shape, not a thrown `SyntaxError`), and **intercepts HTTP 401 to fire an app-wide session-expiry flow** (debounced so a burst of parallel 401s = one logout+redirect; only fires when a token actually existed, so the login flow isn't bounced). Exports `apiRequest`/`apiGet`/`apiPost`/`apiDelete` (generic-typed), plus `getToken`/`clearSession`/`setUnauthorizedHandler` and an `ApiError` class.
+    - **Root guard:** `RootNavigator` registers `setUnauthorizedHandler(() => router.replace("/phone"))` — an expired token now clears the session and bounces to login instead of leaving a silently-blank screen (the review's critical finding #4).
+    - **Migrated to the client:** all four `src/api/*` modules (`attendanceApi`, `subscriptionApi`, `visitorApi`, `communityApi`) — deleted their duplicated per-module `authHeaders`/`jsonHeaders`/`parseResponse`/`safeJson`. `NotificationContext` inherits the guard automatically (it calls those modules, not raw `fetch`).
+    - **Logout unified:** both Profile screens (resident + guard) now call `clearSession()` (previously two different, incomplete `multiRemove` key sets) so logout and the 401 guard wipe identical state.
+    - **Remaining rollout (follow-up, not blocking):** ~18 screens still call raw `fetch` inline (dashboard, society, community.tsx, settings, chatbot, index, otp, location/society-detected, guard new-visitor/profile, etc.) — they work but don't yet get the 401 guard. Migrate each `fetch(`${config.apiUrl}…`, {headers:{Authorization}})` to `apiGet/apiPost`. Per-endpoint response typing (`apiGet<T>`) is also incremental — the generic plumbing exists; types can be filled in as shapes stabilise.
   - **Token map note:** when sed-converting, also rename `background→bg`, `textPrimary→text`, `surface→card` (a blanket `colors.→t.` alone leaves invalid `t.background`/`t.textPrimary`/over-dark `t.surface`).
-- [ ] **Phase 3 — Major UX** (Home re-center, unified invite, Society IA, Account merge)
+- [x] **Phase 3 — Major UX** — **COMPLETE (2026-06-25, tsc-verified, 0 errors).** All four workstreams:
+  - **Settings → Account merge + real prefs.** Deleted the separate Settings route (`app/(tabs)/settings.tsx` + `styles/settings.styles.ts` + tab registration). Profile is now **Account** (tab + header relabelled): real **Preferences** section — `Appearance` (ThemeToggle), `Push Notifications` (persists via new `src/preferences.ts` → AsyncStorage, no longer reset-on-unmount local state), `Language` (inline English/हिंदी pills wired to `useLanguage()`, no more "Coming Soon"). Added a real **Support → Help & Support** row (→ create-ticket). Removed the fake "Change Phone / Update Address / contact-support" rows. Kills the fake-UI critical finding for this surface.
+  - **Unified Visitor invite.** New `app/visitor/invite.tsx` — one "Invite a guest" flow with the **QR-vs-OTP choice made inside it** (QR adds validity window + single/multi; OTP hides them). New `app/visitor/active-invites.tsx` — **combined** active QR+OTP list with a type pill + inline Revoke. Visitors tab rewritten: big "Invite a guest" primary button + **Active · History** segments (was History / QR Invites / OTP Invites). Deleted `generate-qr.tsx`/`generate-otp.tsx` + their routes; root `_layout` now registers `visitor/invite`. (`qr-invite-list`/`otp-invite-list` are now orphan routes — harmless, can delete later.)
+  - **Society IA (money vs issues).** Segments relabelled **Finances · Support** with a per-segment caption that makes the two mental models explicit ("income & expense ledger" vs "raise and track issues with management"). Pairs with the new Account → Help & Support entry so support is reachable from two clear places.
+  - **Home re-center.** `dashboard.tsx`: **Today's Help promoted to the hero slot** (was a mid-page card beneath a decorative gradient hero — the review's #7 finding). Added a **pending gate-approval banner** (solid accent, "N people at the gate — review", → notifications) as the urgent item up top. Demoted the big gradient summary hero → a **slim plan-renewal chip** shown only when ≤7 days. Quick actions stay last; "Invite Guest" now points at the unified `/visitor/invite`. (Net effect also reduces gradient usage, easing the Phase 4 solid-color move.)
 - [ ] **Phase 4 — Visual polish** (solid Terracotta/Ink, type scale, components)
 - [ ] **Phase 5 — Future** (reminders, HTTPS, onboarding, offline cache, a11y)
 

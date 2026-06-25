@@ -1,9 +1,10 @@
 /**
- * Theme palettes — "Terracotta & Ink".
+ * Theme palettes — "Violet & Magenta" (the gh brand).
  *
- * A warm, editorial aesthetic built for a home-help / residential concierge app.
- * Terracotta clay accent over warm paper (light) or espresso black (dark), with
- * sage + brass as functional companions. One brand accent, designed twice.
+ * Matched to the "gh" wordmark: a vivid gradient that runs from electric violet
+ * (#7C2AE8) into hot magenta-pink (#E91E8C). One brand gradient, a solid
+ * orchid-magenta accent drawn from its midpoint, on cool lilac paper (light) or
+ * deep plum-black (dark). One identity, designed twice.
  *
  * Consumed via `useTheme()` (src/ThemeContext). Spacing / radii / fonts remain
  * in constants/tokens (theme-independent).
@@ -24,9 +25,9 @@ export type Theme = {
   accent: string;
   accentPressed: string;
   accentTint: string;
-  /** Two-stop gradient for the hero / focal surfaces (warm → deep). */
+  /** Two-stop brand gradient (the logo): violet → magenta. */
   accentGradient: [string, string];
-  /** Foreground that sits on top of the accent gradient. */
+  /** Foreground that sits on top of the accent / gradient. */
   onAccent: string;
   success: string;
   successTint: string;
@@ -41,31 +42,31 @@ export type Theme = {
 
 export const darkTheme: Theme = {
   mode: "dark",
-  bg: "#14110D", // warm espresso black
-  surface: "#1E1913",
-  card: "#241E17", // lifted warm charcoal
-  surfaceAlt: "#2C241B",
-  border: "#332A20",
-  divider: "#2A2218",
-  text: "#F4ECE0", // warm white
-  textSecondary: "#B6A795",
-  textTertiary: "#7C6F60",
-  accent: "#E8763F", // terracotta that glows on a dark canvas
-  accentPressed: "#CF5E2C",
-  accentTint: "#2C2018",
-  accentGradient: ["#EE824B", "#C24E27"],
-  onAccent: "#FFF8F2",
-  success: "#6BBE85", // sage glow
-  successTint: "#16271B",
+  bg: "#130C1A", // deep plum-black
+  surface: "#1C1326",
+  card: "#221730", // lifted plum charcoal
+  surfaceAlt: "#2B1E3A",
+  border: "#352544",
+  divider: "#291C36",
+  text: "#F3ECFA", // soft lilac-white
+  textSecondary: "#B6A6C8",
+  textTertiary: "#7E6E90",
+  accent: "#D556EE", // fuchsia-violet that glows on a dark canvas
+  accentPressed: "#C23FDD",
+  accentTint: "#2C1838",
+  accentGradient: ["#9A4BF5", "#F23C9A"], // logo violet → magenta (brighter for dark)
+  onAccent: "#FFFFFF",
+  success: "#5FD08A", // mint glow
+  successTint: "#14271C",
   warning: "#E8B24A", // brass
   warningTint: "#2C2310",
-  danger: "#E8736B",
-  dangerTint: "#2C1A18",
+  danger: "#F2606B",
+  dangerTint: "#2E191C",
   overlay: "rgba(0,0,0,0.6)",
   heroShadow: {
     shadowColor: "#000000",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.5,
     shadowRadius: 22,
     elevation: 6,
   },
@@ -73,31 +74,31 @@ export const darkTheme: Theme = {
 
 export const lightTheme: Theme = {
   mode: "light",
-  bg: "#F7F2EA", // warm cream paper
+  bg: "#FAF7FD", // soft lilac paper
   surface: "#FFFFFF",
   card: "#FFFFFF",
-  surfaceAlt: "#F0E9DC",
-  border: "#EAE1D3",
-  divider: "#EFE7D9",
-  text: "#241C16", // warm ink
-  textSecondary: "#7A6E61",
-  textTertiary: "#AA9D8C",
-  accent: "#C2522E", // terracotta clay
-  accentPressed: "#A4421F",
-  accentTint: "#F6E7DC",
-  accentGradient: ["#D5612F", "#B23E22"],
-  onAccent: "#FFF7F1",
-  success: "#3E7A52", // deep sage (readable on tint)
-  successTint: "#E5F0E6",
+  surfaceAlt: "#F2EAFA",
+  border: "#E8DEF3",
+  divider: "#EFE7F7",
+  text: "#1F1229", // deep plum ink
+  textSecondary: "#6B5F7B",
+  textTertiary: "#A89BB8",
+  accent: "#A21CAF", // orchid-magenta (the logo's violet↔pink midpoint)
+  accentPressed: "#8A1796",
+  accentTint: "#F7E6FB",
+  accentGradient: ["#7C2AE8", "#E91E8C"], // logo violet → magenta
+  onAccent: "#FFFFFF",
+  success: "#2E9E5B", // readable green on tint
+  successTint: "#E4F4EA",
   warning: "#9A6A1B", // antique brass
   warningTint: "#F6ECD3",
-  danger: "#C2413B",
-  dangerTint: "#F8E4E1",
-  overlay: "rgba(36,28,22,0.42)",
+  danger: "#D11F35",
+  dangerTint: "#FAE3E6",
+  overlay: "rgba(31,18,41,0.42)",
   heroShadow: {
-    shadowColor: "#8A4A2A",
+    shadowColor: "#6D28D9",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.20,
     shadowRadius: 20,
     elevation: 4,
   },
