@@ -1,4 +1,5 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { fonts } from "../../constants/tokens";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -91,11 +92,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: t.bg },
   permText: { fontSize: 16, color: t.text, textAlign: "center", marginBottom: 16 },
   permBtn: { backgroundColor: t.accent, borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10 },
-  permBtnText: { color: "#fff", fontWeight: "600" },
+  permBtnText: { color: "#fff", fontFamily: fonts.semibold },
   headerText: {
     color: "#fff",
     fontSize: 18,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     textAlign: "center",
     paddingVertical: 14,
     backgroundColor: "rgba(0,0,0,0.6)",
@@ -116,5 +117,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
   },
-  rescanBtnText: { color: "#fff", fontWeight: "600", fontSize: 15 },
+  rescanBtnText: { color: "#fff", fontFamily: fonts.semibold, fontSize: 15 },
 });

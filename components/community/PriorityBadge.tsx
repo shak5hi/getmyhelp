@@ -1,19 +1,31 @@
 import React from "react";
+import { fonts } from "../../constants/tokens";
 import { View, Text, StyleSheet } from "react-native";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 
-const COLORS: Record<string, { bg: string; text: string }> = {
-  high:   { bg: "#FEE2E2", text: "#991B1B" },
-  medium: { bg: "#FEF3C7", text: "#92400E" },
-  low:    { bg: "#D1FAE5", text: "#065F46" },
-  urgent: { bg: "#FEE2E2", text: "#991B1B" },
-  normal: { bg: "#DBEAFE", text: "#1D4ED8" },
+// Priority is meaningful, so it maps to the semantic theme tones (which are
+// designed for both light & dark) rather than hardcoded light-mode pastels.
+const tone = (key: string, t: Theme): { bg: string; text: string } => {
+  switch (key) {
+    case "high":
+    case "urgent":
+      return { bg: t.dangerTint, text: t.danger };
+    case "low":
+      return { bg: t.successTint, text: t.success };
+    case "medium":
+      return { bg: t.warningTint, text: t.warning };
+    default:
+      return { bg: t.surfaceAlt, text: t.textSecondary };
+  }
 };
 
 type Props = { priority: string };
 
 export function PriorityBadge({ priority }: Props) {
+  const { theme } = useTheme();
   const key = (priority ?? "normal").toLowerCase();
-  const colors = COLORS[key] ?? COLORS.normal;
+  const colors = tone(key, theme);
   const label = key.charAt(0).toUpperCase() + key.slice(1);
 
   return (
@@ -32,7 +44,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 10,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     letterSpacing: 0.2,
   },
 });

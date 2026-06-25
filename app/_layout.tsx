@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../constants/tokens";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, TouchableOpacity, View, Text, TextInput } from "react-native";
 import { setUnauthorizedHandler } from "../src/api/client";
 import {
@@ -16,7 +17,9 @@ import { NotificationProvider, useNotifications } from "../src/NotificationConte
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider, useTheme } from "../src/ThemeContext";
+import { FeatureProvider } from "../src/FeatureContext";
 import VisitorApprovalModal from "../components/visitor/VisitorApprovalModal";
+import VideoSplash from "../components/VideoSplash";
 
 function ThemedStatusBar() {
   const { theme } = useTheme();
@@ -114,6 +117,7 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  const [splashDone, setSplashDone] = useState(false);
   const [fontsLoaded] = useFonts({
     "Newsreader-Regular": require("../assets/fonts/Newsreader-Regular.ttf"),
     "Newsreader-SemiBold": require("../assets/fonts/Newsreader-SemiBold.ttf"),
@@ -136,11 +140,14 @@ export default function RootLayout() {
     <ThemeProvider>
     <SafeAreaProvider>
       <LanguageProvider>
-        <NotificationProvider>
-          <ThemedStatusBar />
-          <VisitorApprovalModal />
-          <RootNavigator />
-        </NotificationProvider>
+        <FeatureProvider>
+          <NotificationProvider>
+            <ThemedStatusBar />
+            <VisitorApprovalModal />
+            <RootNavigator />
+            {!splashDone && <VideoSplash onDone={() => setSplashDone(true)} />}
+          </NotificationProvider>
+        </FeatureProvider>
       </LanguageProvider>
     </SafeAreaProvider>
     </ThemeProvider>
@@ -169,7 +176,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 9,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: "#fff",
   },
 });

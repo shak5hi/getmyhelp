@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { fonts } from "../constants/tokens";
 import { Theme } from "../constants/themes";
 
 export const makePhoneStyles = (t: Theme) =>
@@ -13,13 +14,12 @@ export const makePhoneStyles = (t: Theme) =>
     appName: {
       textAlign: "center",
       fontSize: 16,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
       marginBottom: 40,
       color: t.text,
     },
 
     title: {
-      fontWeight: "600",
       marginBottom: 6,
       fontFamily: "Newsreader-SemiBold",
       fontSize: 24,
@@ -67,7 +67,7 @@ export const makePhoneStyles = (t: Theme) =>
     buttonText: {
       color: t.onAccent,
       fontSize: 16,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
     },
     buttonDisabled: {
       backgroundColor: t.surfaceAlt,

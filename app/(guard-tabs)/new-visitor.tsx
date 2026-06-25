@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fonts } from "../../constants/tokens";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -232,8 +233,8 @@ export default function NewVisitorScreen() {
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 20, fontWeight: "700", color: t.text, marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: "600", color: t.textSecondary, marginBottom: 6, marginTop: 14 },
+  title: { fontSize: 20, fontFamily: fonts.bold, color: t.text, marginBottom: 20 },
+  label: { fontSize: 13, fontFamily: fonts.semibold, color: t.textSecondary, marginBottom: 6, marginTop: 14 },
   input: {
     borderWidth: 1,
     borderColor: t.border,
@@ -254,7 +255,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   purposeChipActive: { backgroundColor: t.accent, borderColor: t.accent },
   purposeChipText: { fontSize: 13, color: t.textSecondary },
-  purposeChipTextActive: { color: "#fff", fontWeight: "600" },
+  purposeChipTextActive: { color: "#fff", fontFamily: fonts.semibold },
   towerRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   towerChip: {
     borderWidth: 1,
@@ -265,8 +266,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     backgroundColor: t.card,
   },
   towerChipActive: { backgroundColor: t.accent, borderColor: t.accent },
-  towerChipText: { fontSize: 14, color: t.textSecondary, fontWeight: "500" },
-  towerChipTextActive: { color: "#fff", fontWeight: "700" },
+  towerChipText: { fontSize: 14, color: t.textSecondary, fontFamily: fonts.medium },
+  towerChipTextActive: { color: "#fff", fontFamily: fonts.bold },
   selfieBox: {
     width: 120,
     height: 120,
@@ -288,5 +289,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     alignItems: "center",
   },
   submitBtnDisabled: { opacity: 0.6 },
-  submitBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  submitBtnText: { color: "#fff", fontSize: 16, fontFamily: fonts.bold },
 });

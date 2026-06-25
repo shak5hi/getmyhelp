@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../../constants/tokens";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -140,7 +141,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  title: { fontSize: 22, fontWeight: "700", color: t.text },
+  title: { fontSize: 22, fontFamily: fonts.bold, color: t.text },
   toggle: {
     flexDirection: "row",
     backgroundColor: t.surfaceAlt,
@@ -149,7 +150,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   toggleBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 6 },
   toggleBtnActive: { backgroundColor: t.accent },
-  toggleText: { fontSize: 13, fontWeight: "600", color: t.textSecondary },
+  toggleText: { fontSize: 13, fontFamily: fonts.semibold, color: t.textSecondary },
   toggleTextActive: { color: "#fff" },
   card: {
     backgroundColor: t.card,
@@ -161,7 +162,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     justifyContent: "space-between",
   },
   cardLeft: { flex: 1, marginRight: 8 },
-  name: { fontSize: 15, fontWeight: "600", color: t.text, marginBottom: 2 },
+  name: { fontSize: 15, fontFamily: fonts.semibold, color: t.text, marginBottom: 2 },
   meta: { fontSize: 13, color: t.textSecondary },
   emptyBox: { alignItems: "center", marginTop: 60, gap: 12 },
   empty: { textAlign: "center", color: t.textSecondary, fontSize: 15 },

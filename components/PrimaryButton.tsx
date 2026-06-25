@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { radii } from "../constants/tokens";
+import { radii, fonts } from "../constants/tokens";
 import { useTheme } from "../src/ThemeContext";
 import { Theme } from "../constants/themes";
 
@@ -86,7 +86,7 @@ const makeStyles = (t: Theme) =>
     },
     text: {
       fontSize: 16,
-      fontWeight: "700",
+      fontFamily: fonts.bold,
       letterSpacing: 0.1,
     },
   });

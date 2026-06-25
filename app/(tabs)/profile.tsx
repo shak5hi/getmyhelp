@@ -16,6 +16,7 @@ import { makeStyles } from "../../styles/profile.styles";
 import { useTheme } from "../../src/ThemeContext";
 import { useLanguage } from "../../src/LanguageContext";
 import { clearSession } from "../../src/api/client";
+import { getMyResidence } from "../../src/api/societyApi";
 import { getPushEnabled, setPushEnabled } from "../../src/preferences";
 import ThemeToggle from "../../components/ThemeToggle";
 
@@ -52,11 +53,11 @@ const ProfileHeader = ({ user }: { user: UserData | null }) => {
         <View style={styles.profileInfo}>
           <Text style={styles.userName} numberOfLines={1}>{user?.name || "Guest User"}</Text>
           <Text style={styles.userPhone}>{user?.phone || "Please log in"}</Text>
-          {user?.society && user?.tower && (
+          {!!(user?.society || user?.tower) && (
             <View style={styles.addressBadge}>
               <Ionicons name="location-sharp" size={11} color={theme.accent} />
               <Text style={styles.userAddress} numberOfLines={1}>
-                {user.society}, {user.tower}
+                {[user.society, user.tower].filter(Boolean).join("  ·  ")}
               </Text>
             </View>
           )}
@@ -170,52 +171,42 @@ export default function ProfileScreen() {
 
       let rawName = "Guest";
       let rawPhone = "No Phone";
-      let societyName = "No Society";
-      let storedFlat = "No Tower";
+      let societyName = "";
+      let flatNumber = userObj?.flat_number ? String(userObj.flat_number) : "";
+      let towerName = "";
 
       if (token) {
-        // 1. Fetch real customer data from API
+        // One call resolves name/phone + the admin-assigned society/tower (by id,
+        // since society_name/tower_name are often null) — see getMyResidence.
         try {
-          const headers = { Authorization: `Bearer ${token}` };
-          
-          const res = await fetch(`${config.apiUrl}/customer/profile`, { headers });
-          const apiUser = await res.json();
-          
-          if (apiUser) {
-            rawName = apiUser.first_name || apiUser.name || userObj?.first_name || userObj?.name || rawName;
-            rawPhone = apiUser.phone || apiUser.phoneNumber || apiUser.mobile || apiUser.user_phone || userObj?.phone || userObj?.phoneNumber || rawPhone;
-          }
+          const r = await getMyResidence();
+          rawName = r.firstName || userObj?.first_name || userObj?.name || rawName;
+          rawPhone = r.phone || userObj?.phone || userObj?.phoneNumber || rawPhone;
+          societyName = r.societyName || "";
+          towerName = r.towerName || "";
+          if (r.flatNumber) flatNumber = r.flatNumber;
         } catch (apiErr) {
           console.log("Profile API error, falling back to storage:", apiErr);
           rawName = userObj?.first_name || userObj?.name || rawName;
           rawPhone = userObj?.phone || userObj?.phoneNumber || rawPhone;
         }
       } else if (userObj) {
-        // No token or not logged in properly, but have user data in storage
         rawName = userObj.first_name || userObj.name || rawName;
         rawPhone = userObj.phone || userObj.phoneNumber || rawPhone;
       }
 
-      // Load flat/tower selection from local storage
-      storedFlat = (await AsyncStorage.getItem("flat_number")) || (await AsyncStorage.getItem("selected_tower_id")) || "No Tower";
+      if (!flatNumber) flatNumber = (await AsyncStorage.getItem("flat_number")) || "";
 
-      // Load society data from local storage (or API if you prefer)
-      const selectedSocietyId = await AsyncStorage.getItem("selected_society_id");
-      const societiesJson = await AsyncStorage.getItem("societies_data");
-      
-      if (selectedSocietyId && societiesJson) {
-        const societiesData = JSON.parse(societiesJson);
-        const match = societiesData.find((s: any) => s.id === selectedSocietyId);
-        if (match && match.name) {
-          societyName = match.name;
-        }
-      }
+      // Address line shows society + tower + flat — whatever we could resolve.
+      const towerLine = [towerName, flatNumber ? `Flat ${flatNumber}` : null]
+        .filter(Boolean)
+        .join(" · ");
 
       setUser({
         name: rawName,
         phone: rawPhone,
         society: societyName,
-        tower: storedFlat,
+        tower: towerLine,
       });
     } catch (error) {
       console.error("Error loading user data:", error);

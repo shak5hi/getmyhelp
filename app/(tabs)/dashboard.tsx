@@ -14,9 +14,14 @@ import { Theme } from "../../constants/themes";
 import TodaysHelp from "../../components/TodaysHelp";
 import ThemeToggle from "../../components/ThemeToggle";
 import { getPendingApprovals } from "../../src/api/visitorApi";
+import { getMyResidence } from "../../src/api/societyApi";
+import { useFeature, useRefreshFeatures } from "../../src/FeatureContext";
+import { MODULES } from "../../src/featureRegistry";
 
+// Foreground accents that sit on top of the solid accent surface (banner/FAB).
+// Neutral white, not the old warm cream — the accent is now violet→magenta.
 const HERO_GLASS = "rgba(255,255,255,0.16)";
-const ON_HERO_DIM = "rgba(255,247,240,0.75)";
+const ON_HERO_DIM = "rgba(255,255,255,0.78)";
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -24,6 +29,16 @@ export default function DashboardScreen() {
   const { theme } = useTheme();
   const s = useMemo(() => makeStyles(theme), [theme]);
   useLanguage();
+
+  // Feature flags drive what this screen surfaces. Refresh the set on mount so
+  // the right modules show immediately after login.
+  const refreshFeatures = useRefreshFeatures();
+  const visitorsEnabled = useFeature(MODULES.visitors);
+  const ticketsEnabled = useFeature(MODULES.tickets);
+  const communityEnabled = useFeature(MODULES.community);
+  const attendanceEnabled = useFeature(MODULES.attendance);
+  const chatbotEnabled = useFeature(MODULES.chatbot);
+  const subscriptionsEnabled = useFeature(MODULES.subscriptions);
 
   const [name, setName] = useState("there");
   const [image, setImage] = useState<string | null>(null);
@@ -33,6 +48,8 @@ export default function DashboardScreen() {
 
   const load = useCallback(async () => {
     try {
+      // Make sure the society's enabled-module set is fresh (e.g. just after login).
+      refreshFeatures();
       const token = await AsyncStorage.getItem("access_token");
       const userStr = await AsyncStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
@@ -45,26 +62,38 @@ export default function DashboardScreen() {
         "there";
       setName(raw.charAt(0).toUpperCase() + raw.slice(1));
       setImage(user?.profile_image || null);
+
+      // Login only caches society_id/tower_id (IDs); the names are nullable and
+      // often unpopulated, so resolve them from the ids (see getMyResidence).
+      const r = await getMyResidence();
       setLocation(
-        [user?.society_name, user?.tower_name, user?.flat_number ? `Flat ${user.flat_number}` : null]
+        [r.societyName, r.towerName, r.flatNumber ? `Flat ${r.flatNumber}` : null]
           .filter(Boolean)
           .join("  ·  ") || "Your home"
       );
 
-      try {
-        const p = await getPendingApprovals();
-        const list = p?.data?.items ?? p?.data ?? p?.items ?? [];
-        setPendingCount(Array.isArray(list) ? list.length : 0);
-      } catch {}
+      if (visitorsEnabled) {
+        try {
+          const p = await getPendingApprovals();
+          const list = p?.data?.items ?? p?.data ?? p?.items ?? [];
+          setPendingCount(Array.isArray(list) ? list.length : 0);
+        } catch {}
+      } else {
+        setPendingCount(0);
+      }
 
-      try {
-        const sr = await fetch(`${config.apiUrl}/admin/customers/${user.id}/subscriptions`, { headers });
-        const sj = await sr.json();
-        const active = sj?.subscriptions?.find((x: any) => x.status === "active") || sj?.subscriptions?.[0];
-        setDaysRemaining(active?.days_remaining ?? null);
-      } catch {}
+      if (subscriptionsEnabled) {
+        try {
+          const sr = await fetch(`${config.apiUrl}/admin/customers/${user.id}/subscriptions`, { headers });
+          const sj = await sr.json();
+          const active = sj?.subscriptions?.find((x: any) => x.status === "active") || sj?.subscriptions?.[0];
+          setDaysRemaining(active?.days_remaining ?? null);
+        } catch {}
+      } else {
+        setDaysRemaining(null);
+      }
     } catch {}
-  }, []);
+  }, [refreshFeatures, visitorsEnabled, subscriptionsEnabled]);
 
   useEffect(() => {
     load();
@@ -81,11 +110,11 @@ export default function DashboardScreen() {
   const initials = name ? name.trim().split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() : "?";
 
   const quick: { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void }[] = [
-    { label: "Invite Guest", icon: "person-add", onPress: () => router.push("/visitor/invite") },
-    { label: "Raise Ticket", icon: "construct", onPress: () => router.push("/society/create-ticket") },
-    { label: "Community", icon: "chatbubbles", onPress: () => router.push("/(tabs)/community") },
-    { label: "Attendance", icon: "calendar", onPress: () => router.push("/attendance-history") },
-  ];
+    visitorsEnabled && { label: "Invite Guest", icon: "person-add", onPress: () => router.push("/visitor/invite") },
+    ticketsEnabled && { label: "Raise Ticket", icon: "construct", onPress: () => router.push("/society/create-ticket") },
+    communityEnabled && { label: "Community", icon: "chatbubbles", onPress: () => router.push("/(tabs)/community") },
+    attendanceEnabled && { label: "Attendance", icon: "calendar", onPress: () => router.push("/attendance-history") },
+  ].filter(Boolean) as { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void }[];
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -150,10 +179,12 @@ export default function DashboardScreen() {
         )}
 
         {/* TODAY'S HELP — the daily core, now the hero of the screen */}
+        {attendanceEnabled && (
         <Animated.View entering={FadeInDown.delay(140).duration(500)}>
           <SectionTitle theme={theme}>Today&apos;s Help</SectionTitle>
           <TodaysHelp />
         </Animated.View>
+        )}
 
         {/* Slim plan-renewal chip — only when actually relevant */}
         {daysRemaining != null && daysRemaining <= 7 && (
@@ -172,7 +203,8 @@ export default function DashboardScreen() {
           </Animated.View>
         )}
 
-        {/* QUICK ACTIONS — 2×2 grid, secondary */}
+        {/* QUICK ACTIONS — 2×2 grid, secondary (only enabled modules) */}
+        {quick.length > 0 && (
         <Animated.View entering={FadeInDown.delay(240).duration(500)} style={{ marginTop: 30 }}>
           <SectionTitle theme={theme}>Quick actions</SectionTitle>
           <View style={s.quickGrid}>
@@ -187,11 +219,13 @@ export default function DashboardScreen() {
             ))}
           </View>
         </Animated.View>
+        )}
 
         <View style={{ height: 56 }} />
       </ScrollView>
 
-      {/* AI ASSISTANT — labelled pill FAB */}
+      {/* AI ASSISTANT — labelled pill FAB (only when the chatbot module is on) */}
+      {chatbotEnabled && (
       <TouchableOpacity
         style={[s.fabWrap, { bottom: insets.bottom + 88 }]}
         activeOpacity={0.9}
@@ -202,6 +236,7 @@ export default function DashboardScreen() {
           <Text style={s.fabText}>Ask AI</Text>
         </LinearGradient>
       </TouchableOpacity>
+      )}
     </View>
   );
 }

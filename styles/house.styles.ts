@@ -1,3 +1,5 @@
+import { fonts } from "../constants/tokens";
+
 export const houseStyles = {
   container: {
     flex: 1,
@@ -60,7 +62,7 @@ export const houseStyles = {
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
 
   buttonTextDisabled: {

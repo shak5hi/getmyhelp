@@ -15,6 +15,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../../src/config";
 import { fonts, radii } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
+import { useFeatureGuard } from "../../src/useFeatureGuard";
+import { MODULES } from "../../src/featureRegistry";
 import { Theme } from "../../constants/themes";
 
 type MessageType = {
@@ -25,6 +27,7 @@ type MessageType = {
 };
 
 export default function ChatbotScreen() {
+  useFeatureGuard(MODULES.chatbot);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [messages, setMessages] = useState<MessageType[]>([]);

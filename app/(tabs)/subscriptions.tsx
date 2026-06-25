@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -18,18 +19,26 @@ import {
   requestSubscriptionCancellation 
 } from "../../src/api/subscriptionApi";
 import { makeStyles } from "../../styles/subscriptions.styles";
+import { fonts } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
+import { useFeatureGuard } from "../../src/useFeatureGuard";
+import { MODULES } from "../../src/featureRegistry";
 
 export default function SubscriptionsScreen() {
+  useFeatureGuard(MODULES.subscriptions);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [currentSubscriptions, setCurrentSubscriptions] = useState<any[]>([]);
   const [availablePlans, setAvailablePlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchSubscriptionData();
-  }, []);
+  // Refetch every time the tab gains focus (tab screens stay mounted, so a
+  // mount-only effect would keep showing stale data after a backend change).
+  useFocusEffect(
+    useCallback(() => {
+      fetchSubscriptionData();
+    }, [])
+  );
 
   const fetchSubscriptionData = async () => {
     try {
@@ -38,6 +47,7 @@ export default function SubscriptionsScreen() {
       // 1. Fetch current subscriptions for this customer
       const subData = await getMySubscriptions();
       const allSubs = subData?.data?.items || [];
+      console.log("🔬 SUB object keys:", JSON.stringify(allSubs[0] ?? {}, null, 2));
       const activeSubs = allSubs.filter((s: any) => s.status === "active" || s.status === "pending_payment");
       setCurrentSubscriptions(activeSubs);
 
@@ -45,6 +55,7 @@ export default function SubscriptionsScreen() {
       const plansData = await getAvailablePlans();
       if (plansData?.data?.items) {
         setAvailablePlans(plansData.data.items);
+        console.log("🔬 PLAN object keys:", JSON.stringify(plansData.data.items[0] ?? {}, null, 2));
       }
     } catch (error) {
       console.error("Error fetching subscriptions:", error);
@@ -55,6 +66,16 @@ export default function SubscriptionsScreen() {
 
   const handleAddSubscription = (planId?: string, planName?: string) => {
     if (!planId) return;
+
+    // Guard against duplicate active subscriptions: the customer already has an
+    // ongoing plan, so block a second one instead of silently creating it.
+    if (currentSubscriptions.length > 0) {
+      Alert.alert(
+        "Active Plan Exists",
+        "You already have an active subscription. Please cancel it before subscribing to a new plan."
+      );
+      return;
+    }
 
     Alert.alert(
       "Subscribe",
@@ -173,7 +194,7 @@ export default function SubscriptionsScreen() {
             <View key={plan.id || index} style={styles.availableCard}>
               <Text style={styles.availablePlanName}>{plan.name || "Plan"}</Text>
               <Text style={styles.availablePlanPrice}>
-                ₹{plan.price ?? plan.base_price ?? "—"} <Text style={{ fontSize: 16, color: theme.textSecondary, fontWeight: "600" }}>/month</Text>
+                ₹{plan.price ?? plan.base_price ?? "—"} <Text style={{ fontSize: 16, color: theme.textSecondary, fontFamily: fonts.semibold }}>/month</Text>
               </Text>
 
               <TouchableOpacity 

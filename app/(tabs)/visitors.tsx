@@ -9,10 +9,13 @@ import { fonts } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import SegmentedControl from "../../components/ui/SegmentedControl";
+import { useFeatureGuard } from "../../src/useFeatureGuard";
+import { MODULES } from "../../src/featureRegistry";
 
 const TABS = ["Active", "History"] as const;
 
 export default function VisitorsScreen() {
+  useFeatureGuard(MODULES.visitors);
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -73,7 +76,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
   },
-  inviteBtnText: { color: t.onAccent, fontSize: 16, fontWeight: "700" },
+  inviteBtnText: { color: t.onAccent, fontSize: 16, fontFamily: fonts.bold },
   segmentWrap: {
     paddingHorizontal: 16,
     paddingTop: 16,

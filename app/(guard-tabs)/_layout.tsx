@@ -1,9 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../../constants/tokens";
 import { Tabs } from "expo-router";
 import { useTheme } from "../../src/ThemeContext";
+import { useFeature } from "../../src/FeatureContext";
+import { MODULES } from "../../src/featureRegistry";
 
 export default function GuardTabLayout() {
   const { theme } = useTheme();
+  // All guard visitor screens hinge on the Visitor Management module.
+  const visitorsHref = useFeature(MODULES.visitors) ? undefined : null;
   return (
     <Tabs
       screenOptions={{
@@ -20,7 +25,7 @@ export default function GuardTabLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: "600",
+          fontFamily: fonts.semibold,
           marginTop: 2,
         },
       }}
@@ -29,6 +34,7 @@ export default function GuardTabLayout() {
         name="visitor-list"
         options={{
           title: "Visitors",
+          href: visitorsHref,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
@@ -38,6 +44,7 @@ export default function GuardTabLayout() {
         name="new-visitor"
         options={{
           title: "New Entry",
+          href: visitorsHref,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-add-outline" size={size} color={color} />
           ),
@@ -47,6 +54,7 @@ export default function GuardTabLayout() {
         name="qr-scanner"
         options={{
           title: "Scan QR",
+          href: visitorsHref,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="qr-code-outline" size={size} color={color} />
           ),
@@ -56,6 +64,7 @@ export default function GuardTabLayout() {
         name="verify-otp"
         options={{
           title: "OTP Entry",
+          href: visitorsHref,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="keypad-outline" size={size} color={color} />
           ),

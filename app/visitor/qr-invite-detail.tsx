@@ -1,4 +1,5 @@
 import * as Sharing from "expo-sharing";
+import { fonts } from "../../constants/tokens";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -180,7 +181,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     borderRadius: 16,
     marginBottom: 12,
   },
-  qrLabel: { marginTop: 12, fontSize: 15, fontWeight: "700", color: "#1a1a1a" },
+  qrLabel: { marginTop: 12, fontSize: 15, fontFamily: fonts.bold, color: "#1a1a1a" },
   qrSub: { marginTop: 2, fontSize: 12, color: "#666", textTransform: "capitalize" },
   revokedOverlay: {
     width: 200,
@@ -190,7 +191,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     backgroundColor: "#fee2e2",
     borderRadius: 12,
   },
-  revokedText: { fontSize: 24, fontWeight: "800", color: t.danger },
+  revokedText: { fontSize: 24, fontFamily: fonts.extrabold, color: t.danger },
   shareBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -202,10 +203,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingVertical: 10,
     marginBottom: 16,
   },
-  shareBtnText: { color: t.accent, fontWeight: "700", fontSize: 15 },
+  shareBtnText: { color: t.accent, fontFamily: fonts.bold, fontSize: 15 },
   card: { backgroundColor: t.card, borderRadius: 12, padding: 16, marginBottom: 24 },
-  name: { fontSize: 18, fontWeight: "700", color: t.text, marginBottom: 4 },
+  name: { fontSize: 18, fontFamily: fonts.bold, color: t.text, marginBottom: 4 },
   info: { fontSize: 14, color: t.textSecondary, marginBottom: 2 },
   revokeBtn: { backgroundColor: t.danger, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
-  revokeBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  revokeBtnText: { color: "#fff", fontFamily: fonts.bold, fontSize: 16 },
 });

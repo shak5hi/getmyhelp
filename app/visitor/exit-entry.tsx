@@ -1,4 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { fonts } from "../../constants/tokens";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -75,16 +76,16 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg, padding: 20 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   card: { backgroundColor: t.card, borderRadius: 12, padding: 16, marginBottom: 24 },
-  name: { fontSize: 18, fontWeight: "700", color: t.text, marginBottom: 4 },
+  name: { fontSize: 18, fontFamily: fonts.bold, color: t.text, marginBottom: 4 },
   info: { fontSize: 14, color: t.textSecondary, marginBottom: 2 },
-  status: { fontSize: 14, fontWeight: "600", marginTop: 8 },
+  status: { fontSize: 14, fontFamily: fonts.semibold, marginTop: 8 },
   exitBtn: {
     backgroundColor: t.accent,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: "center",
   },
-  exitBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  exitBtnText: { color: "#fff", fontFamily: fonts.bold, fontSize: 16 },
   resultBox: { borderRadius: 12, padding: 20, alignItems: "center" },
-  resultText: { fontSize: 16, fontWeight: "600" },
+  resultText: { fontSize: 16, fontFamily: fonts.semibold },
 });

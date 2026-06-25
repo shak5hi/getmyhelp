@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { fonts } from "../constants/tokens";
 import { Theme } from "../constants/themes";
 
 export const makeOtpStyles = (t: Theme) =>
@@ -11,7 +12,6 @@ export const makeOtpStyles = (t: Theme) =>
 
     title: {
       fontSize: 28,
-      fontWeight: "600",
       marginBottom: 8,
       color: t.text,
       fontFamily: "Newsreader-SemiBold",
@@ -49,7 +49,7 @@ export const makeOtpStyles = (t: Theme) =>
 
     otpText: {
       fontSize: 20,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
       color: t.text,
     },
 
@@ -80,7 +80,7 @@ export const makeOtpStyles = (t: Theme) =>
     buttonText: {
       color: t.onAccent,
       fontSize: 16,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
     },
 
     buttonTextDisabled: {
@@ -96,6 +96,6 @@ export const makeOtpStyles = (t: Theme) =>
 
     resendLink: {
       color: t.accent,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
     },
   });

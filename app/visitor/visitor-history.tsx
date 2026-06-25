@@ -1,4 +1,5 @@
 import { useFocusEffect, useRouter } from "expo-router";
+import { fonts } from "../../constants/tokens";
 import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -127,7 +128,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     justifyContent: "space-between",
   },
   left: { flex: 1, marginRight: 8 },
-  name: { fontSize: 14, fontWeight: "600", color: t.text },
+  name: { fontSize: 14, fontFamily: fonts.semibold, color: t.text },
   meta: { fontSize: 12, color: t.textSecondary, marginTop: 1 },
   date: { fontSize: 11, color: t.textTertiary, marginTop: 2 },
   empty: { textAlign: "center", color: t.textSecondary, marginTop: 40 },

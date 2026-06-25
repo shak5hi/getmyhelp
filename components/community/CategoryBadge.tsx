@@ -1,42 +1,38 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { fonts } from "../../constants/tokens";
 import { View, Text, StyleSheet } from "react-native";
+import { useTheme } from "../../src/ThemeContext";
+import { Theme } from "../../constants/themes";
 
-const PALETTE: { bg: string; text: string }[] = [
-  { bg: "#EDE9FE", text: "#6D28D9" },
-  { bg: "#DBEAFE", text: "#1D4ED8" },
-  { bg: "#D1FAE5", text: "#065F46" },
-  { bg: "#FEF3C7", text: "#92400E" },
-  { bg: "#FCE7F3", text: "#9D174D" },
-  { bg: "#E0F2FE", text: "#075985" },
-];
-
-const pickColor = (s: string) =>
-  PALETTE[
-    Math.abs((s ?? "").split("").reduce((a, c) => a + c.charCodeAt(0), 0)) %
-      PALETTE.length
-  ];
-
+// Category is an arbitrary label, not a status — per the design language we use a
+// single restrained branded chip (readable in both themes) rather than a rainbow
+// of hardcoded light-mode pastels that broke in dark mode.
 type Props = { category: string };
 
 export function CategoryBadge({ category }: Props) {
-  const colors = pickColor(category);
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
-    <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-      <Text style={[styles.text, { color: colors.text }]}>{category}</Text>
+    <View style={styles.badge}>
+      <Text style={styles.text}>{category}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-  },
-  text: {
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.2,
-  },
-});
+const makeStyles = (t: Theme) =>
+  StyleSheet.create({
+    badge: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 8,
+      alignSelf: "flex-start",
+      backgroundColor: t.accentTint,
+    },
+    text: {
+      fontSize: 10,
+      fontFamily: fonts.bold,
+      letterSpacing: 0.2,
+      color: t.accent,
+      textTransform: "uppercase",
+    },
+  });

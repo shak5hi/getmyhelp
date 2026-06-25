@@ -49,6 +49,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-video",
       "expo-localization",
       "expo-font",
       "expo-web-browser",

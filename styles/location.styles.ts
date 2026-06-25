@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { fonts } from "../constants/tokens";
 import { Theme } from "../constants/themes";
 
 export const makeLocationStyles = (t: Theme) =>
@@ -17,7 +18,6 @@ export const makeLocationStyles = (t: Theme) =>
 
     title: {
       fontSize: 28,
-      fontWeight: "600",
       color: t.text,
       marginBottom: 8,
       fontFamily: "Newsreader-SemiBold",
@@ -78,7 +78,7 @@ export const makeLocationStyles = (t: Theme) =>
     buttonText: {
       color: t.onAccent,
       fontSize: 16,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
     },
 
     buttonTextDisabled: {
@@ -131,7 +131,7 @@ export const makeLocationStyles = (t: Theme) =>
 
     headerTitle: {
       fontSize: 16,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
       color: t.text,
     },
 
@@ -165,7 +165,7 @@ export const makeLocationStyles = (t: Theme) =>
 
     centerTitle: {
       fontSize: 22,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
       marginBottom: 24,
       color: t.text,
       textAlign: "center",
@@ -198,7 +198,7 @@ export const makeLocationStyles = (t: Theme) =>
     primaryButtonText: {
       color: t.onAccent,
       fontSize: 15,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
     },
 
     errorContainer: {
@@ -217,6 +217,6 @@ export const makeLocationStyles = (t: Theme) =>
     secondaryButtonText: {
       color: t.accent,
       fontSize: 14,
-      fontWeight: "500",
+      fontFamily: fonts.medium,
     },
   });

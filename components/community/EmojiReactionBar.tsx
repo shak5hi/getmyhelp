@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { fonts } from "../../constants/tokens";
 import {
   View,
   Text,
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
   },
   count: {
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: "#6B7280",
     marginLeft: 4,
   },

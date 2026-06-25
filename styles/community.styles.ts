@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { shadows, radii } from "../constants/tokens";
+import { shadows, radii, fonts } from "../constants/tokens";
 import { Theme } from "../constants/themes";
 
 export const makeStyles = (t: Theme) => StyleSheet.create({
@@ -26,7 +26,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     letterSpacing: -0.3,
   },
@@ -34,7 +34,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
     fontSize: 13,
     color: t.textSecondary,
     marginTop: 2,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
 
   // ── Segmented tab bar ────────────────────────────────────
@@ -63,7 +63,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   tabText: {
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: t.textTertiary,
   },
   activeTabText: {
@@ -88,7 +88,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: t.text,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
 
   // ── Count strip ──────────────────────────────────────────
@@ -98,7 +98,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   countStripText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: t.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -139,7 +139,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   announcementTitle: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
     marginBottom: 5,
     lineHeight: 21,
@@ -161,7 +161,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   announcementDate: {
     fontSize: 12,
     color: t.textTertiary,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
   announcementDateRight: {
     marginLeft: "auto",
@@ -193,11 +193,11 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   forumAvatarText: {
     fontSize: 13,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
   },
   forumAuthorName: {
     fontSize: 13,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
   },
   forumAuthorTime: {
@@ -207,7 +207,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   forumTitle: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
     marginBottom: 12,
     lineHeight: 21,
@@ -234,7 +234,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   forumStatText: {
     fontSize: 12,
     color: t.textSecondary,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
 
   // ── Poll card ────────────────────────────────────────────
@@ -247,7 +247,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   pollTitle: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
     marginBottom: 4,
     lineHeight: 21,
@@ -256,7 +256,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
     fontSize: 12,
     color: t.textTertiary,
     marginBottom: 14,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
   pollClosedBadge: {
     alignSelf: "flex-start",
@@ -268,7 +268,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   pollClosedBadgeText: {
     fontSize: 11,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.danger,
     textTransform: "uppercase",
     letterSpacing: 0.4,
@@ -292,11 +292,11 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
     fontSize: 14,
     color: t.textSecondary,
     flex: 1,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
   pollOptionTextSelected: {
     color: t.text,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
   },
   pollCircle: {
     width: 20,
@@ -338,7 +338,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   pollSubmitText: {
     color: t.card,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     fontSize: 14,
     letterSpacing: 0.2,
   },
@@ -362,12 +362,12 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
     fontSize: 13,
     color: t.textSecondary,
     flex: 1,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
     marginRight: 8,
   },
   barLabelPct: {
     fontSize: 13,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
   },
   barBg: {
@@ -387,7 +387,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   pollClosed: {
     fontSize: 12,
     color: t.danger,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     marginTop: 10,
     textAlign: "center",
   },
@@ -421,7 +421,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   detailTitle: {
     fontSize: 20,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     marginBottom: 12,
     lineHeight: 28,
@@ -501,7 +501,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   bubbleAvatarText: {
     color: t.onAccent,
     fontSize: 10,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
   },
   bubble: {
     borderRadius: 18,
@@ -521,7 +521,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   bubbleAuthor: {
     fontSize: 11,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.accent,
     marginBottom: 2,
   },
@@ -569,7 +569,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   quotedAuthor: {
     fontSize: 11,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.accent,
     marginBottom: 1,
   },
@@ -664,7 +664,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   submitBtnText: {
     color: t.card,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     fontSize: 15,
     letterSpacing: 0.2,
   },
@@ -680,7 +680,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 12,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.textSecondary,
     textTransform: "uppercase",
     letterSpacing: 0.5,

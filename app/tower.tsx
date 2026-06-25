@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fonts } from "../constants/tokens";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -134,7 +135,7 @@ export default function TowerScreen() {
           <ActivityIndicator style={{ marginVertical: 16 }} color={theme.accent} />
         ) : towers.length > 1 ? (
           <>
-            <Text style={{ fontSize: 14, fontWeight: "600", color: theme.textSecondary, marginBottom: 10 }}>
+            <Text style={{ fontSize: 14, fontFamily: fonts.semibold, color: theme.textSecondary, marginBottom: 10 }}>
               Select Tower *
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
@@ -153,7 +154,7 @@ export default function TowerScreen() {
                 >
                   <Text style={{
                     fontSize: 14,
-                    fontWeight: "600",
+                    fontFamily: fonts.semibold,
                     color: selectedTowerId === t.id ? theme.onAccent : theme.textSecondary,
                   }}>
                     Tower {t.tower_number}
@@ -164,7 +165,7 @@ export default function TowerScreen() {
           </>
         ) : null}
 
-        <Text style={{ fontSize: 14, fontWeight: "600", color: theme.textSecondary, marginBottom: 8 }}>
+        <Text style={{ fontSize: 14, fontFamily: fonts.semibold, color: theme.textSecondary, marginBottom: 8 }}>
           Flat Number *
         </Text>
         <TextInput

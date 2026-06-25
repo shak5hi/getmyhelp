@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../../constants/tokens";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
@@ -146,7 +147,7 @@ export default function VerifyOTPScreen() {
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
   content: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
-  title: { fontSize: 22, fontWeight: "700", color: t.text, marginBottom: 8, textAlign: "center" },
+  title: { fontSize: 22, fontFamily: fonts.bold, color: t.text, marginBottom: 8, textAlign: "center" },
   subtitle: { fontSize: 14, color: t.textSecondary, textAlign: "center", marginBottom: 36, lineHeight: 20 },
   otpRow: { flexDirection: "row", gap: 10, marginBottom: 40 },
   otpBox: {
@@ -156,7 +157,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     borderColor: t.border,
     borderRadius: 10,
     fontSize: 24,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
     backgroundColor: t.card,
   },
@@ -169,7 +170,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     alignItems: "center",
   },
   verifyBtnDisabled: { opacity: 0.45 },
-  verifyBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  verifyBtnText: { color: "#fff", fontSize: 16, fontFamily: fonts.bold },
   // success state
   successCard: {
     margin: 24,
@@ -179,8 +180,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     alignItems: "center",
   },
   successIcon: { marginBottom: 12 },
-  successTitle: { fontSize: 22, fontWeight: "800", color: "#16a34a", marginBottom: 16 },
-  successName: { fontSize: 20, fontWeight: "700", color: t.text, marginBottom: 4 },
+  successTitle: { fontSize: 22, fontFamily: fonts.extrabold, color: "#16a34a", marginBottom: 16 },
+  successName: { fontSize: 20, fontFamily: fonts.bold, color: t.text, marginBottom: 4 },
   successSub: { fontSize: 14, color: t.textSecondary, marginBottom: 2, textAlign: "center" },
   checkedInBadge: {
     marginTop: 16,
@@ -189,7 +190,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 6,
   },
-  checkedInText: { fontSize: 13, fontWeight: "700", color: "#166534" },
+  checkedInText: { fontSize: 13, fontFamily: fonts.bold, color: "#166534" },
   actionBtn: {
     marginHorizontal: 24,
     marginBottom: 12,
@@ -199,5 +200,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     alignItems: "center",
   },
   exitBtn: { backgroundColor: t.card, borderWidth: 1, borderColor: t.border },
-  actionBtnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  actionBtnText: { color: "#fff", fontSize: 15, fontFamily: fonts.bold },
 });

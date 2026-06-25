@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { radii, spacing, shadows } from "../constants/tokens";
+import { radii, spacing, shadows, fonts } from "../constants/tokens";
 import { Theme } from "../constants/themes";
 
 export const makeStyles = (t: Theme) => StyleSheet.create({
@@ -13,7 +13,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   header: {
     fontSize: 28,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     marginBottom: 6,
     marginTop: 12,
@@ -26,7 +26,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.textTertiary,
     marginTop: 28,
     marginBottom: 14,
@@ -44,7 +44,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 17,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     marginTop: 14,
   },
@@ -65,7 +65,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   addButtonText: {
     color: "#FFFFFF",
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     fontSize: 15,
   },
 
@@ -95,7 +95,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   activeBadgeText: {
     fontSize: 11,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.success,
     marginLeft: 4,
     textTransform: "uppercase",
@@ -103,13 +103,13 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   planName: {
     fontSize: 24,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     letterSpacing: -0.4,
   },
   planPrice: {
     fontSize: 18,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.accent,
     marginTop: 4,
   },
@@ -132,7 +132,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   updateButtonText: {
     color: "#FFFFFF",
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
   },
   deleteButton: {
     flex: 1,
@@ -143,7 +143,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   deleteButtonText: {
     color: t.danger,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
   },
 
   /* AVAILABLE PLAN CARDS */
@@ -156,13 +156,13 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   availablePlanName: {
     fontSize: 19,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     letterSpacing: -0.3,
   },
   availablePlanPrice: {
     fontSize: 26,
-    fontWeight: "900",
+    fontFamily: fonts.extrabold,
     color: t.text,
     marginTop: 8,
     letterSpacing: -0.5,
@@ -178,7 +178,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   subscribeButtonText: {
     color: t.accent,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     marginRight: 6,
   },
   loadingContainer: {

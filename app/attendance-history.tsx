@@ -11,8 +11,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { getAttendanceHistory, AttendanceStatus } from "../src/api/attendanceApi";
 import { mediaUrl } from "../src/config";
-import { radii, spacing } from "../constants/tokens";
+import { radii, spacing, fonts } from "../constants/tokens";
 import { useTheme } from "../src/ThemeContext";
+import { useFeatureGuard } from "../src/useFeatureGuard";
+import { MODULES } from "../src/featureRegistry";
 import { Theme } from "../constants/themes";
 import { EmptyState } from "../components/ui/EmptyState";
 
@@ -50,6 +52,7 @@ const formatDate = (iso: string) => {
 };
 
 export default function AttendanceHistoryScreen() {
+  useFeatureGuard(MODULES.attendance);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [data, setData] = useState<HistoryData | null>(null);
@@ -196,13 +199,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   pctValue: {
     fontSize: 28,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.accent,
   },
   pctLabel: {
     fontSize: 12,
     color: t.textSecondary,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   statsBlock: {
     flex: 1,
@@ -214,12 +217,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   statValue: {
     fontSize: 20,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
   },
   statLabel: {
     fontSize: 12,
     color: t.textSecondary,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     marginTop: 2,
   },
   recordRow: {
@@ -248,7 +251,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   recordDate: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
   },
   recordProvider: {
@@ -269,7 +272,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   statusText: {
     fontSize: 11,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     letterSpacing: 0.3,
   },
 });

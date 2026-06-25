@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { fonts } from "../../constants/tokens";
 import {
   View,
   Image,
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
   },
   moreText: {
     color: "#fff",
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     fontSize: 16,
   },
   lightbox: {
