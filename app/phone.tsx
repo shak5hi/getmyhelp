@@ -1,6 +1,6 @@
 import { getAuth, signInWithPhoneNumber } from "@react-native-firebase/auth";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Text,
   TextInput,
@@ -9,10 +9,13 @@ import {
 } from "react-native";
 import i18n from "../src/i18n";
 import { setConfirmation } from "../src/firebaseConfirmation";
-import { phoneStyles as styles } from "../styles/phone.styles";
+import { makePhoneStyles } from "../styles/phone.styles";
+import { useTheme } from "../src/ThemeContext";
 
 export default function PhoneScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makePhoneStyles(theme), [theme]);
 
   const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
@@ -71,11 +74,12 @@ export default function PhoneScreen() {
           onChangeText={handlePhoneChange}
           maxLength={10}
           style={styles.input}
+          placeholderTextColor={theme.textTertiary}
         />
       </View>
 
       {error ? (
-        <Text style={{ color: "red", marginTop: 8, fontSize: 13 }}>
+        <Text style={[styles.errorText, { marginTop: 8, fontSize: 13 }]}>
           {error}
         </Text>
       ) : null}

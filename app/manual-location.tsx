@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -9,10 +9,13 @@ import {
   View,
 } from "react-native";
 import config from "../src/config";
-import { locationStyles as styles } from "../styles/location.styles";
+import { makeLocationStyles } from "../styles/location.styles";
+import { useTheme } from "../src/ThemeContext";
 
 export default function LocationScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeLocationStyles(theme), [theme]);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [error, setError] = useState("");
 
@@ -179,7 +182,7 @@ export default function LocationScreen() {
         disabled={loadingLocation}
       >
         {loadingLocation ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={theme.onAccent} />
         ) : (
           <Text style={styles.primaryButtonText}>
             Use my current location

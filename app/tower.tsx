@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Text,
@@ -13,7 +13,8 @@ import {
 import config from "../src/config";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
-import { towerStyles as styles } from "../styles/tower.styles";
+import { makeTowerStyles } from "../styles/tower.styles";
+import { useTheme } from "../src/ThemeContext";
 
 interface Tower {
   id: string;
@@ -23,6 +24,8 @@ interface Tower {
 export default function TowerScreen() {
   useLanguage();
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeTowerStyles(theme), [theme]);
 
   const [flatNumber, setFlatNumber] = useState("");
   const [selectedTowerId, setSelectedTowerId] = useState<string | null>(null);
@@ -125,13 +128,13 @@ export default function TowerScreen() {
         <Text style={styles.title}>{i18n.t("selectTower")}</Text>
         <Text style={styles.subtitle}>{i18n.t("towerSubtitle")}</Text>
 
-        {error ? <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text> : null}
+        {error ? <Text style={{ color: theme.danger, marginBottom: 10 }}>{error}</Text> : null}
 
         {fetchingTowers ? (
-          <ActivityIndicator style={{ marginVertical: 16 }} />
+          <ActivityIndicator style={{ marginVertical: 16 }} color={theme.accent} />
         ) : towers.length > 1 ? (
           <>
-            <Text style={{ fontSize: 14, fontWeight: "600", color: "#374151", marginBottom: 10 }}>
+            <Text style={{ fontSize: 14, fontWeight: "600", color: theme.textSecondary, marginBottom: 10 }}>
               Select Tower *
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
@@ -141,17 +144,17 @@ export default function TowerScreen() {
                   onPress={() => setSelectedTowerId(t.id)}
                   style={{
                     borderWidth: 1.5,
-                    borderColor: selectedTowerId === t.id ? "#4F46E5" : "#D1D5DB",
+                    borderColor: selectedTowerId === t.id ? theme.accent : theme.border,
                     borderRadius: 8,
                     paddingHorizontal: 16,
                     paddingVertical: 10,
-                    backgroundColor: selectedTowerId === t.id ? "#4F46E5" : "#fff",
+                    backgroundColor: selectedTowerId === t.id ? theme.accent : theme.card,
                   }}
                 >
                   <Text style={{
                     fontSize: 14,
                     fontWeight: "600",
-                    color: selectedTowerId === t.id ? "#fff" : "#374151",
+                    color: selectedTowerId === t.id ? theme.onAccent : theme.textSecondary,
                   }}>
                     Tower {t.tower_number}
                   </Text>
@@ -161,12 +164,12 @@ export default function TowerScreen() {
           </>
         ) : null}
 
-        <Text style={{ fontSize: 14, fontWeight: "600", color: "#374151", marginBottom: 8 }}>
+        <Text style={{ fontSize: 14, fontWeight: "600", color: theme.textSecondary, marginBottom: 8 }}>
           Flat Number *
         </Text>
         <TextInput
           placeholder="e.g. 301 or A-101"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={theme.textTertiary}
           value={flatNumber}
           onChangeText={(text) => {
             setFlatNumber(text);
@@ -174,13 +177,13 @@ export default function TowerScreen() {
           }}
           style={{
             borderWidth: 1,
-            borderColor: "#4a5057",
+            borderColor: theme.border,
             borderRadius: 14,
             paddingHorizontal: 16,
             paddingVertical: 14,
             fontSize: 16,
-            color: "#000000",
-            backgroundColor: "#FFFFFF",
+            color: theme.text,
+            backgroundColor: theme.card,
             marginBottom: 20,
           }}
           autoCapitalize="characters"
@@ -192,7 +195,7 @@ export default function TowerScreen() {
           onPress={handleContinue}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={theme.onAccent} />
           ) : (
             <Text style={[styles.buttonText, !isValid && styles.buttonTextDisabled]}>
               {i18n.t("continue") || "Continue"}

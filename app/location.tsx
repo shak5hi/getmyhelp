@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -12,7 +12,8 @@ import {
 } from "react-native";
 
 import config from "../src/config";
-import styles from "../styles/societyDetectedStyles";
+import { makeSocietyDetectedStyles } from "../styles/societyDetectedStyles";
+import { useTheme } from "../src/ThemeContext";
 
 /* ---------------------------------------
    Types
@@ -26,6 +27,8 @@ type Society = {
 
 export default function LocationScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeSocietyDetectedStyles(theme), [theme]);
 
   /* ---------------------------------------
      EXISTING STATE (UNCHANGED)
@@ -259,7 +262,7 @@ export default function LocationScreen() {
   if (loadingSocieties) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#1E293B" />
+        <ActivityIndicator size="large" color={theme.accent} />
         <Text style={styles.loadingText}>Loading societies...</Text>
       </View>
     );
@@ -277,18 +280,18 @@ export default function LocationScreen() {
       <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
         <TextInput
           placeholder="Search your society"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={theme.textTertiary}
           value={search}
           onChangeText={setSearch}
           style={{
             borderWidth: 1,
-            borderColor: "#CBD5E1",
+            borderColor: theme.border,
             borderRadius: 14,
             paddingHorizontal: 16,
             paddingVertical: 14,
             fontSize: 16,
-            color: "#111827",
-            backgroundColor: "#FFFFFF",
+            color: theme.text,
+            backgroundColor: theme.card,
           }}
         />
       </View>
@@ -350,7 +353,7 @@ export default function LocationScreen() {
           disabled={loadingLocation}
         >
           {loadingLocation ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={theme.onAccent} />
           ) : (
             <Text style={styles.retryButtonText}>
               Use my current location
@@ -378,7 +381,7 @@ export default function LocationScreen() {
       </View>
 
       {error ? (
-        <Text style={{ color: "red", textAlign: "center" }}>{error}</Text>
+        <Text style={[styles.error, { textAlign: "center" }]}>{error}</Text>
       ) : null}
     </View>
   );

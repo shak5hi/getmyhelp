@@ -1,229 +1,222 @@
 import { StyleSheet } from "react-native";
+import { Theme } from "../constants/themes";
 
-export const locationStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    backgroundColor: "#FFFFFF",
-  },
+export const makeLocationStyles = (t: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: t.bg,
+      paddingHorizontal: 24,
+    },
 
-  step: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginBottom: 12,
-  },
+    step: {
+      fontSize: 12,
+      color: t.textSecondary,
+      marginBottom: 12,
+    },
 
-  title: {
-    fontSize: 28,
-    fontWeight: "600",
-    color: "#2E3A46",
-    marginBottom: 8,
-    fontFamily: "Newsreader-SemiBold",
-  },
+    title: {
+      fontSize: 28,
+      fontWeight: "600",
+      color: t.text,
+      marginBottom: 8,
+      fontFamily: "Newsreader-SemiBold",
+    },
 
-  subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 24,
-  },
+    subtitle: {
+      fontSize: 14,
+      color: t.textSecondary,
+      marginBottom: 24,
+    },
 
-  dropdown: {
-    height: 52,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+    dropdown: {
+      height: 52,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: t.border,
+      paddingHorizontal: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: t.card,
+    },
 
-  dropdownText: {
-    fontSize: 14,
-    color: "#2E3A46",
-  },
+    dropdownText: {
+      fontSize: 14,
+      color: t.text,
+    },
 
-  placeholderText: {
-    color: "#9CA3AF",
-  },
+    placeholderText: {
+      color: t.textTertiary,
+    },
 
-  currentLocation: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-  },
+    currentLocation: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 12,
+    },
 
-  currentLocationText: {
-    fontSize: 13,
-    color: "#2E3A46",
-    marginLeft: 6,
-  },
+    currentLocationText: {
+      fontSize: 13,
+      color: t.text,
+      marginLeft: 6,
+    },
 
-  button: {
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#2E3A46",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: "auto",
-  },
+    button: {
+      height: 52,
+      borderRadius: 26,
+      backgroundColor: t.accent,
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: "auto",
+    },
 
-  buttonDisabled: {
-    backgroundColor: "#E5E7EB",
-  },
+    buttonDisabled: {
+      backgroundColor: t.surfaceAlt,
+    },
 
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+    buttonText: {
+      color: t.onAccent,
+      fontSize: 16,
+      fontWeight: "600",
+    },
 
-  buttonTextDisabled: {
-    color: "#9CA3AF",
-  },
-  errorText: {
-  color: "#EF4444",
-  fontSize: 12,
-  marginBottom: 8,
-},
+    buttonTextDisabled: {
+      color: t.textTertiary,
+    },
+
+    errorText: {
+      color: t.danger,
+      fontSize: 12,
+      marginBottom: 8,
+    },
+
     dropdownList: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 12,
-    marginTop: 6,
-    backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: 12,
+      marginTop: 6,
+      backgroundColor: t.card,
     },
 
     dropdownItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
     },
 
     dropdownItemText: {
-    fontSize: 14,
-    color: "#2E3A46",
+      fontSize: 14,
+      color: t.text,
     },
+
     detectedLocation: {
-  marginTop: 8,
-  marginBottom: 12,
-  fontSize: 13,
-  color: "#2E3A46",
-},
-loading: {
-  marginLeft: 8,
-  fontSize: 14,
-  color: "#2E3A46",
-},
-header: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  paddingVertical: 12,
-},
+      marginTop: 8,
+      marginBottom: 12,
+      fontSize: 13,
+      color: t.text,
+    },
 
-headerTitle: {
-  fontSize: 16,
-  fontWeight: "600",
-},
+    loading: {
+      marginLeft: 8,
+      fontSize: 14,
+      color: t.text,
+    },
 
-content: {
-  marginTop: 40,
-},
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 12,
+    },
 
-bottomActions: {
-  marginTop: "auto", // ⭐ THIS IS THE MAGIC
-  paddingBottom: 30,
-},
+    headerTitle: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: t.text,
+    },
 
-primaryButton: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: "#6C5CE7",
-  paddingVertical: 16,
-  borderRadius: 12,
-  gap: 8,
-},
+    content: {
+      marginTop: 40,
+    },
 
-primaryButtonText: {
-  color: "#fff",
-  fontSize: 16,
-  fontWeight: "600",
-},
+    bottomActions: {
+      marginTop: "auto",
+      paddingBottom: 30,
+    },
 
-secondaryAction: {
-  marginTop: 16,
-  textAlign: "center",
-  color: "#6C5CE7",
-  fontSize: 14,
-},
-containerCentered: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  paddingHorizontal: 24,
-  backgroundColor: "#fff",
-},
+    secondaryAction: {
+      marginTop: 16,
+      textAlign: "center",
+      color: t.accent,
+      fontSize: 14,
+    },
 
-iconWrapper: {
-  marginBottom: 24,
-},
+    containerCentered: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 24,
+      backgroundColor: t.bg,
+    },
 
-centerTitle: {
-  fontSize: 22,
-  fontWeight: "600",
-  marginBottom: 24,
-  color: "#111827",
-  textAlign: "center",
-},
+    iconWrapper: {
+      marginBottom: 24,
+    },
 
-/* 🔥 YOUR BRAND COLOR */
-container: {
-  flex: 1,
-  backgroundColor: "#fff",
-  paddingHorizontal: 24,
-},
+    centerTitle: {
+      fontSize: 22,
+      fontWeight: "600",
+      marginBottom: 24,
+      color: t.text,
+      textAlign: "center",
+    },
 
-topContent: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-},
+    topContent: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-bottomButtons: {
-  marginTop: "auto", // 🔥 pushes buttons to bottom
-  paddingBottom: 30,
-},
+    bottomButtons: {
+      marginTop: "auto",
+      paddingBottom: 30,
+    },
 
-primaryButton: {
-  width: "100%",
-  backgroundColor: "#2E3A46",
-  paddingVertical: 14,
-  borderRadius: 10,
-  alignItems: "center",
-  marginBottom: 12,
-},
+    primaryButton: {
+      width: "100%",
+      backgroundColor: t.accent,
+      paddingVertical: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      marginBottom: 12,
+    },
 
-primaryButtonText: {
-  color: "#fff",
-  fontSize: 15,
-  fontWeight: "600",
-},
+    primaryButtonDisabled: {
+      opacity: 0.6,
+    },
 
-secondaryButton: {
-  width: "100%",
-  borderWidth: 1,
-  borderColor: "#2E3A46",
-  paddingVertical: 14,
-  borderRadius: 10,
-  alignItems: "center",
-},
+    primaryButtonText: {
+      color: t.onAccent,
+      fontSize: 15,
+      fontWeight: "600",
+    },
 
-secondaryButtonText: {
-  color: "#2E3A46",
-  fontSize: 14,
-  fontWeight: "500",
-},
+    errorContainer: {
+      marginTop: 12,
+    },
 
+    secondaryButton: {
+      width: "100%",
+      borderWidth: 1,
+      borderColor: t.accent,
+      paddingVertical: 14,
+      borderRadius: 10,
+      alignItems: "center",
+    },
 
-});
+    secondaryButtonText: {
+      color: t.accent,
+      fontSize: 14,
+      fontWeight: "500",
+    },
+  });

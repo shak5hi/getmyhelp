@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth, signInWithPhoneNumber } from "@react-native-firebase/auth";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -14,12 +14,15 @@ import config from "../src/config";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
 import { getConfirmation, setConfirmation } from "../src/firebaseConfirmation";
-import { otpStyles as styles } from "../styles/otp.styles";
+import { makeOtpStyles } from "../styles/otp.styles";
+import { useTheme } from "../src/ThemeContext";
 
 export default function OtpScreen() {
   useLanguage();
 
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeOtpStyles(theme), [theme]);
   const { phone } = useLocalSearchParams<{ phone: string }>();
   const inputRef = useRef<TextInput>(null);
 

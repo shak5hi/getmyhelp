@@ -88,8 +88,8 @@ export default function QRScannerScreen() {
 }
 
 const makeStyles = (t: Theme) => StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  permText: { fontSize: 16, color: "#333", textAlign: "center", marginBottom: 16 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: t.bg },
+  permText: { fontSize: 16, color: t.text, textAlign: "center", marginBottom: 16 },
   permBtn: { backgroundColor: t.accent, borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10 },
   permBtnText: { color: "#fff", fontWeight: "600" },
   headerText: {

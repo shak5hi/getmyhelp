@@ -271,7 +271,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "#eee",
+    backgroundColor: t.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
@@ -279,7 +279,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     overflow: "hidden",
   },
   selfieImage: { width: 120, height: 120, borderRadius: 60 },
-  selfieHint: { color: "#888", fontSize: 12, textAlign: "center" },
+  selfieHint: { color: t.textTertiary, fontSize: 12, textAlign: "center" },
   submitBtn: {
     marginTop: 28,
     backgroundColor: t.accent,

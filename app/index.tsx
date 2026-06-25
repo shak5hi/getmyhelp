@@ -1,10 +1,11 @@
 import { Image, Text, View, Pressable, Modal } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "../src/i18n";
 import config from "../src/config";
 import PrimaryButton from "../components/PrimaryButton";
-import { homeStyles as styles } from "../styles/home.styles";
+import { makeHomeStyles } from "../styles/home.styles";
+import { useTheme } from "../src/ThemeContext";
 import { useRouter } from "expo-router";
 
 const APP_CONFIG = config;
@@ -17,6 +18,8 @@ const LANGUAGES = [
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeHomeStyles(theme), [theme]);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   // 🔹 Check for existing session and onboarding status
@@ -87,7 +90,7 @@ export default function HomeScreen() {
           zIndex: 10,
         }}
       >
-        <Text style={{ fontSize: 14, color: "#2E3A46" }}>
+        <Text style={{ fontSize: 14, color: theme.text }}>
           🌐 Language
         </Text>
       </Pressable>
@@ -97,14 +100,14 @@ export default function HomeScreen() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.4)",
+            backgroundColor: theme.overlay,
             justifyContent: "center",
             padding: 24,
           }}
         >
           <View
             style={{
-              backgroundColor: "#fff",
+              backgroundColor: theme.card,
               borderRadius: 20,
               padding: 20,
             }}
@@ -114,6 +117,7 @@ export default function HomeScreen() {
                 fontSize: 18,
                 fontWeight: "600",
                 marginBottom: 12,
+                color: theme.text,
               }}
             >
               Choose Language
@@ -125,7 +129,7 @@ export default function HomeScreen() {
                 onPress={() => selectLanguage(lang.code)}
                 style={{ paddingVertical: 12 }}
               >
-                <Text style={{ fontSize: 16 }}>
+                <Text style={{ fontSize: 16, color: theme.text }}>
                   {lang.label}
                 </Text>
               </Pressable>

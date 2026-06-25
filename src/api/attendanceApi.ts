@@ -1,10 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import config from "../config";
-
-const authHeaders = async () => {
-  const token = await AsyncStorage.getItem("access_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
-};
+import { apiGet, apiRequest } from "./client";
 
 export type AttendanceStatus = "present" | "absent" | "late";
 
@@ -32,11 +26,7 @@ export interface TodayProvider {
 }
 
 // Maids scheduled for the resident today, with each one's current status.
-export const getTodaysProviders = async () => {
-  const headers = await authHeaders();
-  const res = await fetch(`${config.apiUrl}/customer/providers/today`, { headers });
-  return res.json();
-};
+export const getTodaysProviders = async () => apiGet("/customer/providers/today");
 
 // Mark a scheduled maid present/absent/late, with an optional proof photo.
 // Sent as multipart/form-data; the Content-Type boundary is set by the runtime.
@@ -45,7 +35,6 @@ export const markAttendance = async (
   status: AttendanceStatus,
   photo?: AttendancePhoto | null
 ) => {
-  const headers = await authHeaders();
   const form = new FormData();
   form.append("status", status);
   if (photo) {
@@ -55,18 +44,14 @@ export const markAttendance = async (
       type: photo.type || "image/jpeg",
     } as any);
   }
-  const res = await fetch(`${config.apiUrl}/customer/providers/${providerId}/attendance`, {
+  return apiRequest(`/customer/providers/${providerId}/attendance`, {
     method: "POST",
-    headers, // do NOT set Content-Type manually — let FormData set the boundary
     body: form,
   });
-  return res.json();
 };
 
 // Monthly attendance history. month format: "YYYY-MM" (defaults to current month server-side).
 export const getAttendanceHistory = async (month?: string) => {
-  const headers = await authHeaders();
   const q = month ? `?month=${encodeURIComponent(month)}` : "";
-  const res = await fetch(`${config.apiUrl}/customer/providers/attendance${q}`, { headers });
-  return res.json();
+  return apiGet(`/customer/providers/attendance${q}`);
 };

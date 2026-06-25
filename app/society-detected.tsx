@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -10,7 +10,8 @@ import {
 } from "react-native";
 
 import config from "../src/config";
-import styles from "../styles/societyDetectedStyles";
+import { makeSocietyDetectedStyles } from "../styles/societyDetectedStyles";
+import { useTheme } from "../src/ThemeContext";
 
 type Society = {
   id: string;
@@ -24,8 +25,10 @@ type Society = {
 
 export default function SocietyDetectedScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeSocietyDetectedStyles(theme), [theme]);
   const params = useLocalSearchParams<{ societiesData?: string, address?: string }>();
-  
+
   const [address, setAddress] = useState<string>(params.address || "");
   const [societies, setSocieties] = useState<Society[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,7 +128,7 @@ export default function SocietyDetectedScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#1E293B" />
+        <ActivityIndicator size="large" color={theme.accent} />
         <Text style={styles.loadingText}>Finding nearby societies...</Text>
       </View>
     );

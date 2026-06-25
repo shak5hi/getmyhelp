@@ -1,101 +1,104 @@
-export const towerStyles = {
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#FFFFFF",
-  },
+import { StyleSheet } from "react-native";
+import { Theme } from "../constants/themes";
 
-  step: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginBottom: 8,
-  },
+export const makeTowerStyles = (t: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+      backgroundColor: t.bg,
+    },
 
-  title: {
-    fontSize: 28,
-    fontFamily: "Newsreader-SemiBold",
-    color: "#2E3A46",
-    marginBottom: 6,
-  },
+    step: {
+      fontSize: 12,
+      color: t.textSecondary,
+      marginBottom: 8,
+    },
 
-  subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 20,
-  },
+    title: {
+      fontSize: 28,
+      fontFamily: "Newsreader-SemiBold",
+      color: t.text,
+      marginBottom: 6,
+    },
 
-  /* ✅ FLEX BUBBLE LAYOUT */
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
+    subtitle: {
+      fontSize: 14,
+      color: t.textSecondary,
+      marginBottom: 20,
+    },
 
-  /* 🫧 TRUE BUBBLE */
-  bubble: {
-    paddingHorizontal: 18,
-    height: 44,
-    minWidth: 60,
+    /* ✅ FLEX BUBBLE LAYOUT */
+    grid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+    },
 
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
+    /* 🫧 TRUE BUBBLE */
+    bubble: {
+      paddingHorizontal: 18,
+      height: 44,
+      minWidth: 60,
 
-    backgroundColor: "rgba(255, 255, 255, 0.55)",
-    borderWidth: 1,
-    borderColor: "rgba(46, 58, 70, 0.15)",
+      borderRadius: 22,
+      justifyContent: "center",
+      alignItems: "center",
 
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+      backgroundColor: t.card,
+      borderWidth: 1,
+      borderColor: t.border,
 
-    elevation: 2,
-  },
+      shadowColor: "#000",
+      shadowOpacity: 0.06,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
 
-  bubbleSelected: {
-    backgroundColor: "rgba(46, 58, 70, 0.9)",
-    borderColor: "rgba(46, 58, 70, 0.9)",
-  },
+      elevation: 2,
+    },
 
-  bubbleText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2E3A46",
-  },
+    bubbleSelected: {
+      backgroundColor: t.accent,
+      borderColor: t.accent,
+    },
 
-  bubbleTextSelected: {
-    color: "#FFFFFF",
-  },
+    bubbleText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: t.text,
+    },
 
-  seeMore: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginTop: 10,
-    alignSelf: "flex-end",
-  },
+    bubbleTextSelected: {
+      color: t.onAccent,
+    },
 
-  button: {
-    marginTop: "auto",
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#2E3A46",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    seeMore: {
+      fontSize: 13,
+      color: t.textSecondary,
+      marginTop: 10,
+      alignSelf: "flex-end",
+    },
 
-  buttonDisabled: {
-    backgroundColor: "#E5E7EB",
-  },
+    button: {
+      marginTop: "auto",
+      height: 52,
+      borderRadius: 26,
+      backgroundColor: t.accent,
+      justifyContent: "center",
+      alignItems: "center",
+    },
 
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+    buttonDisabled: {
+      backgroundColor: t.surfaceAlt,
+    },
 
-  buttonTextDisabled: {
-    color: "#9CA3AF",
-  },
-};
+    buttonText: {
+      color: t.onAccent,
+      fontSize: 16,
+      fontWeight: "600",
+    },
 
+    buttonTextDisabled: {
+      color: t.textTertiary,
+    },
+  });

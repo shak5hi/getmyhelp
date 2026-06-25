@@ -1,151 +1,152 @@
 import { StyleSheet } from "react-native";
+import { Theme } from "../constants/themes";
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFFFF" },
+export const makeSocietyDetectedStyles = (t: Theme) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.bg },
 
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
+    header: {
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 16,
+    },
 
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-  },
+    center: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      backgroundColor: t.bg,
+    },
 
-  loadingText: {
-    marginTop: 12,
-    color: "#6B7280",
-    fontSize: 14,
-  },
+    loadingText: {
+      marginTop: 12,
+      color: t.textSecondary,
+      fontSize: 14,
+    },
 
-  step: {
-    color: "#9CA3AF",
-    fontSize: 13,
-    marginBottom: 8,
-    fontWeight: "500",
-  },
+    step: {
+      color: t.textTertiary,
+      fontSize: 13,
+      marginBottom: 8,
+      fontWeight: "500",
+    },
 
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1E293B",
-    marginBottom: 8,
-  },
+    title: {
+      fontSize: 24,
+      fontWeight: "700",
+      color: t.text,
+      marginBottom: 8,
+    },
 
-  subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    lineHeight: 20,
-  },
+    subtitle: {
+      fontSize: 14,
+      color: t.textSecondary,
+      lineHeight: 20,
+    },
 
-  error: {
-    color: "#EF4444",
-    marginHorizontal: 20,
-    marginBottom: 12,
-    fontSize: 14,
-  },
+    error: {
+      color: t.danger,
+      marginHorizontal: 20,
+      marginBottom: 12,
+      fontSize: 14,
+    },
 
-  noDataText: {
-    fontSize: 16,
-    color: "#6B7280",
-    marginBottom: 16,
-    textAlign: "center",
-  },
+    noDataText: {
+      fontSize: 16,
+      color: t.textSecondary,
+      marginBottom: 16,
+      textAlign: "center",
+    },
 
-  retryButton: {
-    backgroundColor: "#1E293B",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
-  },
+    retryButton: {
+      backgroundColor: t.accent,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 24,
+    },
 
-  retryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
-  },
+    retryButtonText: {
+      color: t.onAccent,
+      fontSize: 14,
+      fontWeight: "600",
+    },
 
-  scrollView: { flex: 1 },
+    scrollView: { flex: 1 },
 
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+    },
 
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
+    grid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+    },
 
-  card: {
-    width: "48%",
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-    borderRadius: 16,
-    padding: 16,
-    minHeight: 120,
-  },
+    card: {
+      width: "48%",
+      backgroundColor: t.card,
+      borderWidth: 1.5,
+      borderColor: t.border,
+      borderRadius: 16,
+      padding: 16,
+      minHeight: 120,
+    },
 
-  cardSelected: {
-    backgroundColor: "#1E293B",
-    borderColor: "#1E293B",
-  },
+    cardSelected: {
+      backgroundColor: t.accent,
+      borderColor: t.accent,
+    },
 
-  societyName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1E293B",
-    marginBottom: 6,
-  },
+    societyName: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: t.text,
+      marginBottom: 6,
+    },
 
-  societyNameSelected: { color: "#FFFFFF" },
+    societyNameSelected: { color: t.onAccent },
 
-  societyAddress: {
-    fontSize: 12,
-    color: "#6B7280",
-    lineHeight: 16,
-    marginBottom: 6,
-  },
+    societyAddress: {
+      fontSize: 12,
+      color: t.textSecondary,
+      lineHeight: 16,
+      marginBottom: 6,
+    },
 
-  societyAddressSelected: { color: "#CBD5E1" },
+    societyAddressSelected: { color: t.onAccent, opacity: 0.85 },
 
-  pincode: {
-    fontSize: 11,
-    color: "#9CA3AF",
-    fontWeight: "500",
-  },
+    pincode: {
+      fontSize: 11,
+      color: t.textTertiary,
+      fontWeight: "500",
+    },
 
-  pincodeSelected: { color: "#94A3B8" },
+    pincodeSelected: { color: t.onAccent, opacity: 0.75 },
 
-  footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
-  },
+    footer: {
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderTopWidth: 1,
+      borderTopColor: t.divider,
+    },
 
-  continueButton: {
-    backgroundColor: "#1E293B",
-    paddingVertical: 16,
-    borderRadius: 30,
-    alignItems: "center",
-  },
+    continueButton: {
+      backgroundColor: t.accent,
+      paddingVertical: 16,
+      borderRadius: 30,
+      alignItems: "center",
+    },
 
-  continueButtonDisabled: { backgroundColor: "#E5E7EB" },
+    continueButtonDisabled: { backgroundColor: t.surfaceAlt },
 
-  continueButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+    continueButtonText: {
+      color: t.onAccent,
+      fontSize: 16,
+      fontWeight: "600",
+    },
 
-  continueButtonTextDisabled: { color: "#9CA3AF" },
-});
-
-export default styles;
+    continueButtonTextDisabled: { color: t.textTertiary },
+  });

@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import config from "../../src/config";
+import { clearSession } from "../../src/api/client";
 
 export default function GuardProfileScreen() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function GuardProfileScreen() {
         text: "Logout",
         style: "destructive",
         onPress: async () => {
-          await AsyncStorage.multiRemove(["access_token", "user", "user_role", "selected_society_id"]);
+          await clearSession();
           router.replace("/");
         },
       },
