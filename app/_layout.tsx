@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
-import { TouchableOpacity, View, Text, TextInput } from "react-native";
+import { useEffect } from "react";
+import { StyleSheet, TouchableOpacity, View, Text, TextInput } from "react-native";
+import { setUnauthorizedHandler } from "../src/api/client";
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -23,16 +25,17 @@ function ThemedStatusBar() {
 
 function NotificationBell() {
   const router = useRouter();
+  const { theme } = useTheme();
   const { unreadCount } = useNotifications();
   return (
     <TouchableOpacity
-      style={styles.headerBubble}
+      style={[styles.headerBubble, { marginRight: 16 }]}
       onPress={() => router.push("/notifications")}
       activeOpacity={0.7}
     >
-      <Ionicons name="notifications-outline" size={20} color="#2E3A46" />
+      <Ionicons name="notifications-outline" size={20} color={theme.text} />
       {unreadCount > 0 && (
-        <View style={styles.badge}>
+        <View style={[styles.badge, { backgroundColor: theme.danger }]}>
           <Text style={styles.badgeText}>
             {unreadCount > 99 ? "99+" : unreadCount}
           </Text>
@@ -42,9 +45,75 @@ function NotificationBell() {
   );
 }
 
-export default function RootLayout() {
+function RootNavigator() {
   const router = useRouter();
+  const { theme } = useTheme();
 
+  // App-wide session-expiry guard: any API 401 clears the session and bounces
+  // the user back to the login flow instead of leaving a silently-blank screen.
+  useEffect(() => {
+    setUnauthorizedHandler(() => router.replace("/phone"));
+    return () => setUnauthorizedHandler(null);
+  }, [router]);
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShadowVisible: false,
+        headerTitleAlign: "center",
+
+        headerStyle: { backgroundColor: theme.surface },
+        headerTintColor: theme.text,
+        headerTitleStyle: { color: theme.text },
+
+        headerTitle: "GetMyHelp",
+        headerBackVisible: false,
+
+        headerLeft: () => (
+          <View style={[styles.headerBubble, { marginLeft: 16 }]}>
+            <Ionicons
+              name="chevron-back"
+              size={20}
+              color={theme.text}
+              onPress={() => router.back()}
+              style={{ marginLeft: -2 }}
+            />
+          </View>
+        ),
+
+        headerRight: () => <NotificationBell />,
+      }}
+    >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="phone" />
+      <Stack.Screen name="otp" />
+      <Stack.Screen name="location" />
+      <Stack.Screen name="society-detected" />
+      <Stack.Screen name="tower" />
+      <Stack.Screen name="assignment-details" options={{ headerTitle: "Assignment Details" }} />
+      <Stack.Screen name="attendance-history" options={{ headerTitle: "Attendance History" }} />
+      <Stack.Screen name="notifications" options={{ headerTitle: "Notifications" }} />
+      <Stack.Screen name="community/announcement-detail" options={{ headerTitle: "Announcement" }} />
+      <Stack.Screen name="community/forum-thread" options={{ headerTitle: "Discussion" }} />
+      <Stack.Screen name="community/create-post" options={{ headerTitle: "New Post" }} />
+      <Stack.Screen name="society/create-ticket" options={{ headerTitle: "New Ticket" }} />
+      <Stack.Screen name="society/ticket-details" options={{ headerTitle: "Ticket Details" }} />
+      <Stack.Screen name="(guard-tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="visitor/pending-approval" options={{ headerTitle: "Visitor Approval" }} />
+      <Stack.Screen name="visitor/exit-entry" options={{ headerTitle: "Exit Visitor" }} />
+      <Stack.Screen name="visitor/visitor-history" options={{ headerTitle: "Visitor History" }} />
+      <Stack.Screen name="visitor/invite" options={{ headerTitle: "Invite a Guest" }} />
+      <Stack.Screen name="visitor/qr-invite-list" options={{ headerTitle: "QR Invites" }} />
+      <Stack.Screen name="visitor/qr-invite-detail" options={{ headerTitle: "QR Invite" }} />
+      <Stack.Screen name="visitor/otp-invite-list" options={{ headerTitle: "OTP Invites" }} />
+      <Stack.Screen name="visitor/otp-invite-detail" options={{ headerTitle: "OTP Invite" }} />
+      <Stack.Screen name="visitor/resident-detail" options={{ headerTitle: "Visitor" }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     "Newsreader-Regular": require("../assets/fonts/Newsreader-Regular.ttf"),
     "Newsreader-SemiBold": require("../assets/fonts/Newsreader-SemiBold.ttf"),
@@ -70,62 +139,7 @@ export default function RootLayout() {
         <NotificationProvider>
           <ThemedStatusBar />
           <VisitorApprovalModal />
-          <Stack
-            screenOptions={{
-              headerShadowVisible: false,
-              headerTitleAlign: "center",
-              headerBackTitleVisible: false,
-              headerPressColor: "transparent",
-              headerPressOpacity: 1,
-
-              headerTitle: "GetMyHelp",
-              headerBackVisible: false,
-
-              headerLeftContainerStyle: { paddingLeft: 16 },
-              headerRightContainerStyle: { paddingRight: 16 },
-
-              headerLeft: () => (
-                <View style={styles.headerBubble}>
-                  <Ionicons
-                    name="chevron-back"
-                    size={20}
-                    color="#2E3A46"
-                    onPress={() => router.back()}
-                    style={{ marginLeft: -2 }}
-                  />
-                </View>
-              ),
-
-              headerRight: () => <NotificationBell />,
-            }}
-          >
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="phone" />
-            <Stack.Screen name="otp" />
-            <Stack.Screen name="location" />
-            <Stack.Screen name="society-detected" />
-            <Stack.Screen name="tower" />
-            <Stack.Screen name="assignment-details" options={{ headerTitle: "Assignment Details" }} />
-            <Stack.Screen name="attendance-history" options={{ headerTitle: "Attendance History" }} />
-            <Stack.Screen name="notifications" options={{ headerTitle: "Notifications" }} />
-            <Stack.Screen name="community/announcement-detail" options={{ headerTitle: "Announcement" }} />
-            <Stack.Screen name="community/forum-thread" options={{ headerTitle: "Discussion" }} />
-            <Stack.Screen name="community/create-post" options={{ headerTitle: "New Post" }} />
-            <Stack.Screen name="society/create-ticket" options={{ headerTitle: "New Ticket" }} />
-            <Stack.Screen name="society/ticket-details" options={{ headerTitle: "Ticket Details" }} />
-            <Stack.Screen name="(guard-tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="visitor/pending-approval" options={{ headerTitle: "Visitor Approval" }} />
-            <Stack.Screen name="visitor/exit-entry" options={{ headerTitle: "Exit Visitor" }} />
-            <Stack.Screen name="visitor/visitor-history" options={{ headerTitle: "Visitor History" }} />
-            <Stack.Screen name="visitor/generate-qr" options={{ headerTitle: "Create QR Invite" }} />
-            <Stack.Screen name="visitor/qr-invite-list" options={{ headerTitle: "QR Invites" }} />
-            <Stack.Screen name="visitor/qr-invite-detail" options={{ headerTitle: "QR Invite" }} />
-            <Stack.Screen name="visitor/generate-otp" options={{ headerTitle: "Generate OTP" }} />
-            <Stack.Screen name="visitor/otp-invite-list" options={{ headerTitle: "OTP Invites" }} />
-            <Stack.Screen name="visitor/otp-invite-detail" options={{ headerTitle: "OTP Invite" }} />
-            <Stack.Screen name="visitor/resident-detail" options={{ headerTitle: "Visitor" }} />
-          </Stack>
+          <RootNavigator />
         </NotificationProvider>
       </LanguageProvider>
     </SafeAreaProvider>
@@ -133,7 +147,7 @@ export default function RootLayout() {
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   headerBubble: {
     width: 32,
     height: 32,
@@ -143,20 +157,19 @@ const styles = {
     alignItems: "center",
   },
   badge: {
-    position: "absolute" as const,
+    position: "absolute",
     top: -2,
     right: -4,
-    backgroundColor: "#EF4444",
     borderRadius: 8,
     minWidth: 16,
     height: 16,
-    justifyContent: "center" as const,
-    alignItems: "center" as const,
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 3,
   },
   badgeText: {
     fontSize: 9,
-    fontWeight: "700" as const,
+    fontWeight: "700",
     color: "#fff",
   },
-};
+});

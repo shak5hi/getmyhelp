@@ -124,6 +124,15 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
     color: t.danger,
   },
 
+  // ── Segment caption (money vs. issues framing) ────────
+  tabCaption: {
+    paddingHorizontal: 20,
+    paddingBottom: 18,
+    fontSize: 13,
+    color: t.textSecondary,
+    lineHeight: 18,
+  },
+
   // ── Count strip ───────────────────────────────────────
   countStrip: {
     paddingHorizontal: 20,

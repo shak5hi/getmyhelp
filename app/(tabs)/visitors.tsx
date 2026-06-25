@@ -4,36 +4,35 @@ import { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import VisitorHistoryScreen from "../visitor/visitor-history";
-import QRInviteListScreen from "../visitor/qr-invite-list";
-import OTPInviteListScreen from "../visitor/otp-invite-list";
+import ActiveInvitesScreen from "../visitor/active-invites";
 import { fonts } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 
-const TABS = ["History", "QR Invites", "OTP Invites"] as const;
+const TABS = ["Active", "History"] as const;
 
 export default function VisitorsScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("History");
+  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("Active");
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Visitors</Text>
-        {activeTab === "QR Invites" && (
-          <TouchableOpacity onPress={() => router.push("/visitor/generate-qr")}>
-            <Ionicons name="add-circle-outline" size={26} color={theme.accent} />
-          </TouchableOpacity>
-        )}
-        {activeTab === "OTP Invites" && (
-          <TouchableOpacity onPress={() => router.push("/visitor/generate-otp")}>
-            <Ionicons name="add-circle-outline" size={26} color={theme.accent} />
-          </TouchableOpacity>
-        )}
       </View>
+
+      {/* One clear primary action: invite a guest. QR vs OTP is chosen inside. */}
+      <TouchableOpacity
+        style={styles.inviteBtn}
+        onPress={() => router.push("/visitor/invite")}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="add" size={20} color={theme.onAccent} />
+        <Text style={styles.inviteBtnText}>Invite a guest</Text>
+      </TouchableOpacity>
 
       <View style={styles.segmentWrap}>
         <SegmentedControl
@@ -44,9 +43,8 @@ export default function VisitorsScreen() {
       </View>
 
       <View style={{ flex: 1 }}>
+        {activeTab === "Active" && <ActiveInvitesScreen />}
         {activeTab === "History" && <VisitorHistoryScreen />}
-        {activeTab === "QR Invites" && <QRInviteListScreen />}
-        {activeTab === "OTP Invites" && <OTPInviteListScreen />}
       </View>
     </SafeAreaView>
   );
@@ -64,10 +62,22 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     backgroundColor: t.bg,
   },
   title: { fontSize: 26, fontFamily: fonts.extrabold, color: t.text, letterSpacing: -0.5 },
+  inviteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: t.accent,
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 14,
+    paddingVertical: 14,
+  },
+  inviteBtnText: { color: t.onAccent, fontSize: 16, fontWeight: "700" },
   segmentWrap: {
     paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 24,
+    paddingTop: 16,
+    paddingBottom: 16,
     backgroundColor: t.bg,
   },
 });

@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -13,6 +14,15 @@ import { Ionicons } from "@expo/vector-icons";
 import config from "../../src/config";
 import { makeStyles } from "../../styles/profile.styles";
 import { useTheme } from "../../src/ThemeContext";
+import { useLanguage } from "../../src/LanguageContext";
+import { clearSession } from "../../src/api/client";
+import { getPushEnabled, setPushEnabled } from "../../src/preferences";
+import ThemeToggle from "../../components/ThemeToggle";
+
+const LANGUAGES = [
+  { code: "en", label: "English" },
+  { code: "hi", label: "हिंदी" },
+];
 
 // --- TYPES ---
 type UserData = {
@@ -25,7 +35,6 @@ type UserData = {
 // --- COMPONENTS ---
 const ProfileHeader = ({ user }: { user: UserData | null }) => {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const initial = user?.name?.charAt(0)?.toUpperCase() || "U";
@@ -33,10 +42,7 @@ const ProfileHeader = ({ user }: { user: UserData | null }) => {
   return (
     <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
       <View style={styles.headerTopRow}>
-        <Text style={styles.headerKicker}>Profile</Text>
-        <TouchableOpacity style={styles.headerBtn} onPress={() => router.push("/(tabs)/settings")}>
-          <Ionicons name="settings-outline" size={20} color={theme.textSecondary} />
-        </TouchableOpacity>
+        <Text style={styles.headerKicker}>Account</Text>
       </View>
 
       <View style={styles.profileRow}>
@@ -104,17 +110,56 @@ const MenuItem = ({
   );
 };
 
+// A settings row whose right side is a custom control (Switch, toggle, pills)
+// rather than a navigation chevron.
+const PreferenceRow = ({
+  icon,
+  title,
+  right,
+  isLast = false,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  right: React.ReactNode;
+  isLast?: boolean;
+}) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  return (
+    <>
+      <View style={styles.menuItem}>
+        <View style={styles.menuItemLeft}>
+          <View style={styles.iconContainer}>
+            <Ionicons name={icon} size={20} color={theme.textSecondary} />
+          </View>
+          <Text style={styles.menuItemTitle}>{title}</Text>
+        </View>
+        {right}
+      </View>
+      {!isLast && <View style={styles.divider} />}
+    </>
+  );
+};
+
 // --- MAIN SCREEN ---
 export default function ProfileScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const { language, setLanguage } = useLanguage();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pushEnabled, setPushEnabledState] = useState(true);
 
   useEffect(() => {
     loadUserData();
+    getPushEnabled().then(setPushEnabledState);
   }, []);
+
+  const togglePush = async (value: boolean) => {
+    setPushEnabledState(value);
+    await setPushEnabled(value);
+  };
 
   const loadUserData = async () => {
     try {
@@ -181,8 +226,8 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.multiRemove(["access_token", "user", "selected_society_id", "selected_tower_id", "flat_number"]);
-      router.replace("/"); 
+      await clearSession();
+      router.replace("/");
     } catch (error) {
       console.error("Error during logout:", error);
     }
@@ -208,13 +253,62 @@ export default function ProfileScreen() {
           <MenuItem
             icon="card-outline"
             title="Manage Subscription"
+            isLast
             onPress={() => router.push("/(tabs)/subscriptions")}
           />
-          <MenuItem
-            icon="settings-outline"
-            title="Settings"
+        </SectionCard>
+
+        {/* PREFERENCES */}
+        <SectionCard title="PREFERENCES">
+          <PreferenceRow
+            icon={theme.mode === "dark" ? "moon-outline" : "sunny-outline"}
+            title="Appearance"
+            right={<ThemeToggle />}
+          />
+          <PreferenceRow
+            icon="notifications-outline"
+            title="Push Notifications"
+            right={
+              <Switch
+                trackColor={{ false: theme.surfaceAlt, true: theme.success }}
+                thumbColor="#FFFFFF"
+                onValueChange={togglePush}
+                value={pushEnabled}
+              />
+            }
+          />
+          <PreferenceRow
+            icon="language-outline"
+            title="Language"
             isLast
-            onPress={() => router.push("/(tabs)/settings")}
+            right={
+              <View style={styles.langPills}>
+                {LANGUAGES.map((lang) => {
+                  const active = language === lang.code;
+                  return (
+                    <TouchableOpacity
+                      key={lang.code}
+                      onPress={() => setLanguage(lang.code)}
+                      style={[styles.langPill, active && styles.langPillActive]}
+                    >
+                      <Text style={[styles.langPillText, active && styles.langPillTextActive]}>
+                        {lang.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            }
+          />
+        </SectionCard>
+
+        {/* SUPPORT */}
+        <SectionCard title="SUPPORT">
+          <MenuItem
+            icon="help-buoy-outline"
+            title="Help & Support"
+            isLast
+            onPress={() => router.push("/society/create-ticket")}
           />
         </SectionCard>
 

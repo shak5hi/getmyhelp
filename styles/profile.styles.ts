@@ -157,6 +157,38 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
     backgroundColor: t.divider,
     marginLeft: 72,
   },
+
+  /* ===== PREFERENCE ROWS (toggle / value / language) ===== */
+  prefValue: {
+    fontFamily: fonts.semibold,
+    fontSize: 14,
+    color: t.textSecondary,
+  },
+  langPills: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  langPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: radii.full,
+    backgroundColor: t.surfaceAlt,
+    borderWidth: 1,
+    borderColor: t.border,
+  },
+  langPillActive: {
+    backgroundColor: t.accent,
+    borderColor: t.accent,
+  },
+  langPillText: {
+    fontFamily: fonts.semibold,
+    fontSize: 13,
+    color: t.textSecondary,
+  },
+  langPillTextActive: {
+    color: t.onAccent,
+  },
+
   bottomPadding: {
     height: 40,
   },

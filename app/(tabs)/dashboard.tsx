@@ -15,12 +15,8 @@ import TodaysHelp from "../../components/TodaysHelp";
 import ThemeToggle from "../../components/ThemeToggle";
 import { getPendingApprovals } from "../../src/api/visitorApi";
 
-type SummaryLine = { icon: keyof typeof Ionicons.glyphMap; text: string; onPress?: () => void };
-
-// translucent foregrounds that always sit on the terracotta gradient hero
-const ON_HERO = "rgba(255,250,245,0.95)";
-const ON_HERO_DIM = "rgba(255,247,240,0.70)";
 const HERO_GLASS = "rgba(255,255,255,0.16)";
+const ON_HERO_DIM = "rgba(255,247,240,0.75)";
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -32,7 +28,6 @@ export default function DashboardScreen() {
   const [name, setName] = useState("there");
   const [image, setImage] = useState<string | null>(null);
   const [location, setLocation] = useState("");
-  const [assignmentsCount, setAssignmentsCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
 
@@ -55,12 +50,6 @@ export default function DashboardScreen() {
           .filter(Boolean)
           .join("  ·  ") || "Your home"
       );
-
-      try {
-        const r = await fetch(`${config.apiUrl}/customer/assignments`, { headers });
-        const j = await r.json();
-        setAssignmentsCount(Array.isArray(j?.data) ? j.data.length : 0);
-      } catch {}
 
       try {
         const p = await getPendingApprovals();
@@ -91,23 +80,8 @@ export default function DashboardScreen() {
     .toUpperCase();
   const initials = name ? name.trim().split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() : "?";
 
-  const summary: SummaryLine[] = [];
-  if (assignmentsCount > 0) summary.push({ icon: "sparkles-outline", text: "Home help scheduled today" });
-  if (pendingCount > 0)
-    summary.push({
-      icon: "person-add-outline",
-      text: `${pendingCount} visitor approval${pendingCount > 1 ? "s" : ""} pending`,
-      onPress: () => router.push("/(tabs)/visitors"),
-    });
-  if (daysRemaining != null && daysRemaining <= 7)
-    summary.push({
-      icon: "card-outline",
-      text: `Plan renews in ${daysRemaining} days`,
-      onPress: () => router.push("/(tabs)/subscriptions"),
-    });
-
   const quick: { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void }[] = [
-    { label: "Invite Visitor", icon: "person-add", onPress: () => router.push("/(tabs)/visitors") },
+    { label: "Invite Guest", icon: "person-add", onPress: () => router.push("/visitor/invite") },
     { label: "Raise Ticket", icon: "construct", onPress: () => router.push("/society/create-ticket") },
     { label: "Community", icon: "chatbubbles", onPress: () => router.push("/(tabs)/community") },
     { label: "Attendance", icon: "calendar", onPress: () => router.push("/attendance-history") },
@@ -141,7 +115,7 @@ export default function DashboardScreen() {
           <ThemeToggle />
         </Animated.View>
 
-        {/* GREETING — editorial serif */}
+        {/* GREETING — compact, secondary to the day's actions */}
         <Animated.View entering={FadeInDown.delay(60).duration(500)} style={s.greetBlock}>
           <Text style={s.eyebrow}>{today}</Text>
           <Text style={s.greetLine}>
@@ -153,51 +127,52 @@ export default function DashboardScreen() {
           </View>
         </Animated.View>
 
-        {/* TODAY HERO — terracotta gradient */}
-        <Animated.View entering={FadeInDown.delay(120).duration(500)}>
-          <LinearGradient
-            colors={theme.accentGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.hero}
-          >
-            <View style={s.heroCircle} pointerEvents="none" />
-            <View style={s.heroCircleSm} pointerEvents="none" />
-            <Text style={s.heroLabel}>TODAY</Text>
-            {summary.length === 0 ? (
-              <View style={{ marginTop: 10 }}>
-                <Text style={s.heroBig}>You&apos;re all caught up.</Text>
-                <Text style={s.heroSub}>Nothing needs your attention right now. Enjoy the calm. ☀️</Text>
+        {/* PENDING GATE APPROVAL — the urgent, time-sensitive action, up top */}
+        {pendingCount > 0 && (
+          <Animated.View entering={FadeInDown.delay(100).duration(450)}>
+            <TouchableOpacity
+              style={s.pendingBanner}
+              activeOpacity={0.85}
+              onPress={() => router.push("/notifications")}
+            >
+              <View style={s.pendingIcon}>
+                <Ionicons name="person-add" size={18} color={theme.onAccent} />
               </View>
-            ) : (
-              <View style={{ gap: 12, marginTop: 16 }}>
-                {summary.map((line, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    disabled={!line.onPress}
-                    onPress={line.onPress}
-                    activeOpacity={0.7}
-                    style={s.heroLine}
-                  >
-                    <View style={s.heroDot}>
-                      <Ionicons name={line.icon} size={15} color={theme.onAccent} />
-                    </View>
-                    <Text style={s.heroText} numberOfLines={1}>{line.text}</Text>
-                    {line.onPress && <Ionicons name="arrow-forward" size={16} color={ON_HERO_DIM} />}
-                  </TouchableOpacity>
-                ))}
+              <View style={{ flex: 1 }}>
+                <Text style={s.pendingText}>
+                  {pendingCount} {pendingCount > 1 ? "people" : "person"} at the gate
+                </Text>
+                <Text style={s.pendingSub}>Tap to review and approve</Text>
               </View>
-            )}
-          </LinearGradient>
-        </Animated.View>
+              <Ionicons name="arrow-forward" size={18} color={ON_HERO_DIM} />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
 
-        {/* TODAY'S HELP */}
-        <Animated.View entering={FadeInDown.delay(180).duration(500)}>
+        {/* TODAY'S HELP — the daily core, now the hero of the screen */}
+        <Animated.View entering={FadeInDown.delay(140).duration(500)}>
           <SectionTitle theme={theme}>Today&apos;s Help</SectionTitle>
           <TodaysHelp />
         </Animated.View>
 
-        {/* QUICK ACTIONS — 2×2 grid */}
+        {/* Slim plan-renewal chip — only when actually relevant */}
+        {daysRemaining != null && daysRemaining <= 7 && (
+          <Animated.View entering={FadeInDown.delay(200).duration(450)}>
+            <TouchableOpacity
+              style={s.planChip}
+              activeOpacity={0.8}
+              onPress={() => router.push("/(tabs)/subscriptions")}
+            >
+              <Ionicons name="card-outline" size={15} color={theme.warning} />
+              <Text style={s.planChipText}>
+                Plan renews in {daysRemaining} {daysRemaining === 1 ? "day" : "days"}
+              </Text>
+              <Ionicons name="chevron-forward" size={15} color={theme.warning} />
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* QUICK ACTIONS — 2×2 grid, secondary */}
         <Animated.View entering={FadeInDown.delay(240).duration(500)} style={{ marginTop: 30 }}>
           <SectionTitle theme={theme}>Quick actions</SectionTitle>
           <View style={s.quickGrid}>
@@ -269,7 +244,7 @@ const makeStyles = (t: Theme) =>
       justifyContent: "center",
     },
 
-    greetBlock: { marginBottom: 24 },
+    greetBlock: { marginBottom: 22 },
     eyebrow: {
       fontFamily: fonts.semibold,
       fontSize: 11,
@@ -279,8 +254,8 @@ const makeStyles = (t: Theme) =>
     },
     greetLine: {
       fontFamily: fonts.serif,
-      fontSize: 30,
-      lineHeight: 36,
+      fontSize: 28,
+      lineHeight: 34,
       color: t.text,
       letterSpacing: -0.3,
     },
@@ -288,65 +263,45 @@ const makeStyles = (t: Theme) =>
     locRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8 },
     location: { fontFamily: fonts.regular, fontSize: 12.5, color: t.textSecondary, flexShrink: 1 },
 
-    hero: {
-      borderRadius: 28,
-      padding: 24,
-      marginBottom: 34,
-      overflow: "hidden",
+    // Pending gate approval — solid accent surface (urgent, top of content)
+    pendingBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: t.accent,
+      borderRadius: 18,
+      padding: 16,
+      marginBottom: 24,
       ...t.heroShadow,
     },
-    heroCircle: {
-      position: "absolute",
-      top: -54,
-      right: -34,
-      width: 150,
-      height: 150,
-      borderRadius: 75,
-      backgroundColor: "rgba(255,255,255,0.10)",
-    },
-    heroCircleSm: {
-      position: "absolute",
-      bottom: -30,
-      right: 44,
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: "rgba(255,255,255,0.07)",
-    },
-    heroLabel: {
-      fontFamily: fonts.semibold,
-      fontSize: 11,
-      letterSpacing: 2,
-      color: ON_HERO_DIM,
-    },
-    heroBig: {
-      fontFamily: fonts.serifSemibold,
-      fontSize: 24,
-      lineHeight: 30,
-      color: ON_HERO,
-      letterSpacing: -0.3,
-    },
-    heroSub: {
-      fontFamily: fonts.regular,
-      fontSize: 13.5,
-      lineHeight: 19,
-      color: ON_HERO_DIM,
-      marginTop: 7,
-    },
-    heroLine: { flexDirection: "row", alignItems: "center", gap: 12 },
-    heroDot: {
-      width: 32,
-      height: 32,
-      borderRadius: 11,
+    pendingIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
       backgroundColor: HERO_GLASS,
       alignItems: "center",
       justifyContent: "center",
     },
-    heroText: { flex: 1, fontFamily: fonts.medium, fontSize: 15, color: ON_HERO },
+    pendingText: { fontFamily: fonts.semibold, fontSize: 15.5, color: t.onAccent, letterSpacing: -0.2 },
+    pendingSub: { fontFamily: fonts.regular, fontSize: 12.5, color: ON_HERO_DIM, marginTop: 2 },
 
     sectionRow: { flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 15 },
     sectionBar: { width: 3, height: 17, borderRadius: 2, backgroundColor: t.accent },
     section: { fontFamily: fonts.serifSemibold, fontSize: 19, color: t.text, letterSpacing: -0.2 },
+
+    // Slim plan-renewal chip
+    planChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 7,
+      alignSelf: "flex-start",
+      backgroundColor: t.warningTint,
+      borderRadius: 999,
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      marginTop: 18,
+    },
+    planChipText: { fontFamily: fonts.medium, fontSize: 13, color: t.warning },
 
     quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
     quick: {
@@ -369,7 +324,6 @@ const makeStyles = (t: Theme) =>
       marginBottom: 12,
     },
     quickLabel: { fontFamily: fonts.semibold, fontSize: 14, color: t.text, letterSpacing: -0.2 },
-    // (quick labels already 14 — comfortably above the a11y floor)
     quickChevron: { position: "absolute", top: 18, right: 16 },
 
     fabWrap: {

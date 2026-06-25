@@ -43,10 +43,9 @@ export default function TabLayout() {
       <Tabs.Screen name="society" options={{ title: "Society", tabBarIcon: icon("business-outline", "business") }} />
       <Tabs.Screen name="community" options={{ title: "Community", tabBarIcon: icon("people-outline", "people") }} />
       <Tabs.Screen name="visitors" options={{ title: "Visitors", tabBarIcon: icon("walk-outline", "walk") }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile", tabBarIcon: icon("person-outline", "person") }} />
+      <Tabs.Screen name="profile" options={{ title: "Account", tabBarIcon: icon("person-outline", "person") }} />
       <Tabs.Screen name="chatbot" options={{ href: null }} />
       <Tabs.Screen name="subscriptions" options={{ href: null }} />
-      <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>
   );
 }

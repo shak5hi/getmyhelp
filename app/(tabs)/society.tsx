@@ -214,19 +214,26 @@ export default function SocietyScreen() {
 
     return (
       <>
-        <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 24 }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 }}>
           <SegmentedControl
-            segments={["Finance", "Tickets"]}
+            segments={["Finances", "Support"]}
             value={activeTab === "finance" ? 0 : 1}
             onChange={(i) => setActiveTab(i === 0 ? "finance" : "tickets")}
           />
         </View>
 
+        {/* Make the two distinct mental models explicit: money vs. issues. */}
+        <Text style={styles.tabCaption}>
+          {activeTab === "finance"
+            ? "Your society's income & expense ledger."
+            : "Raise and track issues with building management."}
+        </Text>
+
         {/* Finance summary cards */}
         {activeTab === "finance" && !loading && data.length > 0 && (
           <View style={styles.summaryRow}>
             <View style={[styles.summaryCard, { backgroundColor: theme.successTint, borderWidth: 0 }]}>
-              <View style={[styles.summaryIconWrap, { backgroundColor: "rgba(34,192,212,0.18)" }]}>
+              <View style={[styles.summaryIconWrap, { backgroundColor: theme.success + "22" }]}>
                 <Ionicons name="arrow-down-circle" size={18} color={theme.success} />
               </View>
               <Text style={[styles.summaryLabel, { color: theme.success }]}>Total Income</Text>
@@ -235,7 +242,7 @@ export default function SocietyScreen() {
               </Text>
             </View>
             <View style={[styles.summaryCard, { backgroundColor: theme.dangerTint, borderWidth: 0 }]}>
-              <View style={[styles.summaryIconWrap, { backgroundColor: "rgba(242,92,174,0.18)" }]}>
+              <View style={[styles.summaryIconWrap, { backgroundColor: theme.danger + "22" }]}>
                 <Ionicons name="arrow-up-circle" size={18} color={theme.danger} />
               </View>
               <Text style={[styles.summaryLabel, { color: theme.danger }]}>Total Expenses</Text>
