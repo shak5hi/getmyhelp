@@ -15,15 +15,7 @@ import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import { getVisitorList } from "../../src/api/visitorApi";
-
-const STATUS_COLOR: Record<string, string> = {
-  pending: "#f59e0b",
-  approved: "#16a34a",
-  rejected: "#dc2626",
-  checked_in: "#2563eb",
-  checked_out: "#6b7280",
-  expired: "#9ca3af",
-};
+import { StatusPill, visitorStatusTone } from "../../components/ui/StatusPill";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Waiting",
@@ -80,9 +72,10 @@ export default function GuardVisitorList() {
         <Text style={styles.meta}>{item.mobile} · {item.purpose}</Text>
         {item.flat_number && <Text style={styles.meta}>Flat: {item.flat_number}</Text>}
       </View>
-      <View style={[styles.badge, { backgroundColor: STATUS_COLOR[item.status] ?? "#888" }]}>
-        <Text style={styles.badgeText}>{STATUS_LABEL[item.status] ?? item.status}</Text>
-      </View>
+      <StatusPill
+        tone={visitorStatusTone(item.status)}
+        label={STATUS_LABEL[item.status] ?? item.status}
+      />
     </TouchableOpacity>
   );
 
@@ -170,8 +163,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   cardLeft: { flex: 1, marginRight: 8 },
   name: { fontSize: 15, fontWeight: "600", color: t.text, marginBottom: 2 },
   meta: { fontSize: 13, color: t.textSecondary },
-  badge: { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { color: "#fff", fontSize: 12, fontWeight: "600" },
   emptyBox: { alignItems: "center", marginTop: 60, gap: 12 },
   empty: { textAlign: "center", color: t.textSecondary, fontSize: 15 },
 });
