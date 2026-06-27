@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fonts } from "../../constants/tokens";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -8,8 +9,11 @@ import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import { useGuardVisitorSocket } from "../../hooks/useGuardVisitorSocket";
 import { getVisitorDetail } from "../../src/api/visitorApi";
+import { useFeatureGuard } from "../../src/useFeatureGuard";
+import { MODULES } from "../../src/featureRegistry";
 
 export default function PendingApprovalScreen() {
+  useFeatureGuard(MODULES.visitors);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { theme } = useTheme();
@@ -91,20 +95,20 @@ export default function PendingApprovalScreen() {
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg, padding: 20 },
   backBtn: { marginBottom: 16 },
-  backText: { fontSize: 14, color: t.accent, fontWeight: "600" },
+  backText: { fontSize: 14, color: t.accent, fontFamily: fonts.semibold },
   card: {
     backgroundColor: t.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
-  visitorName: { fontSize: 18, fontWeight: "700", color: t.text, marginBottom: 4 },
+  visitorName: { fontSize: 18, fontFamily: fonts.bold, color: t.text, marginBottom: 4 },
   info: { fontSize: 14, color: t.textSecondary, marginBottom: 2 },
   waitBox: { alignItems: "center", marginTop: 32, gap: 12 },
   waitText: { fontSize: 16, color: t.textSecondary },
   waitHint: { fontSize: 13, color: t.textTertiary },
   resultBox: { borderRadius: 12, padding: 20, alignItems: "center", gap: 12 },
-  resultText: { fontSize: 18, fontWeight: "700" },
+  resultText: { fontSize: 18, fontFamily: fonts.bold },
   rejectNote: { fontSize: 14, color: t.textSecondary },
   exitBtn: {
     marginTop: 8,
@@ -113,5 +117,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
   },
-  exitBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  exitBtnText: { color: "#fff", fontFamily: fonts.bold, fontSize: 14 },
 });

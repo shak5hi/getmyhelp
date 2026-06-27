@@ -19,11 +19,14 @@ import * as ImagePicker from "expo-image-picker";
 import config from "../../src/config";
 import { makeStyles } from "../../styles/society.styles";
 import { useTheme } from "../../src/ThemeContext";
+import { useFeatureGuard } from "../../src/useFeatureGuard";
+import { MODULES } from "../../src/featureRegistry";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 10;
 
 export default function CreateTicketScreen() {
+  useFeatureGuard(MODULES.tickets);
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);

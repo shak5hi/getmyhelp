@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fonts } from "../../constants/tokens";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -61,7 +62,7 @@ export default function GuardProfileScreen() {
 
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg, padding: 20 },
-  title: { fontSize: 22, fontWeight: "700", color: t.text, marginBottom: 24 },
+  title: { fontSize: 22, fontFamily: fonts.bold, color: t.text, marginBottom: 24 },
   card: {
     backgroundColor: t.card,
     borderRadius: 12,
@@ -69,7 +70,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     alignItems: "center",
     marginBottom: 32,
   },
-  name: { fontSize: 18, fontWeight: "700", color: t.text, marginBottom: 4 },
+  name: { fontSize: 18, fontFamily: fonts.bold, color: t.text, marginBottom: 4 },
   info: { fontSize: 14, color: t.textSecondary, marginBottom: 8 },
   roleTag: {
     backgroundColor: t.accentTint,
@@ -78,7 +79,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   logoutBtn: {
     backgroundColor: t.danger,
@@ -86,5 +87,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
   },
-  logoutText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  logoutText: { color: "#fff", fontFamily: fonts.bold, fontSize: 16 },
 });

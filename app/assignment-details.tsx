@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../constants/tokens";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -186,7 +187,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   errorText: {
     color: t.danger,
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   profileSection: {
     alignItems: "center",
@@ -206,14 +207,14 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   name: {
     fontSize: 24,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     marginBottom: 4,
   },
   role: {
     fontSize: 15,
     color: t.textSecondary,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
     marginBottom: 12,
   },
   ratingBadge: {
@@ -228,7 +229,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   ratingText: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
     marginLeft: 4,
   },
@@ -242,7 +243,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   experienceText: {
     fontSize: 13,
     color: t.textSecondary,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   statusCard: {
     backgroundColor: t.card,
@@ -267,7 +268,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     fontSize: 12,
     color: t.textTertiary,
     textTransform: "uppercase",
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     letterSpacing: 0.5,
     marginBottom: 8,
   },
@@ -284,12 +285,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 11,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.success,
   },
   statusValue: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
   },
   sectionHeader: {
@@ -297,7 +298,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     letterSpacing: -0.2,
   },
@@ -326,13 +327,13 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   infoLabel: {
     fontSize: 13,
     color: t.textSecondary,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     marginBottom: 4,
   },
   infoValue: {
     fontSize: 15,
     color: t.text,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     lineHeight: 22,
   },
   servicesGrid: {
@@ -353,7 +354,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   serviceText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: t.accent,
     marginLeft: 6,
   },
@@ -378,11 +379,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   contactLabel: {
     fontSize: 12,
     color: t.textSecondary,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   contactValue: {
     fontSize: 16,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
   },
 });

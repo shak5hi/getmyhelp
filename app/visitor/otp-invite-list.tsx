@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../../constants/tokens";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -115,9 +116,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingVertical: 6,
     marginRight: 12,
   },
-  otpCode: { fontSize: 16, fontWeight: "800", color: t.accent, letterSpacing: 3 },
+  otpCode: { fontSize: 16, fontFamily: fonts.extrabold, color: t.accent, letterSpacing: 3 },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: "600", color: t.text },
+  name: { fontSize: 15, fontFamily: fonts.semibold, color: t.text },
   sub: { fontSize: 12, color: t.textSecondary, marginTop: 1, textTransform: "capitalize" },
   statusPill: {
     borderWidth: 1,
@@ -125,5 +126,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  statusText: { fontSize: 11, fontWeight: "700" },
+  statusText: { fontSize: 11, fontFamily: fonts.bold },
 });

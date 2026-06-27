@@ -3,6 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { listNotifications } from "./api/communityApi";
 import { approveVisitor, rejectVisitor, getResidentVisitorDetail } from "./api/visitorApi";
 import { useNotificationSocket } from "../hooks/useNotificationSocket";
+import { useFeature } from "./FeatureContext";
+import { MODULES } from "./featureRegistry";
 import config from "./config";
 
 const toFullUrl = (url: string | null | undefined): string | null => {
@@ -51,6 +53,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   // null = still loading role from storage; true = guard; false = resident
   const [isGuard, setIsGuard] = useState<boolean | null>(null);
   const [pendingApproval, setPendingApproval] = useState<VisitorApprovalRequest | null>(null);
+  const visitorsEnabled = useFeature(MODULES.visitors);
 
   const refresh = async () => {
     try {
@@ -90,7 +93,8 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
     setUnreadCount((c) => c + 1);
 
-    if (ev === "new_notification" && msg.data?.type === "visitor_approval_request") {
+    // Ignore visitor-approval events entirely when the module is disabled.
+    if (ev === "new_notification" && msg.data?.type === "visitor_approval_request" && visitorsEnabled) {
       try {
         const linkId = msg.data.link_id ?? msg.link_id;
         const res = await getResidentVisitorDetail(linkId);

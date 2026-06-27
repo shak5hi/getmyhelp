@@ -22,7 +22,6 @@ export const makeHomeStyles = (t: Theme) =>
       fontFamily: "Newsreader-SemiBold",
       fontSize: 48,
       color: t.text,
-      fontWeight: "500",
     },
 
     subtitle: {

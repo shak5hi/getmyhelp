@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../../constants/tokens";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -214,7 +215,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     marginBottom: 16,
     alignItems: "center",
   },
-  name: { fontSize: 20, fontWeight: "700", color: t.text, marginBottom: 4 },
+  name: { fontSize: 20, fontFamily: fonts.bold, color: t.text, marginBottom: 4 },
   info: { fontSize: 15, color: t.textSecondary, marginBottom: 2 },
   date: { fontSize: 12, color: t.textTertiary, marginTop: 6 },
   statusBox: {
@@ -227,8 +228,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   approveBtn: { backgroundColor: t.success },
   rejectBtn: { backgroundColor: t.danger },
   cancelBtn: { backgroundColor: t.surfaceAlt },
-  btnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
-  cancelBtnText: { color: t.text, fontSize: 15, fontWeight: "600" },
+  btnText: { color: "#fff", fontSize: 15, fontFamily: fonts.bold },
+  cancelBtnText: { color: t.text, fontSize: 15, fontFamily: fonts.semibold },
   rejectInput: {
     borderWidth: 1,
     borderColor: t.border,

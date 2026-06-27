@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { fonts } from "../../constants/tokens";
 import { useCallback, useMemo, useState } from "react";
 import { useFocusEffect } from "expo-router";
 import {
@@ -158,7 +159,7 @@ export default function ActiveInvitesScreen() {
 const makeStyles = (t: Theme) => StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 40 },
   emptyWrap: { flex: 1 },
-  emptyText: { color: t.text, fontSize: 16, fontWeight: "600" },
+  emptyText: { color: t.text, fontSize: 16, fontFamily: fonts.semibold },
   emptyHint: { color: t.textSecondary, fontSize: 13, marginTop: 4 },
   card: {
     flexDirection: "row",
@@ -171,7 +172,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   cardMain: { flex: 1 },
   cardTop: { flexDirection: "row", alignItems: "center", gap: 8 },
-  name: { fontSize: 15, fontWeight: "700", color: t.text, flexShrink: 1 },
+  name: { fontSize: 15, fontFamily: fonts.bold, color: t.text, flexShrink: 1 },
   typePill: {
     backgroundColor: t.accentTint,
     borderRadius: 6,
@@ -179,7 +180,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingVertical: 2,
   },
   typePillOtp: { backgroundColor: t.successTint },
-  typePillText: { fontSize: 10.5, fontWeight: "800", color: t.accent, letterSpacing: 0.5 },
+  typePillText: { fontSize: 10.5, fontFamily: fonts.extrabold, color: t.accent, letterSpacing: 0.5 },
   typePillTextOtp: { color: t.success },
   meta: { fontSize: 12, color: t.textSecondary, marginTop: 2, textTransform: "capitalize" },
   revokeBtn: {
@@ -190,5 +191,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingVertical: 7,
     marginLeft: 10,
   },
-  revokeText: { color: t.danger, fontSize: 12.5, fontWeight: "700" },
+  revokeText: { color: t.danger, fontSize: 12.5, fontFamily: fonts.bold },
 });

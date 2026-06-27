@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -50,7 +51,24 @@ export default function TodaysHelp() {
     setLoading(true);
     try {
       const res = await getTodaysProviders();
-      setItems(Array.isArray(res?.data) ? res.data : []);
+      const list = Array.isArray(res?.data) ? res.data : [];
+      // Guard against duplicate assignment rows for the same maid: collapse to
+      // one card per provider so a backend duplicate can't show twice (or let
+      // attendance be marked twice for one person). Merge their services.
+      const byProvider = new Map<string, TodayProvider>();
+      for (const item of list) {
+        const id = item.provider?.id;
+        if (!id) continue;
+        const existing = byProvider.get(id);
+        if (existing) {
+          existing.assigned_services = Array.from(
+            new Set([...(existing.assigned_services || []), ...(item.assigned_services || [])])
+          );
+        } else {
+          byProvider.set(id, { ...item });
+        }
+      }
+      setItems(Array.from(byProvider.values()));
     } catch {
       setItems([]);
     } finally {
@@ -58,9 +76,13 @@ export default function TodaysHelp() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  // Reload whenever the host screen regains focus so a backend change (e.g. a
+  // removed duplicate assignment) is reflected without restarting the app.
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const mark = async (item: TodayProvider, status: AttendanceStatus) => {
     const providerId = item.provider.id;
@@ -167,7 +189,7 @@ export default function TodaysHelp() {
                   activeOpacity={0.88}
                   onPress={() => mark(item, "present")}
                 >
-                  <Text style={[s.actionText, { color: "#FFFFFF" }]}>Mark Present</Text>
+                  <Text style={[s.actionText, { color: theme.onAccent }]}>Mark Present</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[s.actionBtn, s.actionGhost]}

@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { fonts } from "../constants/tokens";
 
 export const manualLocationStyles = StyleSheet.create({
   container: {
@@ -30,12 +31,12 @@ export const manualLocationStyles = StyleSheet.create({
     color: "#9CA3AF",
     fontSize: 13,
     marginBottom: 8,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
 
   title: {
     fontSize: 24,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: "#1E293B",
     marginBottom: 8,
   },
@@ -124,7 +125,7 @@ export const manualLocationStyles = StyleSheet.create({
 
   societyName: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: "#1E293B",
     marginBottom: 6,
   },
@@ -147,7 +148,7 @@ export const manualLocationStyles = StyleSheet.create({
   pincode: {
     fontSize: 11,
     color: "#9CA3AF",
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
 
   pincodeSelected: {
@@ -180,7 +181,7 @@ export const manualLocationStyles = StyleSheet.create({
   locationButtonText: {
     color: "#1E293B",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
 
   continueButton: {
@@ -203,7 +204,7 @@ export const manualLocationStyles = StyleSheet.create({
   continueButtonText: {
     color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
 
   continueButtonTextDisabled: {

@@ -16,7 +16,7 @@ import {
   markAllNotificationsRead,
 } from "../src/api/communityApi";
 import { useNotifications } from "../src/NotificationContext";
-import { radii, shadows } from "../constants/tokens";
+import { radii, shadows, fonts } from "../constants/tokens";
 import { useTheme } from "../src/ThemeContext";
 import { Theme } from "../constants/themes";
 
@@ -202,12 +202,12 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   title: {
     fontSize: 14,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
     color: t.textSecondary,
     marginBottom: 3,
   },
   titleUnread: {
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
   },
   body: {
@@ -219,7 +219,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   time: {
     fontSize: 12,
     color: t.textTertiary,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
   markAllBtn: {
     paddingVertical: 10,
@@ -228,7 +228,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   },
   markAllText: {
     fontSize: 13,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.accent,
   },
   empty: {
@@ -239,6 +239,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   emptyText: {
     fontSize: 15,
     color: t.textTertiary,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
 });

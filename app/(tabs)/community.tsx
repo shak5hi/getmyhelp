@@ -23,6 +23,8 @@ import { useForumSocket } from "../../hooks/useForumSocket";
 import { makeStyles } from "../../styles/community.styles";
 import { fonts } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
+import { useFeatureGuard } from "../../src/useFeatureGuard";
+import { MODULES } from "../../src/featureRegistry";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorState } from "../../components/ui/ErrorState";
@@ -55,23 +57,8 @@ const getInitials = (name: string) =>
     .toUpperCase()
     .slice(0, 2);
 
-// Subtle background tints for avatars — matches app's muted palette
-const AVATAR_BG = [
-  { bg: "#F3F4F6", text: "#374151" },
-  { bg: "#EEF2FF", text: "#4338CA" },
-  { bg: "#F0FDF4", text: "#166534" },
-  { bg: "#FFF7ED", text: "#92400E" },
-  { bg: "#FDF4FF", text: "#7E22CE" },
-  { bg: "#FFF1F2", text: "#9F1239" },
-];
-
-const avatarStyle = (name: string) =>
-  AVATAR_BG[
-    Math.abs((name ?? "").split("").reduce((a, c) => a + c.charCodeAt(0), 0)) %
-      AVATAR_BG.length
-  ];
-
 export default function CommunityScreen() {
+  useFeatureGuard(MODULES.community);
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -318,7 +305,6 @@ export default function CommunityScreen() {
   const renderForumPost = ({ item }: { item: any }) => {
     const authorName = item.author?.name ?? item.author_name ?? item.created_by?.name ?? "Anonymous";
     const initials = getInitials(authorName);
-    const av = avatarStyle(authorName);
     const replyCount = item.reply_count ?? item.replies_count ?? 0;
     const reactionCount =
       item.reaction_count ??
@@ -339,8 +325,8 @@ export default function CommunityScreen() {
       >
         {/* Author row */}
         <View style={styles.forumCardTop}>
-          <View style={[styles.forumAvatar, { backgroundColor: av.bg }]}>
-            <Text style={[styles.forumAvatarText, { color: av.text }]}>{initials}</Text>
+          <View style={[styles.forumAvatar, { backgroundColor: theme.accentTint }]}>
+            <Text style={[styles.forumAvatarText, { color: theme.accent }]}>{initials}</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.forumAuthorName}>{authorName}</Text>
@@ -378,7 +364,7 @@ export default function CommunityScreen() {
             </View>
           )}
           <View style={{ marginLeft: "auto" }}>
-            <Text style={[styles.forumAuthorTime, { color: theme.accent, fontWeight: "600" }]}>
+            <Text style={[styles.forumAuthorTime, { color: theme.accent, fontFamily: fonts.semibold }]}>
               Open thread
             </Text>
           </View>

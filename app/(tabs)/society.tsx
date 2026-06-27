@@ -198,7 +198,7 @@ export default function SocietyScreen() {
     try {
       const fullUrl = url.startsWith("http") ? url : `${config.fileBaseUrl}${url}`;
       await WebBrowser.openBrowserAsync(fullUrl, {
-        toolbarColor: "#111827",
+        toolbarColor: theme.surface,
         enableBarCollapsing: true,
         showTitle: true,
       });
@@ -357,7 +357,7 @@ export default function SocietyScreen() {
           onPress={() => router.push("/society/create-ticket")}
           activeOpacity={0.85}
         >
-          <Ionicons name="add" size={32} color="#fff" />
+          <Ionicons name="add" size={32} color={theme.onAccent} />
         </TouchableOpacity>
       )}
 
@@ -378,7 +378,7 @@ export default function SocietyScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Transaction Details</Text>
               <TouchableOpacity onPress={() => setSelectedTransaction(null)}>
-                <Ionicons name="close" size={24} color="#9CA3AF" />
+                <Ionicons name="close" size={24} color={theme.textTertiary} />
               </TouchableOpacity>
             </View>
 
@@ -392,7 +392,7 @@ export default function SocietyScreen() {
                 <Text style={styles.modalLabel}>Amount</Text>
                 <Text style={[
                   styles.modalValue, 
-                  { fontWeight: "bold", fontSize: 24 },
+                  { fontFamily: fonts.bold, fontSize: 24 },
                   selectedTransaction?.type === "income" ? styles.incomeAmount : styles.expenseAmount
                 ]}>
                   {selectedTransaction?.type === "income" ? "+" : "-"} ₹{Math.abs(selectedTransaction?.amount || 0).toLocaleString()}
@@ -432,12 +432,12 @@ export default function SocietyScreen() {
                         <Ionicons 
                           name={att.file_type?.includes("pdf") ? "document-text" : "image"} 
                           size={20} 
-                          color="#D1D5DB" 
+                          color={theme.textSecondary}
                         />
                         <Text style={styles.attachmentName} numberOfLines={1}>
                           {att.original_filename || `Attachment ${idx + 1}`}
                         </Text>
-                        <Ionicons name="open-outline" size={16} color="#94A3B8" />
+                        <Ionicons name="open-outline" size={16} color={theme.textTertiary} />
                       </TouchableOpacity>
                     ))}
                   </View>

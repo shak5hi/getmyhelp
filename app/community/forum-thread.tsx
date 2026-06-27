@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../../constants/tokens";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
@@ -36,6 +37,8 @@ import {
 } from "../../src/api/communityApi";
 import { makeStyles } from "../../styles/community.styles";
 import { useTheme } from "../../src/ThemeContext";
+import { useFeatureGuard } from "../../src/useFeatureGuard";
+import { MODULES } from "../../src/featureRegistry";
 
 const stripHtml = (html: string) =>
   (html ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
@@ -99,6 +102,7 @@ const flattenReplies = (list: any[]): any[] => {
 };
 
 export default function ForumThread() {
+  useFeatureGuard(MODULES.community);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -553,7 +557,7 @@ export default function ForumThread() {
                   }}
                 >
                   <Text style={{ fontSize: 13 }}>{r.emoji}</Text>
-                  <Text style={{ fontSize: 11, fontWeight: "600", color: r.reacted ? "#6366F1" : "#6B7280" }}>
+                  <Text style={{ fontSize: 11, fontFamily: fonts.semibold, color: r.reacted ? "#6366F1" : "#6B7280" }}>
                     {r.count}
                   </Text>
                 </TouchableOpacity>
@@ -645,7 +649,7 @@ export default function ForumThread() {
           }}>
             <Ionicons name="return-down-back-outline" size={16} color="#1D4ED8" />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 11, fontWeight: "700", color: "#1D4ED8" }}>
+              <Text style={{ fontSize: 11, fontFamily: fonts.bold, color: "#1D4ED8" }}>
                 Replying to {replyingTo.name}
               </Text>
               <Text style={{ fontSize: 12, color: "#4B5563" }} numberOfLines={1}>
@@ -818,7 +822,7 @@ const bannerStyles = StyleSheet.create({
   bannerText: {
     flex: 1,
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: "#fff",
   },
 });
@@ -837,7 +841,7 @@ const modalStyles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: "#111827",
     marginBottom: 14,
   },
@@ -858,8 +862,8 @@ const modalStyles = StyleSheet.create({
     marginTop: 16,
   },
   cancelBtn: { paddingVertical: 4 },
-  cancelText: { fontSize: 14, color: "#6B7280", fontWeight: "600" },
+  cancelText: { fontSize: 14, color: "#6B7280", fontFamily: fonts.semibold },
   submitBtn: { paddingVertical: 4 },
   submitBtnRed: {},
-  submitText: { fontSize: 14, color: "#1D4ED8", fontWeight: "700" },
+  submitText: { fontSize: 14, color: "#1D4ED8", fontFamily: fonts.bold },
 });

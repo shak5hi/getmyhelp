@@ -19,6 +19,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import { createQRInvite, createOTPInvite } from "../../src/api/visitorApi";
+import { fonts } from "../../constants/tokens";
+import { useFeatureGuard } from "../../src/useFeatureGuard";
+import { MODULES } from "../../src/featureRegistry";
 
 const PURPOSES = ["delivery", "guest", "domestic", "vendor", "interview", "other"];
 type Method = "qr" | "otp";
@@ -30,6 +33,7 @@ type Method = "qr" | "otp";
  * server-dated, so those extra fields are hidden for it.
  */
 export default function InviteScreen() {
+  useFeatureGuard(MODULES.visitors);
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -246,7 +250,7 @@ export default function InviteScreen() {
 const makeStyles = (t: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: t.bg },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 22, fontWeight: "700", color: t.text, marginBottom: 6 },
+  title: { fontSize: 22, fontFamily: fonts.bold, color: t.text, marginBottom: 6 },
   subtitle: { fontSize: 13, color: t.textSecondary, marginBottom: 20, lineHeight: 19 },
   methodRow: { flexDirection: "row", gap: 12, marginBottom: 4 },
   methodCard: {
@@ -259,11 +263,11 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     gap: 4,
   },
   methodCardActive: { backgroundColor: t.accent, borderColor: t.accent },
-  methodLabel: { fontSize: 15, fontWeight: "700", color: t.text, marginTop: 4 },
+  methodLabel: { fontSize: 15, fontFamily: fonts.bold, color: t.text, marginTop: 4 },
   methodLabelActive: { color: t.onAccent },
   methodHint: { fontSize: 11.5, color: t.textSecondary },
   methodHintActive: { color: t.onAccent, opacity: 0.85 },
-  label: { fontSize: 13, fontWeight: "600", color: t.textSecondary, marginBottom: 6, marginTop: 14 },
+  label: { fontSize: 13, fontFamily: fonts.semibold, color: t.textSecondary, marginBottom: 6, marginTop: 14 },
   input: {
     borderWidth: 1, borderColor: t.border, borderRadius: 8,
     padding: 12, fontSize: 15, color: t.text, backgroundColor: t.card,
@@ -274,10 +278,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   toggleChip: { flex: 1, alignItems: "center" },
   chipActive: { backgroundColor: t.accent, borderColor: t.accent },
   chipText: { fontSize: 13, color: t.textSecondary },
-  chipTextActive: { color: t.onAccent, fontWeight: "600" },
+  chipTextActive: { color: t.onAccent, fontFamily: fonts.semibold },
   dateBtn: { borderWidth: 1, borderColor: t.border, borderRadius: 8, padding: 12, backgroundColor: t.card },
   dateBtnText: { fontSize: 14, color: t.text },
   submitBtn: { marginTop: 28, backgroundColor: t.accent, borderRadius: 10, paddingVertical: 15, alignItems: "center" },
   submitBtnDisabled: { opacity: 0.6 },
-  submitBtnText: { color: t.onAccent, fontSize: 16, fontWeight: "700" },
+  submitBtnText: { color: t.onAccent, fontSize: 16, fontFamily: fonts.bold },
 });

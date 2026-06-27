@@ -124,7 +124,20 @@ export async function apiRequest<T = any>(
     if (token) await handleUnauthorized();
   }
 
-  return parseResponse<T>(res, path);
+  const parsed = await parseResponse<any>(res, path);
+
+  // Feature-permission guard: a disabled module 403s. Treat it as "feature off"
+  // (NOT a session/auth failure) so a stale client cache can never crash a
+  // screen — return a benign empty shape that screens read defensively. The
+  // FeatureProvider refreshes the enabled-set separately to hide the surface.
+  if (res.status === 403) {
+    const detail = String(parsed?.detail ?? "").toLowerCase();
+    if (detail.includes("not enabled")) {
+      return { message: null, detail: parsed?.detail, featureDisabled: true, data: { items: [] } } as T;
+    }
+  }
+
+  return parsed as T;
 }
 
 export const apiGet = <T = any>(path: string, options?: ApiRequestOptions) =>

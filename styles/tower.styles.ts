@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { fonts } from "../constants/tokens";
 import { Theme } from "../constants/themes";
 
 export const makeTowerStyles = (t: Theme) =>
@@ -64,7 +65,7 @@ export const makeTowerStyles = (t: Theme) =>
 
     bubbleText: {
       fontSize: 14,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
       color: t.text,
     },
 
@@ -95,7 +96,7 @@ export const makeTowerStyles = (t: Theme) =>
     buttonText: {
       color: t.onAccent,
       fontSize: 16,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
     },
 
     buttonTextDisabled: {

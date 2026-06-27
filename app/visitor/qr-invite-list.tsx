@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { fonts } from "../../constants/tokens";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../src/ThemeContext";
@@ -54,8 +55,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     backgroundColor: t.card, borderRadius: 16, padding: 16,
     marginHorizontal: 16, marginBottom: 10,
   },
-  name: { fontSize: 14, fontWeight: "600", color: t.text },
+  name: { fontSize: 14, fontFamily: fonts.semibold, color: t.text },
   meta: { fontSize: 12, color: t.textSecondary, marginTop: 2 },
-  revoked: { fontSize: 12, color: t.danger, fontWeight: "600", marginTop: 4 },
+  revoked: { fontSize: 12, color: t.danger, fontFamily: fonts.semibold, marginTop: 4 },
   empty: { textAlign: "center", color: t.textSecondary, marginTop: 40 },
 });

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../../constants/tokens";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -151,8 +152,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     marginBottom: 16,
   },
   otpCardInactive: { backgroundColor: t.card },
-  otpHint: { fontSize: 13, fontWeight: "600", color: "rgba(255,255,255,0.8)", marginBottom: 8, letterSpacing: 1 },
-  otpCode: { fontSize: 52, fontWeight: "800", color: "#fff", letterSpacing: 10 },
+  otpHint: { fontSize: 13, fontFamily: fonts.semibold, color: "rgba(255,255,255,0.8)", marginBottom: 8, letterSpacing: 1 },
+  otpCode: { fontSize: 52, fontFamily: fonts.extrabold, color: "#fff", letterSpacing: 10 },
   otpCodeInactive: { color: t.textSecondary },
   statusBadge: {
     marginTop: 12,
@@ -162,7 +163,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     color: "#166534",
     borderRadius: 20,
     fontSize: 12,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     overflow: "hidden",
   },
   validUntil: { marginTop: 8, fontSize: 13, color: "rgba(255,255,255,0.9)" },
@@ -177,10 +178,10 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     paddingVertical: 10,
     marginBottom: 16,
   },
-  shareBtnText: { color: t.accent, fontWeight: "700", fontSize: 15 },
+  shareBtnText: { color: t.accent, fontFamily: fonts.bold, fontSize: 15 },
   card: { backgroundColor: t.card, borderRadius: 12, padding: 16, marginBottom: 24 },
-  name: { fontSize: 18, fontWeight: "700", color: t.text, marginBottom: 4 },
+  name: { fontSize: 18, fontFamily: fonts.bold, color: t.text, marginBottom: 4 },
   info: { fontSize: 14, color: t.textSecondary, marginBottom: 2 },
   revokeBtn: { backgroundColor: t.danger, borderRadius: 10, paddingVertical: 14, alignItems: "center" },
-  revokeBtnText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  revokeBtnText: { color: "#fff", fontFamily: fonts.bold, fontSize: 16 },
 });

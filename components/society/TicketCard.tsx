@@ -14,11 +14,6 @@ interface TicketProps {
   onPress: () => void;
 }
 
-const PRIORITY_DOT_COLOR: Record<string, string> = {
-  "High":   "#F87171",
-  "Medium": "#FCD34D",
-  "Low":    "#34D399",
-};
 
 export const TicketCard: React.FC<TicketProps> = ({
   id,
@@ -30,7 +25,8 @@ export const TicketCard: React.FC<TicketProps> = ({
 }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const dotColor = PRIORITY_DOT_COLOR[priority] ?? PRIORITY_DOT_COLOR["Medium"];
+  const dotColor =
+    priority === "High" ? theme.danger : priority === "Low" ? theme.success : theme.warning;
 
   return (
     <Pressable

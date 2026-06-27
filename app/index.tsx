@@ -1,4 +1,5 @@
 import { Image, Text, View, Pressable, Modal } from "react-native";
+import { fonts } from "../constants/tokens";
 import { useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "../src/i18n";
@@ -115,7 +116,7 @@ export default function HomeScreen() {
             <Text
               style={{
                 fontSize: 18,
-                fontWeight: "600",
+                fontFamily: fonts.semibold,
                 marginBottom: 12,
                 color: theme.text,
               }}

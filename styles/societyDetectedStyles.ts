@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { fonts } from "../constants/tokens";
 import { Theme } from "../constants/themes";
 
 export const makeSocietyDetectedStyles = (t: Theme) =>
@@ -29,12 +30,12 @@ export const makeSocietyDetectedStyles = (t: Theme) =>
       color: t.textTertiary,
       fontSize: 13,
       marginBottom: 8,
-      fontWeight: "500",
+      fontFamily: fonts.medium,
     },
 
     title: {
       fontSize: 24,
-      fontWeight: "700",
+      fontFamily: fonts.bold,
       color: t.text,
       marginBottom: 8,
     },
@@ -69,7 +70,7 @@ export const makeSocietyDetectedStyles = (t: Theme) =>
     retryButtonText: {
       color: t.onAccent,
       fontSize: 14,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
     },
 
     scrollView: { flex: 1 },
@@ -102,7 +103,7 @@ export const makeSocietyDetectedStyles = (t: Theme) =>
 
     societyName: {
       fontSize: 16,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
       color: t.text,
       marginBottom: 6,
     },
@@ -121,7 +122,7 @@ export const makeSocietyDetectedStyles = (t: Theme) =>
     pincode: {
       fontSize: 11,
       color: t.textTertiary,
-      fontWeight: "500",
+      fontFamily: fonts.medium,
     },
 
     pincodeSelected: { color: t.onAccent, opacity: 0.75 },
@@ -145,7 +146,7 @@ export const makeSocietyDetectedStyles = (t: Theme) =>
     continueButtonText: {
       color: t.onAccent,
       fontSize: 16,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
     },
 
     continueButtonTextDisabled: { color: t.textTertiary },

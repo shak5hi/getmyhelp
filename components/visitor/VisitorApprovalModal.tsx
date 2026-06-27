@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { fonts } from "../../constants/tokens";
 import {
   ActivityIndicator,
   Alert,
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
   },
   alarmHeaderText: {
     fontSize: 15,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: "#EF4444",
     letterSpacing: 2.5,
   },
@@ -381,7 +382,7 @@ const styles = StyleSheet.create({
   },
   visitorName: {
     fontSize: 28,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: "#f1f5f9",
     textAlign: "center",
     marginBottom: 10,
@@ -398,14 +399,14 @@ const styles = StyleSheet.create({
   purposeText: {
     color: "#EF4444",
     fontSize: 11,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     letterSpacing: 1.5,
   },
   mobile: {
     fontSize: 15,
     color: "#64748b",
     marginBottom: 20,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
   divider: {
     width: "100%",
@@ -416,7 +417,7 @@ const styles = StyleSheet.create({
   prompt: {
     fontSize: 15,
     color: "#94a3b8",
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     marginBottom: 16,
   },
   btnRow: {
@@ -438,12 +439,12 @@ const styles = StyleSheet.create({
   btnText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
   },
   cancelBtnText: {
     color: "#94a3b8",
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   rejectBox: { width: "100%" },
   rejectInput: {

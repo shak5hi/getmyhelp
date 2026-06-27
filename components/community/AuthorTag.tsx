@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { fonts } from "../../constants/tokens";
 import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
@@ -58,11 +59,11 @@ const makeStyles = (t: Theme) =>
     avatarText: {
       color: t.onAccent,
       fontSize: 13,
-      fontWeight: "700",
+      fontFamily: fonts.bold,
     },
     name: {
       fontSize: 14,
-      fontWeight: "600",
+      fontFamily: fonts.semibold,
       color: t.text,
     },
     time: {

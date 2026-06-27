@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { shadows, radii } from "../constants/tokens";
+import { shadows, radii, fonts } from "../constants/tokens";
 import { Theme } from "../constants/themes";
 
 export const makeStyles = (t: Theme) => StyleSheet.create({
@@ -26,7 +26,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     letterSpacing: -0.3,
   },
@@ -34,7 +34,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
     fontSize: 13,
     color: t.textSecondary,
     marginTop: 2,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
 
   // ── Segmented tab switcher ─────────────────────────────
@@ -63,7 +63,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: t.textTertiary,
   },
   activeTabText: {
@@ -106,7 +106,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 11,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: t.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 0.4,
@@ -114,7 +114,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   summaryValue: {
     fontSize: 17,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
   },
   summaryValueIncome: {
@@ -140,7 +140,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   countStripText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: t.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -175,21 +175,21 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   transactionCategory: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
     marginBottom: 2,
   },
   transactionDate: {
     fontSize: 13,
     color: t.textTertiary,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
   transactionRight: {
     alignItems: "flex-end",
   },
   transactionAmount: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
   },
   incomeAmount: {
     color: t.success,
@@ -214,7 +214,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   ticketTitle: {
     fontSize: 15,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
     flex: 1,
     marginRight: 10,
@@ -227,7 +227,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   statusText: {
     fontSize: 10,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     textTransform: "uppercase",
     letterSpacing: 0.3,
   },
@@ -249,12 +249,12 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   priorityText: {
     fontSize: 11,
     color: t.textTertiary,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
   ticketDate: {
     fontSize: 12,
     color: t.textSecondary,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
 
   // ── FAB (Floating Action Button) ───────────────────────
@@ -286,7 +286,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: t.textSecondary,
     marginBottom: 8,
     marginLeft: 2,
@@ -322,7 +322,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   submitButtonText: {
     color: t.card,
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     letterSpacing: 0.3,
   },
 
@@ -343,7 +343,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   typeButtonText: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.textTertiary,
     marginTop: 4,
   },
@@ -353,7 +353,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   typeButtonSub: {
     fontSize: 11,
     color: t.textTertiary,
-    fontWeight: "400",
+    fontFamily: fonts.regular,
     textAlign: "center",
   },
 
@@ -396,7 +396,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   attachmentPickerText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     color: t.textSecondary,
   },
 
@@ -431,7 +431,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   detailTitle: {
     fontSize: 20,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
     marginBottom: 12,
   },
@@ -531,7 +531,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.text,
     marginTop: 16,
     textAlign: "center",
@@ -572,7 +572,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "800",
+    fontFamily: fonts.extrabold,
     color: t.text,
   },
   modalSection: {
@@ -580,7 +580,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   modalLabel: {
     fontSize: 12,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.textTertiary,
     textTransform: "uppercase",
     letterSpacing: 0.6,
@@ -589,7 +589,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   modalValue: {
     fontSize: 16,
     color: t.textSecondary,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
     lineHeight: 24,
   },
   attachmentList: {
@@ -610,7 +610,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
     fontSize: 14,
     color: t.textSecondary,
     marginLeft: 10,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
   closeButton: {
     backgroundColor: t.surfaceAlt,
@@ -623,7 +623,7 @@ export const makeStyles = (t: Theme) => StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: t.textSecondary,
   },
 });
