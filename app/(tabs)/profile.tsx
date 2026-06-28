@@ -18,6 +18,7 @@ import { useLanguage } from "../../src/LanguageContext";
 import { clearSession } from "../../src/api/client";
 import { getMyResidence } from "../../src/api/societyApi";
 import { getPushEnabled, setPushEnabled } from "../../src/preferences";
+import { registerForPush, unregisterForPush } from "../../src/push";
 import ThemeToggle from "../../components/ThemeToggle";
 
 const LANGUAGES = [
@@ -160,6 +161,9 @@ export default function ProfileScreen() {
   const togglePush = async (value: boolean) => {
     setPushEnabledState(value);
     await setPushEnabled(value);
+    // Reflect the choice on the backend: (re)register the FCM token or drop it.
+    if (value) await registerForPush();
+    else await unregisterForPush();
   };
 
   const loadUserData = async () => {
@@ -217,6 +221,8 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     try {
+      // Stop pushes to this device before the session token is wiped.
+      await unregisterForPush();
       await clearSession();
       router.replace("/");
     } catch (error) {

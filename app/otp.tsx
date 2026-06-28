@@ -14,6 +14,7 @@ import config from "../src/config";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
 import { getConfirmation, setConfirmation } from "../src/firebaseConfirmation";
+import { registerForPush } from "../src/push";
 import { makeOtpStyles } from "../styles/otp.styles";
 import { useTheme } from "../src/ThemeContext";
 
@@ -139,6 +140,9 @@ export default function OtpScreen() {
         await AsyncStorage.setItem("user_role", customer.user_role);
       }
 
+      // Register this device for OS-level push now that we have a session.
+      // Fail-safe: never blocks login.
+      registerForPush();
 
       // ── Guard: skip onboarding entirely ──
       if (customer?.user_role === "guard") {

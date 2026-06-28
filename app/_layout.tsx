@@ -5,6 +5,8 @@ import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, TouchableOpacity, View, Text, TextInput } from "react-native";
 import { setUnauthorizedHandler } from "../src/api/client";
+import { usePushNotifications } from "../hooks/usePushNotifications";
+import "../src/pushBackground";
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -51,6 +53,9 @@ function NotificationBell() {
 function RootNavigator() {
   const router = useRouter();
   const { theme } = useTheme();
+
+  // OS-level push notifications (FCM): register the device token + handle taps.
+  usePushNotifications();
 
   // App-wide session-expiry guard: any API 401 clears the session and bounces
   // the user back to the login flow instead of leaving a silently-blank screen.

@@ -9,6 +9,7 @@ import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import config from "../../src/config";
 import { clearSession } from "../../src/api/client";
+import { unregisterForPush } from "../../src/push";
 
 export default function GuardProfileScreen() {
   const router = useRouter();
@@ -36,6 +37,8 @@ export default function GuardProfileScreen() {
         text: "Logout",
         style: "destructive",
         onPress: async () => {
+          // Stop pushes to this device before the session token is wiped.
+          await unregisterForPush();
           await clearSession();
           router.replace("/");
         },
