@@ -1,5 +1,4 @@
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
 
 // LOCAL DEV BUILD: pointed at the dev machine's LAN IP so a physical device on
 // the same Wi-Fi reaches the local FastAPI backend (run it with --host 0.0.0.0).
@@ -26,10 +25,14 @@ const ENV = {
   prod: REMOTE,
 };
 
-// DEV/TEST ONLY: skip Firebase app verification (reCAPTCHA / Play Integrity) so
-// Firebase "test phone numbers" work on locally-signed builds whose SHA isn't
-// registered in the Firebase project. MUST be false for production builds.
-export const DISABLE_APP_VERIFICATION = true;
+// Skip Firebase app verification (reCAPTCHA / Play Integrity) so Firebase "test
+// phone numbers" work on locally-signed builds whose SHA isn't registered in the
+// Firebase project.
+//
+// Bound to __DEV__ rather than a hand-flipped boolean: this bypasses a real
+// anti-abuse control, and "remember to set it back to false before release" is
+// not a safety mechanism. Release bundles get `false` for free.
+export const DISABLE_APP_VERIFICATION = __DEV__;
 
 const getEnvVars = () => {
   if (Constants.expoConfig?.extra?.environment === 'staging') return ENV.staging;

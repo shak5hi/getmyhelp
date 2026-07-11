@@ -116,7 +116,9 @@ export default function NotificationsScreen() {
     } else if (
       item.link_type === "provider" ||
       item.type === "provider_assigned" ||
-      item.type === "provider_reassigned"
+      item.type === "provider_reassigned" ||
+      item.type === "provider_substitute" ||
+      item.type === "provider_time_off"
     ) {
       // No provider-detail screen exists. The dashboard hosts TodaysHelp, which
       // answers the question the notification actually raises — who is coming

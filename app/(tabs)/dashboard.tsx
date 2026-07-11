@@ -19,10 +19,21 @@ import { useFeature, useRefreshFeatures } from "../../src/FeatureContext";
 import { useNotifications } from "../../src/NotificationContext";
 import { MODULES } from "../../src/featureRegistry";
 
-// Foreground accents that sit on top of the solid accent surface (banner/FAB).
-// Neutral white, not the old warm cream — the accent is now violet→magenta.
-const HERO_GLASS = "rgba(255,255,255,0.16)";
-const ON_HERO_DIM = "rgba(255,255,255,0.78)";
+/**
+ * Dashboard.
+ *
+ * Layout follows one rule: the screen answers "what needs me right now?" from
+ * the top down. Anything urgent (someone at the gate) outranks the daily core
+ * (today's help), which outranks navigation (quick actions).
+ *
+ * Restraint is deliberate — accent colour is spent only on things that are
+ * actionable or urgent, so it keeps its meaning. Everything else is surface,
+ * border and type.
+ */
+
+// Foreground tones that sit on the solid accent surface (the alert card).
+const ON_ACCENT_GLASS = "rgba(255,255,255,0.18)";
+const ON_ACCENT_DIM = "rgba(255,255,255,0.80)";
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -112,174 +123,238 @@ export default function DashboardScreen() {
   const initials = name ? name.trim().split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() : "?";
 
   const quick: { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void }[] = [
-    visitorsEnabled && { label: "Invite Guest", icon: "person-add", onPress: () => router.push("/visitor/invite") },
-    ticketsEnabled && { label: "Raise Ticket", icon: "construct", onPress: () => router.push("/society/create-ticket") },
-    communityEnabled && { label: "Community", icon: "chatbubbles", onPress: () => router.push("/(tabs)/community") },
-    attendanceEnabled && { label: "Attendance", icon: "calendar", onPress: () => router.push("/attendance-history") },
+    visitorsEnabled && { label: "Invite Guest", icon: "person-add-outline", onPress: () => router.push("/visitor/invite") },
+    ticketsEnabled && { label: "Raise Ticket", icon: "construct-outline", onPress: () => router.push("/society/create-ticket") },
+    communityEnabled && { label: "Community", icon: "chatbubbles-outline", onPress: () => router.push("/(tabs)/community") },
+    attendanceEnabled && { label: "Attendance", icon: "calendar-outline", onPress: () => router.push("/attendance-history") },
   ].filter(Boolean) as { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void }[];
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* atmospheric warm glow anchored top-right */}
-      <LinearGradient
-        colors={[theme.accentTint, "transparent"]}
-        start={{ x: 1, y: 0 }}
-        end={{ x: 0.1, y: 0.55 }}
-        style={s.glow}
-        pointerEvents="none"
-      />
-
+    <View style={s.root}>
       <ScrollView
-        contentContainerStyle={[s.scroll, { paddingTop: insets.top + 14 }]}
+        contentContainerStyle={[s.scroll, { paddingTop: insets.top + 8 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* TOP BAR */}
-        <Animated.View entering={FadeInDown.duration(450)} style={s.topBar}>
-          <TouchableOpacity onPress={() => router.push("/(tabs)/profile")} activeOpacity={0.85} style={s.avatar}>
+        {/* HEADER — identity left, utilities right. Nothing else competes here. */}
+        <Animated.View entering={FadeInDown.duration(400)} style={s.header}>
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/profile")}
+            activeOpacity={0.7}
+            style={s.avatar}
+            accessibilityRole="button"
+            accessibilityLabel="Open your profile"
+          >
             {image ? <Image source={{ uri: image }} style={s.avatarImg} /> : <Text style={s.avatarText}>{initials}</Text>}
           </TouchableOpacity>
-          <View style={{ flex: 1 }} />
-          <TouchableOpacity style={s.iconBtn} onPress={() => router.push("/notifications")} activeOpacity={0.7}>
-            <Ionicons name="notifications-outline" size={20} color={theme.text} />
-            {unreadCount > 0 && (
-              <View style={s.bellBadge}>
-                <Text style={s.bellBadgeText}>
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <View style={{ width: 10 }} />
-          <ThemeToggle />
-        </Animated.View>
 
-        {/* GREETING — compact, secondary to the day's actions */}
-        <Animated.View entering={FadeInDown.delay(60).duration(500)} style={s.greetBlock}>
-          <Text style={s.eyebrow}>{today}</Text>
-          <Text style={s.greetLine}>
-            {greeting()}, <Text style={s.greetName}>{name}.</Text>
-          </Text>
-          <View style={s.locRow}>
-            <Ionicons name="location-outline" size={13} color={theme.textTertiary} />
-            <Text style={s.location} numberOfLines={1}>{location}</Text>
+          <View style={s.headerActions}>
+            <TouchableOpacity
+              style={s.iconBtn}
+              onPress={() => router.push("/notifications")}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={
+                unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"
+              }
+            >
+              <Ionicons name="notifications-outline" size={19} color={theme.textSecondary} />
+              {unreadCount > 0 && (
+                <View style={s.badge}>
+                  <Text style={s.badgeText}>{unreadCount > 9 ? "9+" : unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <ThemeToggle />
           </View>
         </Animated.View>
 
-        {/* PENDING GATE APPROVAL — the urgent, time-sensitive action, up top */}
+        {/* HERO — date, greeting, place. The one moment of large type. */}
+        <Animated.View entering={FadeInDown.delay(50).duration(450)} style={s.hero}>
+          <Text style={s.eyebrow}>{today}</Text>
+          <Text style={s.greeting}>
+            {greeting()}, <Text style={s.greetingName}>{name}</Text>
+          </Text>
+
+          {!!location && (
+            <View style={s.placePill}>
+              <Ionicons name="location" size={12} color={theme.textTertiary} />
+              <Text style={s.placeText} numberOfLines={1}>{location}</Text>
+            </View>
+          )}
+        </Animated.View>
+
+        {/* ALERT — the only solid-accent surface on the screen, so urgency reads
+            instantly. Present only when someone is actually waiting. */}
         {pendingCount > 0 && (
-          <Animated.View entering={FadeInDown.delay(100).duration(450)}>
+          <Animated.View entering={FadeInDown.delay(90).duration(400)}>
             <TouchableOpacity
-              style={s.pendingBanner}
-              activeOpacity={0.85}
+              style={s.alert}
+              activeOpacity={0.9}
               onPress={() => router.push("/notifications")}
+              accessibilityRole="button"
+              accessibilityLabel={`${pendingCount} waiting at the gate. Review and approve.`}
             >
-              <View style={s.pendingIcon}>
-                <Ionicons name="person-add" size={18} color={theme.onAccent} />
+              <View style={s.alertIcon}>
+                <Ionicons name="person-add" size={17} color={theme.onAccent} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={s.pendingText}>
+              <View style={s.alertBody}>
+                <Text style={s.alertTitle}>
                   {pendingCount} {pendingCount > 1 ? "people" : "person"} at the gate
                 </Text>
-                <Text style={s.pendingSub}>Tap to review and approve</Text>
+                <Text style={s.alertSub}>Review and approve</Text>
               </View>
-              <Ionicons name="arrow-forward" size={18} color={ON_HERO_DIM} />
+              <Ionicons name="chevron-forward" size={18} color={ON_ACCENT_DIM} />
             </TouchableOpacity>
           </Animated.View>
         )}
 
-        {/* TODAY'S HELP — the daily core, now the hero of the screen */}
+        {/* TODAY'S HELP — the daily core. */}
         {attendanceEnabled && (
-        <Animated.View entering={FadeInDown.delay(140).duration(500)}>
-          <SectionTitle theme={theme}>Today&apos;s Help</SectionTitle>
-          <TodaysHelp />
-        </Animated.View>
+          <Animated.View entering={FadeInDown.delay(130).duration(450)} style={s.section}>
+            <SectionHeader
+              theme={theme}
+              title="Today's help"
+              actionLabel="History"
+              onAction={() => router.push("/attendance-history")}
+            />
+            <TodaysHelp />
+          </Animated.View>
         )}
 
-        {/* Slim plan-renewal chip — only when actually relevant */}
+        {/* PLAN — a quiet inline notice, not a card. Only when it matters. */}
         {daysRemaining != null && daysRemaining <= 7 && (
-          <Animated.View entering={FadeInDown.delay(200).duration(450)}>
+          <Animated.View entering={FadeInDown.delay(170).duration(400)}>
             <TouchableOpacity
-              style={s.planChip}
-              activeOpacity={0.8}
+              style={s.notice}
+              activeOpacity={0.7}
               onPress={() => router.push("/(tabs)/subscriptions")}
+              accessibilityRole="button"
+              accessibilityLabel={`Plan renews in ${daysRemaining} days. Manage subscription.`}
             >
-              <Ionicons name="card-outline" size={15} color={theme.warning} />
-              <Text style={s.planChipText}>
+              <View style={s.noticeDot} />
+              <Text style={s.noticeText}>
                 Plan renews in {daysRemaining} {daysRemaining === 1 ? "day" : "days"}
               </Text>
-              <Ionicons name="chevron-forward" size={15} color={theme.warning} />
+              <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
             </TouchableOpacity>
           </Animated.View>
         )}
 
-        {/* QUICK ACTIONS — 2×2 grid, secondary (only enabled modules) */}
+        {/* QUICK ACTIONS — flat tiles. No chevrons: the whole tile is the target,
+            and four arrows pointing nowhere in particular is just noise. */}
         {quick.length > 0 && (
-        <Animated.View entering={FadeInDown.delay(240).duration(500)} style={{ marginTop: 30 }}>
-          <SectionTitle theme={theme}>Quick actions</SectionTitle>
-          <View style={s.quickGrid}>
-            {quick.map((q) => (
-              <TouchableOpacity key={q.label} style={s.quick} activeOpacity={0.8} onPress={q.onPress}>
-                <View style={s.quickIcon}>
-                  <Ionicons name={q.icon} size={21} color={theme.accent} />
-                </View>
-                <Text style={s.quickLabel} numberOfLines={1}>{q.label}</Text>
-                <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} style={s.quickChevron} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Animated.View>
+          <Animated.View entering={FadeInDown.delay(210).duration(450)} style={s.section}>
+            <SectionHeader theme={theme} title="Quick actions" />
+            <View style={s.grid}>
+              {quick.map((q) => (
+                <TouchableOpacity
+                  key={q.label}
+                  style={s.tile}
+                  activeOpacity={0.7}
+                  onPress={q.onPress}
+                  accessibilityRole="button"
+                  accessibilityLabel={q.label}
+                >
+                  <View style={s.tileIcon}>
+                    <Ionicons name={q.icon} size={19} color={theme.accent} />
+                  </View>
+                  <Text style={s.tileLabel} numberOfLines={1}>{q.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Animated.View>
         )}
 
-        <View style={{ height: 56 }} />
+        {/* Clearance for the floating tab bar + FAB. */}
+        <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* AI ASSISTANT — labelled pill FAB (only when the chatbot module is on) */}
+      {/* AI ASSISTANT — only when the chatbot module is on. */}
       {chatbotEnabled && (
-      <TouchableOpacity
-        style={[s.fabWrap, { bottom: insets.bottom + 88 }]}
-        activeOpacity={0.9}
-        onPress={() => router.push("/(tabs)/chatbot")}
-      >
-        <LinearGradient colors={theme.accentGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.fab}>
-          <Ionicons name="sparkles" size={18} color={theme.onAccent} />
-          <Text style={s.fabText}>Ask AI</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.fabWrap, { bottom: insets.bottom + 88 }]}
+          activeOpacity={0.9}
+          onPress={() => router.push("/(tabs)/chatbot")}
+          accessibilityRole="button"
+          accessibilityLabel="Ask the AI assistant"
+        >
+          <LinearGradient
+            colors={theme.accentGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={s.fab}
+          >
+            <Ionicons name="sparkles" size={16} color={theme.onAccent} />
+            <Text style={s.fabText}>Ask AI</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       )}
     </View>
   );
 }
 
-function SectionTitle({ theme, children }: { theme: Theme; children: React.ReactNode }) {
+/**
+ * Section header. Title carries the weight; the optional action is a quiet text
+ * link rather than a button, so it never competes with the content beneath it.
+ */
+function SectionHeader({
+  theme,
+  title,
+  actionLabel,
+  onAction,
+}: {
+  theme: Theme;
+  title: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
   const s = useMemo(() => makeStyles(theme), [theme]);
   return (
-    <View style={s.sectionRow}>
-      <View style={s.sectionBar} />
-      <Text style={s.section}>{children}</Text>
+    <View style={s.sectionHeader}>
+      <Text style={s.sectionTitle}>{title}</Text>
+      {actionLabel && onAction && (
+        <TouchableOpacity
+          onPress={onAction}
+          activeOpacity={0.6}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+        >
+          <Text style={s.sectionAction}>{actionLabel}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
 
+/* 8px rhythm throughout. Values below are all multiples of 4/8. */
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
-    scroll: { paddingHorizontal: 20, paddingBottom: 40 },
-    glow: { position: "absolute", top: 0, right: 0, left: 0, height: 320 },
+    root: { flex: 1, backgroundColor: t.bg },
+    scroll: { paddingHorizontal: 20, paddingBottom: 32 },
 
-    topBar: { flexDirection: "row", alignItems: "center", marginBottom: 22 },
+    /* HEADER */
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 32,
+    },
+    headerActions: { flexDirection: "row", alignItems: "center", gap: 8 },
     avatar: {
-      width: 46,
-      height: 46,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 14,
       backgroundColor: t.accentTint,
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden",
     },
     avatarImg: { width: "100%", height: "100%" },
-    avatarText: { fontFamily: fonts.semibold, fontSize: 15, color: t.accent },
+    avatarText: { fontFamily: fonts.displayBold, fontSize: 14, color: t.accent },
     iconBtn: {
-      width: 42,
-      height: 42,
+      width: 40,
+      height: 40,
       borderRadius: 14,
       borderWidth: 1,
       borderColor: t.border,
@@ -287,126 +362,199 @@ const makeStyles = (t: Theme) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    bellBadge: {
+    badge: {
       position: "absolute",
-      top: -4,
-      right: -4,
-      minWidth: 18,
-      height: 18,
-      borderRadius: 9,
-      paddingHorizontal: 4,
+      top: -3,
+      right: -3,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
+      paddingHorizontal: 3,
       backgroundColor: t.danger,
       alignItems: "center",
       justifyContent: "center",
-      // Ring it in the page background so it reads as lifted off the button.
+      // Ringed in the page colour so it reads as lifted off the button.
       borderWidth: 2,
       borderColor: t.bg,
     },
-    bellBadgeText: {
-      fontFamily: fonts.bold,
-      fontSize: 10,
-      color: "#FFFFFF",
-    },
+    badgeText: { fontFamily: fonts.displayBold, fontSize: 9, color: "#FFFFFF" },
 
-    greetBlock: { marginBottom: 22 },
+    /* HERO */
+    // No bottom margin: whatever follows owns the gap. Otherwise the hero's
+    // margin and the next section's stack into a 60px void when there is no
+    // gate alert sitting between them.
+    hero: { marginBottom: 0 },
     eyebrow: {
-      fontFamily: fonts.semibold,
-      fontSize: 11,
-      letterSpacing: 1.4,
+      fontFamily: fonts.displaySemibold,
+      fontSize: 10.5,
+      letterSpacing: 1.2,
       color: t.textTertiary,
-      marginBottom: 8,
+      marginBottom: 10,
     },
-    greetLine: {
-      fontFamily: fonts.serif,
-      fontSize: 28,
+    greeting: {
+      fontFamily: fonts.displayMedium,
+      fontSize: 27,
       lineHeight: 34,
-      color: t.text,
-      letterSpacing: -0.3,
+      color: t.textSecondary,
+      letterSpacing: -0.7,
     },
-    greetName: { fontFamily: fonts.serifSemibold, color: t.accent },
-    locRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8 },
-    location: { fontFamily: fonts.regular, fontSize: 12.5, color: t.textSecondary, flexShrink: 1 },
+    // Only the name is full-strength — the greeting itself is a courtesy, the
+    // name is the thing being said.
+    greetingName: { fontFamily: fonts.displayExtrabold, color: t.text },
+    placePill: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      alignSelf: "flex-start",
+      marginTop: 14,
+      paddingLeft: 8,
+      paddingRight: 12,
+      paddingVertical: 6,
+      borderRadius: 999,
+      backgroundColor: t.surfaceAlt,
+    },
+    placeText: {
+      fontFamily: fonts.displayMedium,
+      fontSize: 12,
+      color: t.textSecondary,
+      flexShrink: 1,
+    },
 
-    // Pending gate approval — solid accent surface (urgent, top of content)
-    pendingBanner: {
+    /* ALERT */
+    alert: {
       flexDirection: "row",
       alignItems: "center",
       gap: 12,
       backgroundColor: t.accent,
-      borderRadius: 18,
-      padding: 16,
-      marginBottom: 24,
+      borderRadius: 16,
+      padding: 14,
+      marginTop: 24,
       ...t.heroShadow,
     },
-    pendingIcon: {
+    alertIcon: {
       width: 36,
       height: 36,
       borderRadius: 12,
-      backgroundColor: HERO_GLASS,
+      backgroundColor: ON_ACCENT_GLASS,
       alignItems: "center",
       justifyContent: "center",
     },
-    pendingText: { fontFamily: fonts.semibold, fontSize: 15.5, color: t.onAccent, letterSpacing: -0.2 },
-    pendingSub: { fontFamily: fonts.regular, fontSize: 12.5, color: ON_HERO_DIM, marginTop: 2 },
+    alertBody: { flex: 1 },
+    alertTitle: {
+      fontFamily: fonts.displayBold,
+      fontSize: 15,
+      color: t.onAccent,
+      letterSpacing: -0.3,
+    },
+    alertSub: {
+      fontFamily: fonts.displayMedium,
+      fontSize: 12,
+      color: ON_ACCENT_DIM,
+      marginTop: 2,
+    },
 
-    sectionRow: { flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 15 },
-    sectionBar: { width: 3, height: 17, borderRadius: 2, backgroundColor: t.accent },
-    section: { fontFamily: fonts.serifSemibold, fontSize: 19, color: t.text, letterSpacing: -0.2 },
-
-    // Slim plan-renewal chip
-    planChip: {
+    /* SECTIONS */
+    section: { marginTop: 24 },
+    sectionHeader: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 7,
-      alignSelf: "flex-start",
-      backgroundColor: t.warningTint,
-      borderRadius: 999,
-      paddingHorizontal: 14,
-      paddingVertical: 9,
-      marginTop: 18,
+      justifyContent: "space-between",
+      marginBottom: 14,
     },
-    planChipText: { fontFamily: fonts.medium, fontSize: 13, color: t.warning },
+    // No decorative bar. Weight and spacing do the work a coloured tick was
+    // doing badly.
+    sectionTitle: {
+      fontFamily: fonts.displayBold,
+      fontSize: 16,
+      color: t.text,
+      letterSpacing: -0.3,
+    },
+    sectionAction: {
+      fontFamily: fonts.displaySemibold,
+      fontSize: 13,
+      color: t.accent,
+      letterSpacing: -0.1,
+    },
 
-    quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-    quick: {
-      flexBasis: "47%",
-      flexGrow: 1,
-      backgroundColor: t.card,
-      borderWidth: t.mode === "light" ? 1 : 0,
-      borderColor: t.border,
-      borderRadius: 20,
-      padding: 16,
-      ...(t.mode === "light" ? {} : { backgroundColor: t.surface }),
+    /* PLAN NOTICE */
+    notice: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderRadius: 12,
+      backgroundColor: t.surfaceAlt,
     },
-    quickIcon: {
-      width: 44,
-      height: 44,
-      borderRadius: 13,
+    noticeDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: t.warning,
+    },
+    noticeText: {
+      flex: 1,
+      fontFamily: fonts.displayMedium,
+      fontSize: 13,
+      color: t.textSecondary,
+      letterSpacing: -0.1,
+    },
+
+    /* QUICK ACTIONS */
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    tile: {
+      // Two per row with an 8px gutter, and it degrades gracefully to one wide
+      // tile when a society has a single module enabled.
+      flexBasis: "48%",
+      flexGrow: 1,
+      minWidth: 150,
+      backgroundColor: t.surface,
+      borderWidth: 1,
+      borderColor: t.border,
+      borderRadius: 16,
+      paddingVertical: 16,
+      paddingHorizontal: 14,
+      gap: 12,
+    },
+    tileIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 11,
       backgroundColor: t.accentTint,
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 12,
     },
-    quickLabel: { fontFamily: fonts.semibold, fontSize: 14, color: t.text, letterSpacing: -0.2 },
-    quickChevron: { position: "absolute", top: 18, right: 16 },
+    tileLabel: {
+      fontFamily: fonts.displaySemibold,
+      fontSize: 13.5,
+      color: t.text,
+      letterSpacing: -0.2,
+    },
 
+    /* FAB */
     fabWrap: {
       position: "absolute",
       right: 20,
-      borderRadius: 26,
+      borderRadius: 24,
       shadowColor: t.accent,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.45,
-      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.4,
+      shadowRadius: 14,
       elevation: 8,
     },
     fab: {
       flexDirection: "row",
       alignItems: "center",
       gap: 7,
-      height: 52,
-      paddingHorizontal: 20,
-      borderRadius: 26,
+      height: 48,
+      paddingHorizontal: 18,
+      borderRadius: 24,
     },
-    fabText: { fontFamily: fonts.semibold, fontSize: 14.5, color: t.onAccent, letterSpacing: -0.2 },
+    fabText: {
+      fontFamily: fonts.displayBold,
+      fontSize: 14,
+      color: t.onAccent,
+      letterSpacing: -0.2,
+    },
   });

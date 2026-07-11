@@ -195,6 +195,10 @@ export function routeFromPushData(data: Record<string, string> | undefined): voi
     router.push(`/community/announcement-detail?id=${linkId}`);
   } else if (linkType === "forum_post" && linkId) {
     router.push(`/community/forum-thread?id=${linkId}`);
+  } else if (linkType === "visitor" && linkId) {
+    // Someone is physically at the gate — the most time-critical push we send.
+    // It must land on the approval screen, not the notifications list.
+    router.push(`/visitor/resident-detail?id=${linkId}`);
   } else if (linkType === "poll") {
     router.push("/(tabs)/community");
   } else if (linkType === "subscription") {

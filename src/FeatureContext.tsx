@@ -130,11 +130,6 @@ export const FeatureProvider = ({ children }: { children: React.ReactNode }) => 
 
       const m = parseModules(res);
       if (m) {
-        if (__DEV__) {
-          const on = Object.keys(m).filter((k) => m[k]);
-          const off = Object.keys(m).filter((k) => !m[k]);
-          console.log(`[Features] ${path}\n  ON : ${on.join(", ") || "(none)"}\n  OFF: ${off.join(", ") || "(none)"}`);
-        }
         await apply(m);
       } else {
         console.warn(

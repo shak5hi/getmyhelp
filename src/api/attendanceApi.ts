@@ -1,17 +1,18 @@
 import { apiGet, apiRequest } from "./client";
 
-export type AttendanceStatus = "present" | "absent" | "late" | "leave";
-
 /**
- * Normalise the server's status. `leave` is set by an admin (sick/planned leave)
- * rather than by the resident, and the backend spelling isn't settled — accept
- * the plausible variants so a rename doesn't silently render the maid as
- * "Scheduled" with Mark Present buttons.
+ * The attendance mark, and nothing else.
+ *
+ * Leave is a *separate* axis (see `on_leave` on TodayProvider) and must not be
+ * folded in here: `absent` means "was expected, didn't show"; on leave means
+ * "was never expected". Collapsing them loses a distinction that can't be
+ * recovered — and would quietly turn approved time-off into a no-show on the
+ * maid's record.
  */
+export type AttendanceStatus = "present" | "absent" | "late";
+
 export const normalizeStatus = (raw: any): AttendanceStatus | null => {
   const s = String(raw ?? "").toLowerCase();
-  if (!s) return null;
-  if (s.includes("leave") || s === "sick" || s === "off") return "leave";
   if (s === "present" || s === "absent" || s === "late") return s;
   return null;
 };

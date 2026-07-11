@@ -62,20 +62,11 @@ export default function TodaysHelp() {
   const { theme } = useTheme();
   const s = useMemo(() => makeStyles(theme), [theme]);
   const statusColor = (status: AttendanceStatus) =>
-    status === "absent" ? theme.danger
-      : status === "late" ? theme.warning
-      : status === "leave" ? theme.textSecondary
-      : theme.success;
+    status === "absent" ? theme.danger : status === "late" ? theme.warning : theme.success;
   const statusTint = (status: AttendanceStatus) =>
-    status === "absent" ? theme.dangerTint
-      : status === "late" ? theme.warningTint
-      : status === "leave" ? theme.surfaceAlt
-      : theme.successTint;
+    status === "absent" ? theme.dangerTint : status === "late" ? theme.warningTint : theme.successTint;
   const statusLabel = (status: AttendanceStatus) =>
-    status === "present" ? "Present"
-      : status === "absent" ? "Absent"
-      : status === "leave" ? "On leave"
-      : "Late";
+    status === "present" ? "Present" : status === "absent" ? "Absent" : "Late";
 
   const [items, setItems] = useState<TodayProvider[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,54 +78,12 @@ export default function TodaysHelp() {
       const res = await getTodaysProviders();
       const all: TodayProvider[] = Array.isArray(res?.data) ? res.data : [];
 
-      if (__DEV__) {
-        // The day-index convention isn't documented anywhere; this prints what
-        // the server actually sends so the filter below can be trusted.
-        console.log(
-          "[TodaysHelp] today(Mon=0)=", todayIndex(),
-          "| JS getDay(Sun=0)=", new Date().getDay(),
-          "| returned=", all.length,
-          all.map((i) => ({
-            id: i.provider?.id,
-            name: i.provider?.first_name,
-            status: i.status,
-            on_leave: i.on_leave,
-            substitute_for: i.substitute_for,
-            covering_for: i.substitute_for_name,
-          }))
-        );
-      }
-
       // Only the maids actually due today — see isScheduledToday.
-      const dueToday = all.filter(isScheduledToday);
-
-      // A maid who is being covered isn't coming, so she shouldn't occupy a card
-      // offering to mark her present. The substitute's row names who it is
-      // standing in for, so we can drop the covered provider and leave only the
-      // person who will actually be at the door.
       //
-      // Display only: no attendance is written for the covered maid. "Not
-      // expected" is not the same as "marked absent", and inventing an absence
-      // record here would corrupt her attendance history.
-      const coveredIds = new Set(
-        dueToday.map((i) => i.substitute_for).filter(Boolean) as string[]
-      );
-      const coveredNames = new Set(
-        dueToday
-          .map((i) => i.substitute_for_name?.trim().toLowerCase())
-          .filter(Boolean) as string[]
-      );
-
-      const list = dueToday.filter((i) => {
-        const id = i.provider?.id;
-        if (id && coveredIds.has(id)) return false;
-        // Fall back to the name when the backend sends only substitute_for_name.
-        const name = `${i.provider?.first_name ?? ""} ${i.provider?.last_name ?? ""}`
-          .trim()
-          .toLowerCase();
-        if (name && coveredNames.has(name)) return false;
-        return true;
-      });
+      // Both the maid on leave and her stand-in are shown. Hiding the absent one
+      // would leave the resident wondering why a stranger is at the door; naming
+      // her, and naming who is covering, is the whole point.
+      const list = all.filter(isScheduledToday);
       // Guard against duplicate assignment rows for the same maid: collapse to
       // one card per provider so a backend duplicate can't show twice (or let
       // attendance be marked twice for one person). Merge their services.
@@ -148,11 +97,9 @@ export default function TodaysHelp() {
             new Set([...(existing.assigned_services || []), ...(item.assigned_services || [])])
           );
         } else {
-          // on_leave wins over status. The backend keeps sending the day's
-          // attendance (e.g. "present" from before leave was granted), and a
-          // maid on leave must never render as markable.
-          const status = item.on_leave ? "leave" : normalizeStatus(item.status);
-          byProvider.set(id, { ...item, status });
+          // status stays the attendance mark. on_leave rides alongside it — see
+          // the note on AttendanceStatus for why they must not be merged.
+          byProvider.set(id, { ...item, status: normalizeStatus(item.status) });
         }
       }
       setItems(Array.from(byProvider.values()));
@@ -196,23 +143,45 @@ export default function TodaysHelp() {
     }
   };
 
+  // Loading: a skeleton in the shape of the card that's coming, so the layout
+  // doesn't jump. A spinner tells you nothing about what's about to appear.
   if (loading) {
     return (
-      <View style={[s.card, s.centered]}>
-        <ActivityIndicator color={theme.accent} />
+      <View style={s.card}>
+        <View style={s.row}>
+          <View style={[s.avatar, s.skeleton]} />
+          <View style={s.info}>
+            <View style={[s.skeleton, s.skelLine, { width: "55%" }]} />
+            <View style={[s.skeleton, s.skelLine, { width: "35%", height: 10, marginTop: 8 }]} />
+          </View>
+        </View>
+        <View style={[s.skeleton, { height: 44, borderRadius: 14, marginTop: 16 }]} />
       </View>
     );
   }
 
   if (items.length === 0) {
     return (
-      <View style={s.card}>
+      <View style={[s.card, s.empty]}>
         <View style={s.emptyIcon}>
-          <Ionicons name="home-outline" size={22} color={theme.textTertiary} />
+          <Ionicons name="cafe-outline" size={20} color={theme.textTertiary} />
         </View>
-        <Text style={s.emptyText}>No help scheduled today</Text>
+        <Text style={s.emptyTitle}>Nothing scheduled today</Text>
+        <Text style={s.emptyText}>Your help isn&apos;t due to visit.</Text>
       </View>
     );
+  }
+
+  // Who is standing in for whom. A substitute row names the provider it covers,
+  // and being covered is itself proof that person isn't coming — independent of
+  // `on_leave`, which only flips for *approved* time-off and so can still read
+  // false while a stand-in has already been assigned.
+  const coveredBy = new Map<string, string>();
+  for (const item of items) {
+    const target = item.substitute_for;
+    if (!target) continue;
+    const name = `${item.provider.first_name} ${item.provider.last_name || ""}`.trim();
+    coveredBy.set(target, name);
   }
 
   return (
@@ -221,12 +190,19 @@ export default function TodaysHelp() {
         const { provider } = item;
         const img = mediaUrl(provider.profile_image);
         const busy = markingId === provider.id;
+        const cover = coveredBy.get(provider.id);
+        // Not coming today, for either reason. Both suppress the attendance
+        // controls — marking someone present who was never expected is wrong
+        // regardless of *why* they were not expected.
+        const onLeave = !!item.on_leave || !!cover;
         const fmtTime = item.marked_at
           ? new Date(item.marked_at).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })
           : null;
         return (
           <View key={item.assignment_id ?? `${provider.id}-${index}`} style={s.card}>
-            <View style={s.row}>
+            {/* A maid who isn't coming is dimmed — present on the card so the
+                resident knows who is off, but visibly not today's business. */}
+            <View style={[s.row, onLeave && s.dimmed]}>
               {img ? (
                 <Image source={{ uri: img }} style={s.avatar} />
               ) : (
@@ -244,7 +220,17 @@ export default function TodaysHelp() {
                     : item.assigned_services?.join(", ") || "Home help"}
                 </Text>
               </View>
-              {item.status ? (
+
+              {/* Leave outranks the attendance badge in the corner slot: "not
+                  expected" is the more important fact. The underlying status is
+                  untouched and still whatever the server said. */}
+              {onLeave ? (
+                <View style={[s.badge, { backgroundColor: theme.surfaceAlt }]}>
+                  <Text style={[s.badgeText, { color: theme.textSecondary }]}>
+                    {item.on_leave ? "On leave" : "Away"}
+                  </Text>
+                </View>
+              ) : item.status ? (
                 <View style={[s.badge, { backgroundColor: statusTint(item.status) }]}>
                   <Text style={[s.badgeText, { color: statusColor(item.status) }]}>
                     {statusLabel(item.status)}
@@ -255,13 +241,16 @@ export default function TodaysHelp() {
               )}
             </View>
 
-            {/* Leave is set by an admin, not the resident — so it's terminal here:
-                no Mark Present, and no tap-to-change that would let a resident
-                overwrite it. */}
-            {item.status === "leave" ? (
+            {/* Approved time-off, set by an admin. Terminal: no Mark Present, and
+                no tap-to-change — a resident must not be able to record
+                attendance for someone who was never expected. The backend would
+                accept it. */}
+            {onLeave ? (
               <View style={s.amendRow}>
-                <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
-                <Text style={s.amendText}>Not visiting today</Text>
+                <Ionicons name="calendar-outline" size={15} color={theme.textTertiary} />
+                <Text style={s.amendText}>
+                  {cover ? `Not visiting today · ${cover} is covering` : "Not visiting today"}
+                </Text>
               </View>
             ) : item.status ? (
               <TouchableOpacity
@@ -306,44 +295,89 @@ export default function TodaysHelp() {
 
 const makeStyles = (t: Theme) =>
   StyleSheet.create({
+    // One border treatment in both themes: on dark the lifted surface alone was
+    // too soft to separate the card from the page.
     card: {
-      backgroundColor: t.card,
-      borderRadius: 24,
-      borderWidth: t.mode === "light" ? 1 : 0,
-      borderColor: t.border,
-      padding: 18,
-    },
-    centered: { alignItems: "center", justifyContent: "center", minHeight: 90 },
-    emptyIcon: {
-      width: 44,
-      height: 44,
-      borderRadius: 14,
       backgroundColor: t.surface,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: t.border,
+      padding: 16,
+    },
+
+    /* EMPTY */
+    empty: { alignItems: "center", paddingVertical: 28 },
+    emptyIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 13,
+      backgroundColor: t.surfaceAlt,
       alignItems: "center",
       justifyContent: "center",
-      alignSelf: "center",
-      marginBottom: 10,
+      marginBottom: 12,
     },
-    emptyText: { fontFamily: fonts.medium, fontSize: 14, color: t.textSecondary, textAlign: "center" },
+    emptyTitle: {
+      fontFamily: fonts.displaySemibold,
+      fontSize: 14,
+      color: t.text,
+      letterSpacing: -0.2,
+    },
+    emptyText: {
+      fontFamily: fonts.displayMedium,
+      fontSize: 12.5,
+      color: t.textTertiary,
+      marginTop: 4,
+    },
+
+    /* LOADING */
+    skeleton: { backgroundColor: t.surfaceAlt, overflow: "hidden" },
+    skelLine: { height: 12, borderRadius: 6 },
+
+    /* CARD */
     row: { flexDirection: "row", alignItems: "center" },
-    avatar: { width: 48, height: 48, borderRadius: 16 },
+    dimmed: { opacity: 0.55 },
+    avatar: { width: 44, height: 44, borderRadius: 14 },
     avatarFallback: { backgroundColor: t.accentTint, alignItems: "center", justifyContent: "center" },
-    info: { flex: 1, marginLeft: 14 },
-    name: { fontFamily: fonts.semibold, fontSize: 16, color: t.text, letterSpacing: -0.2 },
-    role: { fontFamily: fonts.regular, fontSize: 13, color: t.textSecondary, marginTop: 2 },
-    scheduled: { fontFamily: fonts.medium, fontSize: 13, color: t.textTertiary },
-    badge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
-    badgeText: { fontFamily: fonts.semibold, fontSize: 12 },
-    actions: { flexDirection: "row", gap: 10, marginTop: 16 },
+    info: { flex: 1, marginLeft: 12 },
+    name: {
+      fontFamily: fonts.displayBold,
+      fontSize: 15,
+      color: t.text,
+      letterSpacing: -0.3,
+    },
+    role: {
+      fontFamily: fonts.displayMedium,
+      fontSize: 12.5,
+      color: t.textTertiary,
+      marginTop: 2,
+    },
+    scheduled: {
+      fontFamily: fonts.displaySemibold,
+      fontSize: 12,
+      color: t.textTertiary,
+    },
+    badge: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999 },
+    badgeText: { fontFamily: fonts.displayBold, fontSize: 11, letterSpacing: -0.1 },
+
+    /* ACTIONS — primary is filled, secondary is a quiet ghost. The destructive
+       reading of "Absent" comes from context, not from colouring it red. */
+    actions: { flexDirection: "row", gap: 8, marginTop: 16 },
     actionBtn: {
       flex: 1,
-      height: 46,
-      borderRadius: 14,
+      height: 44,
+      borderRadius: 13,
       alignItems: "center",
       justifyContent: "center",
     },
-    actionGhost: { flex: 0, paddingHorizontal: 18, backgroundColor: t.surface },
-    actionText: { fontFamily: fonts.semibold, fontSize: 14 },
+    actionGhost: {
+      flex: 0,
+      paddingHorizontal: 20,
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: t.border,
+    },
+    actionText: { fontFamily: fonts.displayBold, fontSize: 13.5, letterSpacing: -0.2 },
+
     amendRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14 },
-    amendText: { fontFamily: fonts.regular, fontSize: 13, color: t.textSecondary },
+    amendText: { fontFamily: fonts.displayMedium, fontSize: 12.5, color: t.textTertiary },
   });
