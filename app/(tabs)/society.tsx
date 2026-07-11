@@ -27,6 +27,7 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorState } from "../../components/ui/ErrorState";
 import { useFeature } from "../../src/FeatureContext";
 import { MODULES } from "../../src/featureRegistry";
+import { getToken } from "../../src/api/tokenStore";
 
 type ActiveTab = "finance" | "tickets";
 type FinanceType = "income" | "expense";
@@ -151,7 +152,7 @@ export default function SocietyScreen() {
     if (!isRefresh) setLoading(true);
     setError(false);
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       const userStr = await AsyncStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
 

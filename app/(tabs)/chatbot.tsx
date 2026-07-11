@@ -18,6 +18,7 @@ import { useTheme } from "../../src/ThemeContext";
 import { useFeatureGuard } from "../../src/useFeatureGuard";
 import { MODULES } from "../../src/featureRegistry";
 import { Theme } from "../../constants/themes";
+import { getToken } from "../../src/api/tokenStore";
 
 type MessageType = {
   id: string;
@@ -43,7 +44,7 @@ export default function ChatbotScreen() {
   const initChat = async () => {
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       if (!token) return;
 
       // Start or resume session
@@ -98,7 +99,7 @@ export default function ChatbotScreen() {
     setIsTyping(true);
 
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       const response = await fetch(`${config.apiUrl}/chatbot/sessions/${sessionId}/messages`, {
         method: "POST",
         headers: {
@@ -127,7 +128,7 @@ export default function ChatbotScreen() {
   const resetChat = async () => {
     if (!sessionId) return;
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       await fetch(`${config.apiUrl}/chatbot/sessions/${sessionId}?mode=reset`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },

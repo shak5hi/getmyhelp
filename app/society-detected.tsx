@@ -1,3 +1,4 @@
+import { getToken } from "../src/api/tokenStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -67,7 +68,7 @@ export default function SocietyDetectedScreen() {
 
         // 3. Fallback: Fetch from general societies API if no location-based data
         console.log("🌐 No location data, fetching from general API...");
-        const token = await AsyncStorage.getItem("access_token");
+        const token = await getToken();
         const response = await fetch(`${config.apiUrl}/customer/societies`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -94,7 +95,7 @@ export default function SocietyDetectedScreen() {
     if (!selectedSociety) return;
 
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       
       // Call backend to save selection
       await fetch(`${config.apiUrl}/customer/select-society`, {

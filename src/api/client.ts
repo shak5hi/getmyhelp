@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../config";
+import { clearToken, getToken } from "./tokenStore";
 
 /**
  * Central API client.
@@ -23,11 +24,13 @@ export const ENABLED_MODULES_KEY = "enabled_modules";
 // Keys cleared when a session ends. Kept in one place so login + logout + the
 // 401 guard all wipe exactly the same state.
 //
+// The access token is NOT here — it lives in SecureStore (see tokenStore) and is
+// cleared separately by clearSession below.
+//
 // ENABLED_MODULES_KEY *must* be in here: the module set is per-society, so a
 // stale cache would otherwise let the next resident to log in on this device
 // see the previous society's features until the network refresh lands.
 const SESSION_KEYS = [
-  "access_token",
   "user",
   "user_role",
   "selected_society_id",
@@ -36,10 +39,13 @@ const SESSION_KEYS = [
   ENABLED_MODULES_KEY,
 ];
 
-export const getToken = () => AsyncStorage.getItem("access_token");
+// Re-exported so callers have one import for the token, and so no screen is
+// tempted to reach into storage directly (which is how the token ended up read
+// from AsyncStorage in 22 different files).
+export { getToken, setToken } from "./tokenStore";
 
 export const clearSession = async () => {
-  await AsyncStorage.multiRemove(SESSION_KEYS);
+  await Promise.all([clearToken(), AsyncStorage.multiRemove(SESSION_KEYS)]);
 };
 
 // ── 401 / session-expiry plumbing ───────────────────────────────────────────
@@ -97,7 +103,29 @@ const parseResponse = async <T>(res: Response, label: string): Promise<T> => {
 
 export interface ApiRequestOptions extends Omit<RequestInit, "body"> {
   body?: BodyInit | object | null;
+  /** Per-request override of the default network timeout, in ms. */
+  timeoutMs?: number;
 }
+
+// A request that never reached the server: no connection, DNS failure, or the
+// timeout below firing. Distinct from an HTTP error — the server said nothing at
+// all — so screens can show "you're offline / try again" rather than a generic
+// failure. `apiRequest` still resolves to the benign empty shape for backward
+// compatibility; callers that want to react to offline can catch this instead.
+export class NetworkError extends Error {
+  isTimeout: boolean;
+  constructor(message: string, isTimeout = false) {
+    super(message);
+    this.name = "NetworkError";
+    this.isTimeout = isTimeout;
+  }
+}
+
+// A stalled request on a flaky mobile connection otherwise hangs forever on a
+// spinner. 20s is generous enough for a cold backend and a slow uplink (the
+// literal use case: a resident on 2 bars in a basement lobby) without trapping
+// the user indefinitely.
+const DEFAULT_TIMEOUT_MS = 20000;
 
 /**
  * Make an authenticated request. `path` is relative to the API root
@@ -109,7 +137,7 @@ export async function apiRequest<T = any>(
   options: ApiRequestOptions = {}
 ): Promise<T> {
   const token = await getToken();
-  const { body, headers: extraHeaders, ...rest } = options;
+  const { body, headers: extraHeaders, timeoutMs, ...rest } = options;
 
   const isForm = typeof FormData !== "undefined" && body instanceof FormData;
   const isPlainObject =
@@ -121,11 +149,28 @@ export async function apiRequest<T = any>(
     ...(extraHeaders as Record<string, string> | undefined),
   };
 
-  const res = await fetch(`${config.apiUrl}${path}`, {
-    ...rest,
-    headers,
-    body: isPlainObject ? JSON.stringify(body) : (body as BodyInit | null | undefined),
-  });
+  // Abort the request if it outlives the timeout, so a dead connection surfaces
+  // as a NetworkError instead of an unresolved promise.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs ?? DEFAULT_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${config.apiUrl}${path}`, {
+      ...rest,
+      headers,
+      body: isPlainObject ? JSON.stringify(body) : (body as BodyInit | null | undefined),
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    // AbortError => our timeout fired; anything else => no connection reached.
+    if (err?.name === "AbortError") {
+      throw new NetworkError(`Request timed out: ${path}`, true);
+    }
+    throw new NetworkError(`Network request failed: ${path}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (res.status === 401) {
     // Only treat as a real session expiry if we actually had a token; a 401 on

@@ -12,6 +12,7 @@ import {
 import config from "../src/config";
 import { makeLocationStyles } from "../styles/location.styles";
 import { useTheme } from "../src/ThemeContext";
+import { getToken } from "../src/api/tokenStore";
 
 export default function LocationScreen() {
   const router = useRouter();
@@ -72,7 +73,7 @@ export default function LocationScreen() {
       console.log("🏠 ADDRESS:", address);
 
       // 4️⃣ Get access token from storage
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
 
       if (!token) {
         setError("User not authenticated. Please login again.");
@@ -81,7 +82,6 @@ export default function LocationScreen() {
         return;
       }
 
-      console.log("🔐 USING TOKEN:", token.substring(0, 20) + "...");
 
       // 5️⃣ Send location to backend with correct field names
       console.log("📤 Sending location to backend...");

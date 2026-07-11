@@ -6,6 +6,7 @@ import { useNotificationSocket } from "../hooks/useNotificationSocket";
 import { useFeature } from "./FeatureContext";
 import { MODULES } from "./featureRegistry";
 import config from "./config";
+import { getToken } from "./api/tokenStore";
 
 const toFullUrl = (url: string | null | undefined): string | null => {
   if (!url) return null;
@@ -66,7 +67,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   useEffect(() => {
     (async () => {
       const userStr = await AsyncStorage.getItem("user");
-      const tok = await AsyncStorage.getItem("access_token");
+      const tok = await getToken();
       const role = await AsyncStorage.getItem("user_role");
       const guardFlag = role === "guard";
       setIsGuard(guardFlag);

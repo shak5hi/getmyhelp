@@ -20,6 +20,7 @@ import { registerForPush, unregisterForPush } from "../../src/push";
 import { getMyResidence } from "../../src/api/societyApi";
 import { getPushEnabled, setPushEnabled } from "../../src/preferences";
 import ThemeToggle from "../../components/ThemeToggle";
+import { getToken } from "../../src/api/tokenStore";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -173,7 +174,7 @@ export default function ProfileScreen() {
 
   const loadUserData = async () => {
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       const userStr = await AsyncStorage.getItem("user");
       const userObj = userStr ? JSON.parse(userStr) : null;
       const customerId = userObj?.id;

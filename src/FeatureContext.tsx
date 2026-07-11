@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiGet, ENABLED_MODULES_KEY } from "./api/client";
+import { getToken } from "./api/tokenStore";
 
 /**
  * Backend-driven feature permission context.
@@ -109,7 +110,7 @@ export const FeatureProvider = ({ children }: { children: React.ReactNode }) => 
 
   const refresh = useCallback(async () => {
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       if (!token) {
         // Not logged in — nothing to resolve. Drop any modules from a previous
         // session and mark ready so the (unauthed) UI isn't optimistic forever.

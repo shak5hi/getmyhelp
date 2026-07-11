@@ -9,6 +9,7 @@ import PrimaryButton from "../components/PrimaryButton";
 import { makeHomeStyles, splash } from "../styles/home.styles";
 import { useTheme } from "../src/ThemeContext";
 import { useRouter } from "expo-router";
+import { getToken } from "../src/api/tokenStore";
 
 const APP_CONFIG = config;
 
@@ -33,7 +34,7 @@ export default function HomeScreen() {
       }
 
       // 2. Session Check
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       if (token) {
         try {
           const res = await fetch(`${APP_CONFIG.apiUrl}/customer/profile`, {

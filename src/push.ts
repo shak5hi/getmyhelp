@@ -10,6 +10,7 @@ import {
   unregisterDeviceToken,
 } from "./api/deviceTokenApi";
 import { getPushEnabled } from "./preferences";
+import { getToken } from "./api/tokenStore";
 
 /**
  * FCM push notifications — client side of PUSH_NOTIFICATIONS_CONTRACT.md.
@@ -81,7 +82,7 @@ async function requestPushPermission(): Promise<boolean> {
  */
 export async function registerForPush(): Promise<void> {
   try {
-    const authToken = await AsyncStorage.getItem("access_token");
+    const authToken = await getToken();
     if (!authToken) return;
 
     // /customer/device-tokens is customer-only — there's no admin/guard device
@@ -147,7 +148,7 @@ export function initPushListeners(): () => void {
   // idempotent, so re-registering just bumps last_seen_at server-side.
   const unsubscribeRefresh = messaging().onTokenRefresh(async (token) => {
     try {
-      const authToken = await AsyncStorage.getItem("access_token");
+      const authToken = await getToken();
       if (!authToken) return;
       const role = await AsyncStorage.getItem("user_role");
       if (role === "guard") return;

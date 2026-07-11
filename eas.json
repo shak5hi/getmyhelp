@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 16.0.0"
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -21,6 +22,10 @@
       }
     },
     "production": {
+      // Play rejects a re-used versionCode. EAS owns the counter (see
+      // cli.appVersionSource: "remote") and bumps it per build, so it can never
+      // be forgotten or collide between machines.
+      "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
       }

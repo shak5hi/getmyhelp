@@ -9,6 +9,7 @@ import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import config from "../../src/config";
 import { clearSession } from "../../src/api/client";
+import { getToken } from "../../src/api/tokenStore";
 
 export default function GuardProfileScreen() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function GuardProfileScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const token = await AsyncStorage.getItem("access_token");
+        const token = await getToken();
         const res = await fetch(`${config.apiUrl}/customer/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });

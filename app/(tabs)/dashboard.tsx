@@ -18,6 +18,7 @@ import { getMyResidence } from "../../src/api/societyApi";
 import { useFeature, useRefreshFeatures } from "../../src/FeatureContext";
 import { useNotifications } from "../../src/NotificationContext";
 import { MODULES } from "../../src/featureRegistry";
+import { getToken } from "../../src/api/tokenStore";
 
 /**
  * Dashboard.
@@ -63,7 +64,7 @@ export default function DashboardScreen() {
     try {
       // Make sure the society's enabled-module set is fresh (e.g. just after login).
       refreshFeatures();
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       const userStr = await AsyncStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
       if (!token || !user?.id) return;

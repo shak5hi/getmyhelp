@@ -27,6 +27,12 @@ import { ThemeProvider, useTheme } from "../src/ThemeContext";
 import { FeatureProvider } from "../src/FeatureContext";
 import VisitorApprovalModal from "../components/visitor/VisitorApprovalModal";
 import VideoSplash from "../components/VideoSplash";
+import ErrorBoundary from "../components/ErrorBoundary";
+import OfflineBanner from "../components/OfflineBanner";
+import { initSentry, reportError, wrapRoot } from "../src/sentry";
+
+// Start crash reporting before anything renders. No-op until a DSN is set.
+initSentry();
 
 function ThemedStatusBar() {
   const { theme } = useTheme();
@@ -131,7 +137,7 @@ function RootNavigator() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
   const [fontsLoaded] = useFonts({
     "Newsreader-Regular": require("../assets/fonts/Newsreader-Regular.ttf"),
@@ -156,6 +162,12 @@ export default function RootLayout() {
   (TextInput as any).defaultProps.style = { fontFamily: "Inter_400Regular" };
 
   return (
+    // Outermost on purpose: it must be able to catch a render failure in any
+    // provider below it, so it cannot live inside them. onError forwards the
+    // caught exception to Sentry (a no-op until a DSN is configured).
+    <ErrorBoundary
+      onError={(error, info) => reportError(error, { componentStack: info.componentStack })}
+    >
     <ThemeProvider>
     <SafeAreaProvider>
       <LanguageProvider>
@@ -164,14 +176,20 @@ export default function RootLayout() {
             <ThemedStatusBar />
             <VisitorApprovalModal />
             <RootNavigator />
+            <OfflineBanner />
             {!splashDone && <VideoSplash onDone={() => setSplashDone(true)} />}
           </NotificationProvider>
         </FeatureProvider>
       </LanguageProvider>
     </SafeAreaProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }
+
+// Wrap so native crashes and unhandled JS errors reach Sentry. Passthrough until
+// a DSN is configured.
+export default wrapRoot(RootLayout);
 
 const styles = StyleSheet.create({
   headerBubble: {

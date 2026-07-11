@@ -15,6 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../src/config";
 import { useTheme } from "../src/ThemeContext";
 import { Theme } from "../constants/themes";
+import { getToken } from "../src/api/tokenStore";
 
 const DAYS_MAP = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -32,7 +33,7 @@ export default function AssignmentDetailsScreen() {
 
   const fetchAssignmentDetails = async () => {
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       if (!token) return;
 
       const response = await fetch(`${config.apiUrl}/customer/assignments/${id}`, {

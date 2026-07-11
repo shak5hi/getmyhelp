@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../src/config";
+import { getToken } from "../src/api/tokenStore";
 
 export function useAnnouncementSocket(
   societyId: string | null,
@@ -19,7 +20,7 @@ export function useAnnouncementSocket(
     let cancelled = false;
 
     const connect = async () => {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       if (!token || cancelled) return;
 
       const host = config.apiUrl.replace(/^http/, "ws");

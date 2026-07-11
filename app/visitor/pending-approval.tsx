@@ -11,6 +11,7 @@ import { useGuardVisitorSocket } from "../../hooks/useGuardVisitorSocket";
 import { getVisitorDetail } from "../../src/api/visitorApi";
 import { useFeatureGuard } from "../../src/useFeatureGuard";
 import { MODULES } from "../../src/featureRegistry";
+import { getToken } from "../../src/api/tokenStore";
 
 export default function PendingApprovalScreen() {
   useFeatureGuard(MODULES.visitors);
@@ -26,7 +27,7 @@ export default function PendingApprovalScreen() {
 
   useEffect(() => {
     (async () => {
-      const tok = await AsyncStorage.getItem("access_token");
+      const tok = await getToken();
       const userStr = await AsyncStorage.getItem("user");
       setToken(tok);
       if (userStr) {

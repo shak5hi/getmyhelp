@@ -21,6 +21,7 @@ import { makeStyles } from "../../styles/society.styles";
 import { useTheme } from "../../src/ThemeContext";
 import { useFeatureGuard } from "../../src/useFeatureGuard";
 import { MODULES } from "../../src/featureRegistry";
+import { getToken } from "../../src/api/tokenStore";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 10;
@@ -108,7 +109,7 @@ export default function CreateTicketScreen() {
 
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
 
       const formData = new FormData();
       formData.append("title", title.trim());

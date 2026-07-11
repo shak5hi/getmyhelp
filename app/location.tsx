@@ -1,3 +1,4 @@
+import { getToken } from "../src/api/tokenStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { clearSession } from "../src/api/client";
 import * as Location from "expo-location";
@@ -51,7 +52,7 @@ export default function LocationScreen() {
   useEffect(() => {
     const fetchAllSocieties = async () => {
       try {
-        const token = await AsyncStorage.getItem("access_token");
+        const token = await getToken();
         if (!token) {
           router.replace("/phone");
           return;
@@ -138,7 +139,7 @@ export default function LocationScreen() {
       console.log("🏠 ADDRESS:", address);
 
       // 4️⃣ Get access token from storage
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
 
       if (!token) {
         setError("User not authenticated. Please login again.");
@@ -147,7 +148,6 @@ export default function LocationScreen() {
         return;
       }
 
-      console.log("🔐 USING TOKEN:", token.substring(0, 20) + "...");
 
       // 5️⃣ Send location to backend with correct field names
       console.log("📤 Sending location to backend...");

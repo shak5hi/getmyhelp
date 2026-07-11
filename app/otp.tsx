@@ -18,6 +18,7 @@ import { registerForPush } from "../src/push";
 import { getConfirmation, setConfirmation } from "../src/firebaseConfirmation";
 import { makeOtpStyles } from "../styles/otp.styles";
 import { useTheme } from "../src/ThemeContext";
+import { setToken } from "../src/api/tokenStore";
 
 export default function OtpScreen() {
   useLanguage();
@@ -131,7 +132,7 @@ export default function OtpScreen() {
       }
 
       // ✅ STORE TOKEN
-      await AsyncStorage.setItem("access_token", accessToken);
+      await setToken(accessToken);
 
       // Store customer data (include phone for fallback)
       const userToSave = { ...(customer || {}), phone };

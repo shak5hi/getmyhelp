@@ -1,3 +1,4 @@
+import { getToken } from "../src/api/tokenStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fonts } from "../constants/tokens";
 import { useRouter } from "expo-router";
@@ -44,7 +45,7 @@ export default function TowerScreen() {
   const fetchTowers = async () => {
     try {
       const societyId = await AsyncStorage.getItem("selected_society_id");
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
 
       if (!societyId || !token) {
         setFetchingTowers(false);
@@ -82,7 +83,7 @@ export default function TowerScreen() {
       setError("");
 
       const societyId = await AsyncStorage.getItem("selected_society_id");
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
 
       if (!societyId || !token) {
         setError("Missing society or token. Please restart onboarding.");

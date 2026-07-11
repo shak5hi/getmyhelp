@@ -21,6 +21,7 @@ import { useTheme } from "../../src/ThemeContext";
 import { CommentItem } from "../../components/society/CommentItem";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { StatusPill, ticketStatusTone } from "../../components/ui/StatusPill";
+import { getToken } from "../../src/api/tokenStore";
 
 export default function TicketDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -60,7 +61,7 @@ export default function TicketDetailsScreen() {
 
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       const response = await fetch(`${config.apiUrl}/customer/tickets/${ticketId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -95,7 +96,7 @@ export default function TicketDetailsScreen() {
 
     setSending(true);
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       const response = await fetch(`${config.apiUrl}/customer/tickets/${id}/comments`, {
         method: "POST",
         headers: {

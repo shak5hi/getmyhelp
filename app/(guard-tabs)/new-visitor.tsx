@@ -22,6 +22,7 @@ import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import config from "../../src/config";
 import { createVisitor } from "../../src/api/visitorApi";
+import { getToken } from "../../src/api/tokenStore";
 
 const PURPOSES = ["delivery", "guest", "domestic", "vendor", "interview", "other"];
 
@@ -56,7 +57,7 @@ export default function NewVisitorScreen() {
       const user = userStr ? JSON.parse(userStr) : null;
       const societyId = user?.guard_society_id;
       if (!societyId) return;
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       const res = await fetch(`${config.apiUrl}/customer/societies/${societyId}/towers`, {
         headers: { Authorization: `Bearer ${token ?? ""}` },
       });
