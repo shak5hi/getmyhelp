@@ -61,15 +61,21 @@
       ],
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
+      "@react-native-firebase/messaging",
       "@react-native-community/datetimepicker",
       [
         "expo-build-properties",
         {
           "android": {
             "kotlinVersion": "2.0.21"
+          },
+          "ios": {
+            "useFrameworks": "static"
           }
         }
-      ]
+      ],
+      "./plugins/withDefaultNotificationChannel",
+      "./plugins/withNotifeeRepo"
     ],
     "experiments": {
       "typedRoutes": true,

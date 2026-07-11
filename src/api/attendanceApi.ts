@@ -1,6 +1,20 @@
 import { apiGet, apiRequest } from "./client";
 
-export type AttendanceStatus = "present" | "absent" | "late";
+export type AttendanceStatus = "present" | "absent" | "late" | "leave";
+
+/**
+ * Normalise the server's status. `leave` is set by an admin (sick/planned leave)
+ * rather than by the resident, and the backend spelling isn't settled — accept
+ * the plausible variants so a rename doesn't silently render the maid as
+ * "Scheduled" with Mark Present buttons.
+ */
+export const normalizeStatus = (raw: any): AttendanceStatus | null => {
+  const s = String(raw ?? "").toLowerCase();
+  if (!s) return null;
+  if (s.includes("leave") || s === "sick" || s === "off") return "leave";
+  if (s === "present" || s === "absent" || s === "late") return s;
+  return null;
+};
 
 export interface AttendancePhoto {
   uri: string;
@@ -18,11 +32,26 @@ export interface TodayProvider {
   };
   assignment_id: string;
   assigned_services: string[];
-  days_of_week: number[]; // 0=Mon … 6=Sun
+  // 0=Sun … 6=Sat — same indexing as JS Date.getDay(). (The comment here used to
+  // say 0=Mon; it was wrong, and verified against live data.)
+  days_of_week: number[];
   attendance_id: string | null;
   status: AttendanceStatus | null;
   marked_at: string | null;
   photo_url: string | null;
+
+  /**
+   * Admin-set leave for today. Deliberately separate from `status`: that field
+   * carries *attendance* (did they turn up), and leave is a different axis — a
+   * maid on leave has no attendance to record. Overloading one field would lose
+   * the difference between "marked absent" and "not expected".
+   */
+  on_leave?: boolean | null;
+
+  /** Set when this maid is standing in for someone. The name is what the
+   *  resident needs — a stranger at the door is the whole problem being solved. */
+  substitute_for?: string | null;
+  substitute_for_name?: string | null;
 }
 
 // Maids scheduled for the resident today, with each one's current status.

@@ -16,6 +16,7 @@ import { makeStyles } from "../../styles/profile.styles";
 import { useTheme } from "../../src/ThemeContext";
 import { useLanguage } from "../../src/LanguageContext";
 import { clearSession } from "../../src/api/client";
+import { registerForPush, unregisterForPush } from "../../src/push";
 import { getMyResidence } from "../../src/api/societyApi";
 import { getPushEnabled, setPushEnabled } from "../../src/preferences";
 import ThemeToggle from "../../components/ThemeToggle";
@@ -159,7 +160,15 @@ export default function ProfileScreen() {
 
   const togglePush = async (value: boolean) => {
     setPushEnabledState(value);
+    // Persist first: registerForPush reads the preference and bails if it's off.
     await setPushEnabled(value);
+    // Make the toggle actually take effect on the server, rather than only
+    // gating a future launch — turning it off must delete the device token.
+    if (value) {
+      await registerForPush();
+    } else {
+      await unregisterForPush();
+    }
   };
 
   const loadUserData = async () => {
@@ -217,6 +226,10 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     try {
+      // Detach this device first — the DELETE needs the bearer token that
+      // clearSession is about to wipe. Without this the next person to log in
+      // on this handset keeps receiving the previous user's notifications.
+      await unregisterForPush();
       await clearSession();
       router.replace("/");
     } catch (error) {

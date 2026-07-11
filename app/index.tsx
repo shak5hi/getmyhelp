@@ -1,16 +1,16 @@
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { Image, Text, View, Pressable, Modal } from "react-native";
-import { fonts } from "../constants/tokens";
 import { useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "../src/i18n";
 import config from "../src/config";
 import PrimaryButton from "../components/PrimaryButton";
-import { makeHomeStyles } from "../styles/home.styles";
+import { makeHomeStyles, splash } from "../styles/home.styles";
 import { useTheme } from "../src/ThemeContext";
 import { useRouter } from "expo-router";
 
 const APP_CONFIG = config;
-
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -39,11 +39,11 @@ export default function HomeScreen() {
           const res = await fetch(`${APP_CONFIG.apiUrl}/customer/profile`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          
+
           if (res.ok) {
             const profileResponse = await res.json();
             const profile = profileResponse?.data || profileResponse;
-            
+
             const hasSociety = profile?.society_id || profile?.societyId;
             const hasTower = profile?.tower_id || profile?.towerId || profile?.flat_number || profile?.flatNumber;
 
@@ -61,9 +61,7 @@ export default function HomeScreen() {
               } else {
                 router.replace("/(tabs)/dashboard");
               }
-            } else {
             }
-          } else {
           }
         } catch (e) {
         }
@@ -80,81 +78,119 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-
-      {/* 🌐 CHANGE LANGUAGE BUTTON (NEW) */}
-      <Pressable
-        onPress={() => setShowLanguageModal(true)}
-        style={{
-          position: "absolute",
-          top: 50,
-          right: 20,
-          zIndex: 10,
-        }}
-      >
-        <Text style={{ fontSize: 14, color: theme.text }}>
-          🌐 Language
-        </Text>
-      </Pressable>
-
-      {/* 🌐 LANGUAGE MODAL */}
-      <Modal visible={showLanguageModal} transparent animationType="fade">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: theme.overlay,
-            justifyContent: "center",
-            padding: 24,
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: theme.card,
-              borderRadius: 20,
-              padding: 20,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 18,
-                fontFamily: fonts.semibold,
-                marginBottom: 12,
-                color: theme.text,
-              }}
-            >
-              Choose Language
-            </Text>
-
-            {LANGUAGES.map((lang) => (
-              <Pressable
-                key={lang.code}
-                onPress={() => selectLanguage(lang.code)}
-                style={{ paddingVertical: 12 }}
-              >
-                <Text style={{ fontSize: 16, color: theme.text }}>
-                  {lang.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-      </Modal>
-
-      {/* MAIN CONTENT */}
-      <View style={styles.textBlock}>
-        <Text style={styles.title}>{i18n.t("appName")}</Text>
-        <Text style={styles.subtitle}>{i18n.t("tagline")}</Text>
-      </View>
-
-      <Image
-        source={require("../assets/home.png")}
-        style={styles.image}
+      {/* The splash's violet field — this screen is the frame after the video,
+          so it carries the same gradient rather than the app theme. */}
+      <LinearGradient
+        colors={[...splash.gradient]}
+        locations={[0, 0.45, 1]}
+        start={{ x: 0.15, y: 0 }}
+        end={{ x: 0.6, y: 1 }}
+        style={styles.field}
+      />
+      {/* The splash's top-right light source. */}
+      <LinearGradient
+        colors={[...splash.bloom]}
+        start={{ x: 0.8, y: 0 }}
+        end={{ x: 0.1, y: 1 }}
+        style={styles.bloom}
+        pointerEvents="none"
       />
 
-      <View style={styles.buttonBlock}>
-        <PrimaryButton
-          title={i18n.t("getStarted")}
-          onPress={() => router.push("/phone")}
+      <View style={styles.content}>
+        {/* TOP BAR */}
+        <View style={styles.topBar}>
+          <View style={styles.brandRow}>
+            <Image
+              source={require("../assets/images/icon.png")}
+              style={styles.brandLogo}
+            />
+            <Text style={styles.brandWord}>{i18n.t("appName")}</Text>
+          </View>
+
+          <Pressable onPress={() => setShowLanguageModal(true)} style={styles.langPill}>
+            <Ionicons name="globe-outline" size={13} color={splash.ink} />
+            <Text style={styles.langPillText}>
+              {i18n.locale?.startsWith("hi") ? "हिंदी" : "English"}
+            </Text>
+          </Pressable>
+        </View>
+
+        <Modal visible={showLanguageModal} transparent animationType="fade">
+          <View style={styles.modalBackdrop}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>Choose Language</Text>
+              {LANGUAGES.map((lang) => (
+                <Pressable
+                  key={lang.code}
+                  onPress={() => selectLanguage(lang.code)}
+                  style={styles.modalOption}
+                >
+                  <Text style={styles.modalOptionText}>{lang.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </Modal>
+
+        {/* HEADLINE */}
+        <View style={styles.headline}>
+          <Text style={styles.headlineLine}>{i18n.t("heroLine1")}</Text>
+          <Text style={styles.headlineAccent}>{i18n.t("heroLine2")}</Text>
+        </View>
+
+        {/* THE MOMENT — the maid module: attendance marked, month totalled. */}
+        <View style={styles.frame}>
+          <View style={styles.bubbleRow}>
+            <View style={styles.bubble}>
+              <Text style={styles.bubbleText}>{i18n.t("heroCardBubble")}</Text>
+            </View>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>S</Text>
+            </View>
+          </View>
+
+          <View style={styles.dashed} />
+
+          <Text style={styles.result}>
+            <Text style={styles.resGreat}>{i18n.t("heroCardGreat")}</Text>{" "}
+            <Text style={styles.resWarm}>{i18n.t("heroCardTotal")}</Text>{" "}
+            {i18n.t("heroCardMid")}{" "}
+            <Ionicons name="calendar" size={15} color={splash.lilac} />{" "}
+            <Text style={styles.resPurple}>{i18n.t("heroCardMonth")}</Text>{" "}
+            <Text style={styles.resValue}>{i18n.t("heroCardValue")}</Text>
+          </Text>
+
+          <View style={styles.chip}>
+            <Ionicons name="checkmark" size={20} color="#5B21D6" />
+          </View>
+        </View>
+
+        {/* The near-white panel, as the splash curves into. Painted over the
+            frame so its bottom border dissolves instead of closing. */}
+        <LinearGradient
+          colors={["transparent", "rgba(244,243,248,0.85)", splash.panel]}
+          locations={[0, 0.5, 0.78]}
+          style={styles.panel}
+          pointerEvents="none"
         />
+
+        {/* FOOTER — on the panel, so type flips to violet ink. */}
+        <View style={styles.footer}>
+          <Text style={styles.tagline}>
+            {i18n.t("heroTaglineA")}{"\n"}{i18n.t("heroTaglineB")}
+          </Text>
+
+          <PrimaryButton
+            title={i18n.t("getStarted")}
+            onPress={() => router.push("/phone")}
+            style={styles.cta}
+          />
+
+          <Text style={styles.terms}>
+            {i18n.t("termsNote")}{" "}
+            <Text style={styles.termsLink}>{i18n.t("terms")}</Text>
+          </Text>
+        </View>
       </View>
     </View>
   );

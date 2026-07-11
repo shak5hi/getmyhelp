@@ -16,6 +16,7 @@ import ThemeToggle from "../../components/ThemeToggle";
 import { getPendingApprovals } from "../../src/api/visitorApi";
 import { getMyResidence } from "../../src/api/societyApi";
 import { useFeature, useRefreshFeatures } from "../../src/FeatureContext";
+import { useNotifications } from "../../src/NotificationContext";
 import { MODULES } from "../../src/featureRegistry";
 
 // Foreground accents that sit on top of the solid accent surface (banner/FAB).
@@ -33,6 +34,7 @@ export default function DashboardScreen() {
   // Feature flags drive what this screen surfaces. Refresh the set on mount so
   // the right modules show immediately after login.
   const refreshFeatures = useRefreshFeatures();
+  const { unreadCount } = useNotifications();
   const visitorsEnabled = useFeature(MODULES.visitors);
   const ticketsEnabled = useFeature(MODULES.tickets);
   const communityEnabled = useFeature(MODULES.community);
@@ -139,6 +141,13 @@ export default function DashboardScreen() {
           <View style={{ flex: 1 }} />
           <TouchableOpacity style={s.iconBtn} onPress={() => router.push("/notifications")} activeOpacity={0.7}>
             <Ionicons name="notifications-outline" size={20} color={theme.text} />
+            {unreadCount > 0 && (
+              <View style={s.bellBadge}>
+                <Text style={s.bellBadgeText}>
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
           <View style={{ width: 10 }} />
           <ThemeToggle />
@@ -277,6 +286,26 @@ const makeStyles = (t: Theme) =>
       backgroundColor: t.surface,
       alignItems: "center",
       justifyContent: "center",
+    },
+    bellBadge: {
+      position: "absolute",
+      top: -4,
+      right: -4,
+      minWidth: 18,
+      height: 18,
+      borderRadius: 9,
+      paddingHorizontal: 4,
+      backgroundColor: t.danger,
+      alignItems: "center",
+      justifyContent: "center",
+      // Ring it in the page background so it reads as lifted off the button.
+      borderWidth: 2,
+      borderColor: t.bg,
+    },
+    bellBadgeText: {
+      fontFamily: fonts.bold,
+      fontSize: 10,
+      color: "#FFFFFF",
     },
 
     greetBlock: { marginBottom: 22 },

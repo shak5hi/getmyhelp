@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   getTodaysProviders,
   markAttendance,
+  normalizeStatus,
   AttendanceStatus,
   AttendancePhoto,
   TodayProvider,
@@ -21,6 +22,28 @@ import { mediaUrl } from "../src/config";
 import { fonts } from "../constants/tokens";
 import { useTheme } from "../src/ThemeContext";
 import { Theme } from "../constants/themes";
+
+// The API's days_of_week is 0=Sun…6=Sat — the same indexing as JS getDay().
+// (Confirmed against real data: a maid scheduled Saturday comes back as [6].)
+const todayIndex = () => new Date().getDay();
+
+/**
+ * Is this assignment actually due today?
+ *
+ * The endpoint returns the resident's assignments, and each carries the weekdays
+ * that maid is scheduled to come. Without this check every assigned provider
+ * shows up every day, so you'd be marking attendance for someone who was never
+ * due — which is what was happening.
+ *
+ * Fail-open on a missing/empty schedule: if the backend can't tell us which days
+ * an assignment covers, we'd rather show it than silently hide real work.
+ */
+const isScheduledToday = (item: TodayProvider): boolean => {
+  if (!item.assignment_id) return false;
+  const days = item.days_of_week;
+  if (!Array.isArray(days) || days.length === 0) return true;
+  return days.includes(todayIndex());
+};
 
 const capturePhoto = async (): Promise<AttendancePhoto | null> => {
   try {
@@ -39,9 +62,20 @@ export default function TodaysHelp() {
   const { theme } = useTheme();
   const s = useMemo(() => makeStyles(theme), [theme]);
   const statusColor = (status: AttendanceStatus) =>
-    status === "absent" ? theme.danger : status === "late" ? theme.warning : theme.success;
+    status === "absent" ? theme.danger
+      : status === "late" ? theme.warning
+      : status === "leave" ? theme.textSecondary
+      : theme.success;
   const statusTint = (status: AttendanceStatus) =>
-    status === "absent" ? theme.dangerTint : status === "late" ? theme.warningTint : theme.successTint;
+    status === "absent" ? theme.dangerTint
+      : status === "late" ? theme.warningTint
+      : status === "leave" ? theme.surfaceAlt
+      : theme.successTint;
+  const statusLabel = (status: AttendanceStatus) =>
+    status === "present" ? "Present"
+      : status === "absent" ? "Absent"
+      : status === "leave" ? "On leave"
+      : "Late";
 
   const [items, setItems] = useState<TodayProvider[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +85,56 @@ export default function TodaysHelp() {
     setLoading(true);
     try {
       const res = await getTodaysProviders();
-      const list = Array.isArray(res?.data) ? res.data : [];
+      const all: TodayProvider[] = Array.isArray(res?.data) ? res.data : [];
+
+      if (__DEV__) {
+        // The day-index convention isn't documented anywhere; this prints what
+        // the server actually sends so the filter below can be trusted.
+        console.log(
+          "[TodaysHelp] today(Mon=0)=", todayIndex(),
+          "| JS getDay(Sun=0)=", new Date().getDay(),
+          "| returned=", all.length,
+          all.map((i) => ({
+            id: i.provider?.id,
+            name: i.provider?.first_name,
+            status: i.status,
+            on_leave: i.on_leave,
+            substitute_for: i.substitute_for,
+            covering_for: i.substitute_for_name,
+          }))
+        );
+      }
+
+      // Only the maids actually due today — see isScheduledToday.
+      const dueToday = all.filter(isScheduledToday);
+
+      // A maid who is being covered isn't coming, so she shouldn't occupy a card
+      // offering to mark her present. The substitute's row names who it is
+      // standing in for, so we can drop the covered provider and leave only the
+      // person who will actually be at the door.
+      //
+      // Display only: no attendance is written for the covered maid. "Not
+      // expected" is not the same as "marked absent", and inventing an absence
+      // record here would corrupt her attendance history.
+      const coveredIds = new Set(
+        dueToday.map((i) => i.substitute_for).filter(Boolean) as string[]
+      );
+      const coveredNames = new Set(
+        dueToday
+          .map((i) => i.substitute_for_name?.trim().toLowerCase())
+          .filter(Boolean) as string[]
+      );
+
+      const list = dueToday.filter((i) => {
+        const id = i.provider?.id;
+        if (id && coveredIds.has(id)) return false;
+        // Fall back to the name when the backend sends only substitute_for_name.
+        const name = `${i.provider?.first_name ?? ""} ${i.provider?.last_name ?? ""}`
+          .trim()
+          .toLowerCase();
+        if (name && coveredNames.has(name)) return false;
+        return true;
+      });
       // Guard against duplicate assignment rows for the same maid: collapse to
       // one card per provider so a backend duplicate can't show twice (or let
       // attendance be marked twice for one person). Merge their services.
@@ -65,7 +148,11 @@ export default function TodaysHelp() {
             new Set([...(existing.assigned_services || []), ...(item.assigned_services || [])])
           );
         } else {
-          byProvider.set(id, { ...item });
+          // on_leave wins over status. The backend keeps sending the day's
+          // attendance (e.g. "present" from before leave was granted), and a
+          // maid on leave must never render as markable.
+          const status = item.on_leave ? "leave" : normalizeStatus(item.status);
+          byProvider.set(id, { ...item, status });
         }
       }
       setItems(Array.from(byProvider.values()));
@@ -152,13 +239,15 @@ export default function TodaysHelp() {
                   {provider.first_name} {provider.last_name || ""}
                 </Text>
                 <Text style={s.role} numberOfLines={1}>
-                  {item.assigned_services?.join(", ") || "Home help"}
+                  {item.substitute_for_name
+                    ? `Covering for ${item.substitute_for_name}`
+                    : item.assigned_services?.join(", ") || "Home help"}
                 </Text>
               </View>
               {item.status ? (
                 <View style={[s.badge, { backgroundColor: statusTint(item.status) }]}>
                   <Text style={[s.badgeText, { color: statusColor(item.status) }]}>
-                    {item.status === "present" ? "Present" : item.status === "absent" ? "Absent" : "Late"}
+                    {statusLabel(item.status)}
                   </Text>
                 </View>
               ) : (
@@ -166,7 +255,15 @@ export default function TodaysHelp() {
               )}
             </View>
 
-            {item.status ? (
+            {/* Leave is set by an admin, not the resident — so it's terminal here:
+                no Mark Present, and no tap-to-change that would let a resident
+                overwrite it. */}
+            {item.status === "leave" ? (
+              <View style={s.amendRow}>
+                <Ionicons name="calendar-outline" size={16} color={theme.textSecondary} />
+                <Text style={s.amendText}>Not visiting today</Text>
+              </View>
+            ) : item.status ? (
               <TouchableOpacity
                 style={s.amendRow}
                 onPress={() =>

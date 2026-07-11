@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { clearSession } from "../src/api/client";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -183,7 +184,9 @@ export default function LocationScreen() {
         
         if (response.status === 401) {
           setError("Session expired. Please login again.");
-          await AsyncStorage.removeItem("access_token");
+          // Clear the *whole* session, not just the token: the society id and
+          // cached module set are per-user and must not survive into the next login.
+          await clearSession();
           router.replace("/phone");
         } else if (response.status === 422) {
           setError("Invalid data sent to server. Please try again.");

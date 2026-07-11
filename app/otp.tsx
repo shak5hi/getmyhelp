@@ -13,6 +13,8 @@ import {
 import config from "../src/config";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
+import { useRefreshFeatures } from "../src/FeatureContext";
+import { registerForPush } from "../src/push";
 import { getConfirmation, setConfirmation } from "../src/firebaseConfirmation";
 import { makeOtpStyles } from "../styles/otp.styles";
 import { useTheme } from "../src/ThemeContext";
@@ -25,6 +27,7 @@ export default function OtpScreen() {
   const styles = useMemo(() => makeOtpStyles(theme), [theme]);
   const { phone } = useLocalSearchParams<{ phone: string }>();
   const inputRef = useRef<TextInput>(null);
+  const refreshFeatures = useRefreshFeatures();
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
@@ -139,6 +142,17 @@ export default function OtpScreen() {
         await AsyncStorage.setItem("user_role", customer.user_role);
       }
 
+      // Resolve this society's enabled modules before we navigate, so the tab
+      // bar and dashboard render against the real permission set on first paint
+      // rather than an empty map. Awaited but never fatal — a failure here just
+      // leaves the provider optimistic until the dashboard retries.
+      await refreshFeatures().catch(() => {});
+
+      // Attach this device's FCM token to the account that just logged in. The
+      // POST is idempotent, so it reassigns the token if a different user was
+      // previously signed in on this handset. Fire-and-forget: push must never
+      // hold up (or fail) the login.
+      registerForPush();
 
       // ── Guard: skip onboarding entirely ──
       if (customer?.user_role === "guard") {

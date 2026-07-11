@@ -16,8 +16,16 @@ import config from "../config";
  * returns the parsed body. Use `res`-level checks in callers that need status.
  */
 
+// Cached {moduleKey: enabled} map (see FeatureContext). Declared here so it can
+// join SESSION_KEYS without FeatureContext ↔ client forming an import cycle.
+export const ENABLED_MODULES_KEY = "enabled_modules";
+
 // Keys cleared when a session ends. Kept in one place so login + logout + the
 // 401 guard all wipe exactly the same state.
+//
+// ENABLED_MODULES_KEY *must* be in here: the module set is per-society, so a
+// stale cache would otherwise let the next resident to log in on this device
+// see the previous society's features until the network refresh lands.
 const SESSION_KEYS = [
   "access_token",
   "user",
@@ -25,6 +33,7 @@ const SESSION_KEYS = [
   "selected_society_id",
   "selected_tower_id",
   "flat_number",
+  ENABLED_MODULES_KEY,
 ];
 
 export const getToken = () => AsyncStorage.getItem("access_token");

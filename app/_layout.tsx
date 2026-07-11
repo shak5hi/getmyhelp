@@ -5,6 +5,7 @@ import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, TouchableOpacity, View, Text, TextInput } from "react-native";
 import { setUnauthorizedHandler } from "../src/api/client";
+import { initPushListeners, registerForPush } from "../src/push";
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -12,6 +13,12 @@ import {
   Inter_700Bold,
   Inter_800ExtraBold,
 } from "@expo-google-fonts/inter";
+import {
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from "@expo-google-fonts/plus-jakarta-sans";
 import { LanguageProvider } from "../src/LanguageContext";
 import { NotificationProvider, useNotifications } from "../src/NotificationContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -58,6 +65,14 @@ function RootNavigator() {
     setUnauthorizedHandler(() => router.replace("/phone"));
     return () => setUnauthorizedHandler(null);
   }, [router]);
+
+  // Push: re-register this device on every launch (the POST is idempotent and
+  // refreshes last_seen_at) and listen for token rotation + notification taps.
+  // No-ops when logged out, when push is switched off, or for guards.
+  useEffect(() => {
+    registerForPush();
+    return initPushListeners();
+  }, []);
 
   return (
     <Stack
@@ -126,6 +141,10 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
     Inter_800ExtraBold,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
   });
 
   if (!fontsLoaded) return null;

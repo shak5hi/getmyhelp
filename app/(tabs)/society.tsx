@@ -25,6 +25,8 @@ import { TicketCard } from "../../components/society/TicketCard";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorState } from "../../components/ui/ErrorState";
+import { useFeature } from "../../src/FeatureContext";
+import { MODULES } from "../../src/featureRegistry";
 
 type ActiveTab = "finance" | "tickets";
 type FinanceType = "income" | "expense";
@@ -113,6 +115,13 @@ export default function SocietyScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  // This screen hosts two independent modules. Either can be switched off per
+  // society in admin, so the segments — and which tab we land on — are derived
+  // from the enabled set rather than hard-coded.
+  const financeEnabled = useFeature(MODULES.finance);
+  const ticketsEnabled = useFeature(MODULES.tickets);
+  const noneEnabled = !financeEnabled && !ticketsEnabled;
+
   const [activeTab, setActiveTab] = useState<ActiveTab>("finance");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -120,7 +129,25 @@ export default function SocietyScreen() {
   const [data, setData] = useState<any[]>([]);
   const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
 
+  // Keep the active tab on an enabled module. Covers the initial landing (the
+  // default is "finance", which may be off) and a mid-session module change.
+  useEffect(() => {
+    if (activeTab === "finance" && !financeEnabled && ticketsEnabled) setActiveTab("tickets");
+    else if (activeTab === "tickets" && !ticketsEnabled && financeEnabled) setActiveTab("finance");
+  }, [activeTab, financeEnabled, ticketsEnabled]);
+
   const fetchData = useCallback(async (isRefresh = false) => {
+    // Don't call an endpoint for a module this society has switched off — it
+    // would 403 and surface as an error state for a feature that shouldn't exist.
+    if (noneEnabled) {
+      setLoading(false);
+      setRefreshing(false);
+      setData([]);
+      return;
+    }
+    if (activeTab === "finance" && !financeEnabled) return;
+    if (activeTab === "tickets" && !ticketsEnabled) return;
+
     if (!isRefresh) setLoading(true);
     setError(false);
     try {
@@ -183,7 +210,7 @@ export default function SocietyScreen() {
       setRefreshing(false);
     }
 
-  }, [activeTab]);
+  }, [activeTab, financeEnabled, ticketsEnabled, noneEnabled]);
 
   useEffect(() => {
     fetchData();
@@ -208,19 +235,31 @@ export default function SocietyScreen() {
   };
 
   const renderTabs = () => {
+    // Nothing to head the list with when the society has neither module.
+    if (noneEnabled) return null;
+
     // Finance summary totals
     const totalIncome  = activeTab === "finance" ? data.filter((t: any) => t.type === "income").reduce((s: number, t: any) => s + t.amount, 0) : 0;
     const totalExpense = activeTab === "finance" ? data.filter((t: any) => t.type === "expense").reduce((s: number, t: any) => s + t.amount, 0) : 0;
 
+    // Only offer the modules this society actually has. With just one enabled a
+    // two-segment control would be a lie, so it isn't rendered at all.
+    const tabs: { key: ActiveTab; label: string }[] = [
+      financeEnabled && { key: "finance" as const, label: "Finances" },
+      ticketsEnabled && { key: "tickets" as const, label: "Support" },
+    ].filter(Boolean) as { key: ActiveTab; label: string }[];
+
     return (
       <>
-        <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 }}>
-          <SegmentedControl
-            segments={["Finances", "Support"]}
-            value={activeTab === "finance" ? 0 : 1}
-            onChange={(i) => setActiveTab(i === 0 ? "finance" : "tickets")}
-          />
-        </View>
+        {tabs.length > 1 && (
+          <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 }}>
+            <SegmentedControl
+              segments={tabs.map((t) => t.label)}
+              value={tabs.findIndex((t) => t.key === activeTab)}
+              onChange={(i) => setActiveTab(tabs[i].key)}
+            />
+          </View>
+        )}
 
         {/* Make the two distinct mental models explicit: money vs. issues. */}
         <Text style={styles.tabCaption}>
@@ -273,7 +312,21 @@ export default function SocietyScreen() {
     </View>
   );
 
-  const renderEmpty = () => (
+  const renderEmpty = () => {
+    // Both modules off for this society — the tab exists but has no content.
+    if (noneEnabled) {
+      return (
+        <EmptyState
+          title="Nothing here yet"
+          message="Your society hasn't enabled any of these features."
+          icon="business-outline"
+        />
+      );
+    }
+    return renderEmptyForTab();
+  };
+
+  const renderEmptyForTab = () => (
     <EmptyState
       title={activeTab === "finance" ? "No Transactions" : "No Support Tickets"}
       message={activeTab === "finance"
@@ -351,7 +404,7 @@ export default function SocietyScreen() {
         }
       />
 
-      {activeTab === "tickets" && !loading && (
+      {activeTab === "tickets" && ticketsEnabled && !loading && (
         <TouchableOpacity
           style={styles.fab}
           onPress={() => router.push("/society/create-ticket")}
