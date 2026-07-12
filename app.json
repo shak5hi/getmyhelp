@@ -25,6 +25,9 @@
       "bundleIdentifier": "com.getmyhelp.mobile",
       "buildNumber": "1",
       "googleServicesFile": "./GoogleService-Info.plist",
+      "entitlements": {
+        "aps-environment": "production"
+      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

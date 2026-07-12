@@ -13,6 +13,7 @@ import { clearSession, apiDelete } from "../../src/api/client";
 import { registerForPush, unregisterForPush } from "../../src/push";
 import { getMyResidence } from "../../src/api/societyApi";
 import { getPushEnabled, setPushEnabled } from "../../src/preferences";
+import { registerForPush, unregisterForPush } from "../../src/push";
 import ThemeToggle from "../../components/ThemeToggle";
 import { getToken } from "../../src/api/tokenStore";
 

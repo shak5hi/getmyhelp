@@ -11,6 +11,7 @@ import { useLanguage } from "../src/LanguageContext";
 import { useRefreshFeatures } from "../src/FeatureContext";
 import { registerForPush } from "../src/push";
 import { getConfirmation, setConfirmation } from "../src/firebaseConfirmation";
+import { registerForPush } from "../src/push";
 import { makeOtpStyles } from "../styles/otp.styles";
 import { useTheme } from "../src/ThemeContext";
 import { setToken } from "../src/api/tokenStore";
@@ -155,6 +156,9 @@ export default function OtpScreen() {
       await AsyncStorage.setItem("user", JSON.stringify(userToSave));
 
 
+      // Register this device for OS-level push now that we have a session.
+      // Fail-safe: never blocks login.
+      registerForPush();
 
       // Resolve this society's enabled modules before we navigate, so the tab
       // bar and dashboard render against the real permission set on first paint

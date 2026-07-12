@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { fonts } from "../../constants/tokens";
 import { Tabs } from "expo-router";
 import TabBar from "../../components/ui/TabBar";
 import { useFeature } from "../../src/FeatureContext";
@@ -17,6 +18,10 @@ const icon = (
   TabIcon.displayName = `TabIcon(${name})`;
   return TabIcon;
 };
+
+// A disabled module's tab is removed from the bar and its route blocked by
+// setting `href: null` (the same mechanism already used for chatbot/subscriptions).
+const tabHref = (enabled: boolean) => (enabled ? undefined : null);
 
 // A disabled module's tab is removed from the bar and its route blocked by
 // setting `href: null` (the same mechanism already used for chatbot/subscriptions).

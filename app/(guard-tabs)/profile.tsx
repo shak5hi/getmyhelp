@@ -37,6 +37,8 @@ export default function GuardProfileScreen() {
         text: "Logout",
         style: "destructive",
         onPress: async () => {
+          // Stop pushes to this device before the session token is wiped.
+          await unregisterForPush();
           await clearSession();
           router.replace("/");
         },

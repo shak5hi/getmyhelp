@@ -69,6 +69,9 @@ function RootNavigator() {
   const router = useRouter();
   const { theme } = useTheme();
 
+  // OS-level push notifications (FCM): register the device token + handle taps.
+  usePushNotifications();
+
   // App-wide session-expiry guard: any API 401 clears the session and bounces
   // the user back to the login flow instead of leaving a silently-blank screen.
   useEffect(() => {
