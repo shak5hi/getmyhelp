@@ -1,7 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { fonts } from "../../constants/tokens";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";

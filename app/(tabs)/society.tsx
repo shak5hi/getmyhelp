@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-  Modal,
-  ScrollView,
-} from "react-native";
+import { View, FlatList, TouchableOpacity, RefreshControl, Modal, ScrollView } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 // NOTE: edges={["bottom"]} — expo-router tab screens already sit below the status bar,
 // so we only need bottom safe area for the home indicator.
@@ -15,9 +8,9 @@ import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import config from "../../src/config";
 import { fonts } from "../../constants/tokens";
 import { makeStyles } from "../../styles/society.styles";
+import config from "../../src/config";
 import { useTheme } from "../../src/ThemeContext";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import { TransactionCard } from "../../components/society/TransactionCard";
@@ -27,7 +20,7 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorState } from "../../components/ui/ErrorState";
 import { useFeature } from "../../src/FeatureContext";
 import { MODULES } from "../../src/featureRegistry";
-import { getToken } from "../../src/api/tokenStore";
+import { apiGet } from "../../src/api/client";
 
 type ActiveTab = "finance" | "tickets";
 type FinanceType = "income" | "expense";
@@ -152,47 +145,20 @@ export default function SocietyScreen() {
     if (!isRefresh) setLoading(true);
     setError(false);
     try {
-      const token = await getToken();
       const userStr = await AsyncStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
-
-      if (!token || !user?.id) {
+      if (!user?.id) {
         setLoading(false);
         setRefreshing(false);
         return;
       }
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-
+      // apiGet injects auth header, applies 20s timeout, and handles 401 session expiry.
       if (activeTab === "finance") {
-        const response = await fetch(`${config.apiUrl}/customer/society/finance`, { headers });
-        
-        if (!response.ok) {
-          throw new Error(`Finance server error: ${response.status}`);
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-           const text = await response.text();
-           console.error("Finance non-JSON response:", text);
-           throw new Error("Invalid finance response format");
-        }
-
-        const json = await response.json();
+        const json = await apiGet("/customer/society/finance");
         setData(extractFinanceRows(json));
       } else {
-        const response = await fetch(`${config.apiUrl}/customer/tickets`, { headers });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Tickets fetch failed with status ${response.status}:`, errorText.substring(0, 500));
-          throw new Error(`Tickets server error: ${response.status}`);
-        }
-
-        const json = await response.json();
+        const json = await apiGet("/customer/tickets");
 
         let ticketList: any[] = [];
         if (json.data && Array.isArray(json.data.tickets)) ticketList = json.data.tickets;

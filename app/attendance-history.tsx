@@ -1,13 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  ActivityIndicator,
-  RefreshControl,
-  StyleSheet,
-} from "react-native";
+import { View, Image, ScrollView, ActivityIndicator, RefreshControl, StyleSheet } from "react-native";
+import { Text } from "../components/ui/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { getAttendanceHistory, AttendanceStatus } from "../src/api/attendanceApi";
 import { mediaUrl } from "../src/config";

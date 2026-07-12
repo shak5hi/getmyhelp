@@ -3,10 +3,10 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "../../components/ui/Text";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import config from "../../src/config";
 import { useLanguage } from "../../src/LanguageContext";
 import { fonts } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
@@ -18,7 +18,7 @@ import { getMyResidence } from "../../src/api/societyApi";
 import { useFeature, useRefreshFeatures } from "../../src/FeatureContext";
 import { useNotifications } from "../../src/NotificationContext";
 import { MODULES } from "../../src/featureRegistry";
-import { getToken } from "../../src/api/tokenStore";
+import { apiGet } from "../../src/api/client";
 
 /**
  * Dashboard.
@@ -64,11 +64,9 @@ export default function DashboardScreen() {
     try {
       // Make sure the society's enabled-module set is fresh (e.g. just after login).
       refreshFeatures();
-      const token = await getToken();
       const userStr = await AsyncStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
-      if (!token || !user?.id) return;
-      const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+      if (!user?.id) return;
 
       const raw =
         (user?.first_name && String(user.first_name).trim()) ||
@@ -98,8 +96,8 @@ export default function DashboardScreen() {
 
       if (subscriptionsEnabled) {
         try {
-          const sr = await fetch(`${config.apiUrl}/admin/customers/${user.id}/subscriptions`, { headers });
-          const sj = await sr.json();
+          // apiGet injects auth header, 20s timeout, and 401 session guard automatically.
+          const sj = await apiGet(`/admin/customers/${user.id}/subscriptions`);
           const active = sj?.subscriptions?.find((x: any) => x.status === "active") || sj?.subscriptions?.[0];
           setDaysRemaining(active?.days_remaining ?? null);
         } catch {}

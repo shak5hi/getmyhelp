@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Pressable } from "react-native";
+import { Text } from "../ui/Text";
 import { makeStyles } from "../../styles/society.styles";
 import { useTheme } from "../../src/ThemeContext";
 import { StatusPill, ticketStatusTone } from "../ui/StatusPill";
@@ -15,7 +16,7 @@ interface TicketProps {
 }
 
 
-export const TicketCard: React.FC<TicketProps> = ({
+export const TicketCard: React.FC<TicketProps> = React.memo(({
   id,
   title,
   status,
@@ -54,4 +55,6 @@ export const TicketCard: React.FC<TicketProps> = ({
       </View>
     </Pressable>
   );
-};
+});
+
+TicketCard.displayName = "TicketCard";

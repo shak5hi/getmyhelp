@@ -15,7 +15,7 @@ const LOCAL_DEV = {
 
 // The deployed backend. Files are served from the admin domain over HTTPS.
 const REMOTE = {
-  apiUrl: "http://31.97.239.190:9001",
+  apiUrl: "https://api.getmyhelp.in",
   fileBaseUrl: "https://admin.getmyhelp.in",
 };
 

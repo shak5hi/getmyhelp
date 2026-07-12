@@ -2,11 +2,13 @@ import { getAuth, signInWithPhoneNumber } from "@react-native-firebase/auth";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  Text,
+  KeyboardAvoidingView,
+  Platform,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Text } from "../components/ui/Text";
 import i18n from "../src/i18n";
 import { DISABLE_APP_VERIFICATION } from "../src/config";
 import { setConfirmation } from "../src/firebaseConfirmation";
@@ -68,7 +70,7 @@ export default function PhoneScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <Text style={styles.title}>{i18n.t("phoneTitle")}</Text>
       <Text style={styles.subtitle}>{i18n.t("phoneSubtitle")}</Text>
 
@@ -103,6 +105,6 @@ export default function PhoneScreen() {
           {loading ? "Please wait..." : i18n.t("getOtp")}
         </Text>
       </TouchableOpacity>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

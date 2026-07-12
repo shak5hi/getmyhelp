@@ -1,6 +1,7 @@
 import React from "react";
 import { fonts } from "../../constants/tokens";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Text } from "../ui/Text";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 

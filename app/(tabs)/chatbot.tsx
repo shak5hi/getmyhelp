@@ -1,24 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  Pressable,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-} from "react-native";
+import { View, FlatList, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import config from "../../src/config";
 import { fonts, radii } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
 import { useFeatureGuard } from "../../src/useFeatureGuard";
 import { MODULES } from "../../src/featureRegistry";
 import { Theme } from "../../constants/themes";
-import { getToken } from "../../src/api/tokenStore";
+import { apiGet, apiPost, apiDelete } from "../../src/api/client";
 
 type MessageType = {
   id: string;
@@ -44,28 +35,14 @@ export default function ChatbotScreen() {
   const initChat = async () => {
     try {
       setLoading(true);
-      const token = await getToken();
-      if (!token) return;
 
-      // Start or resume session
-      const response = await fetch(`${config.apiUrl}/chatbot/sessions`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ resume: true }),
-      });
-
-      const data = await response.json();
+      // Start or resume session. apiPost injects auth header and 20s timeout.
+      const data = await apiPost("/chatbot/sessions", { resume: true });
       if (data.session_id) {
         setSessionId(data.session_id);
 
         // Fetch history for this session
-        const historyRes = await fetch(`${config.apiUrl}/chatbot/sessions/${data.session_id}/messages`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const historyData = await historyRes.json();
+        const historyData = await apiGet(`/chatbot/sessions/${data.session_id}/messages`);
 
         if (historyData.messages && historyData.messages.length > 0) {
           const formattedMessages = historyData.messages.map((msg: any) => ({
@@ -99,17 +76,8 @@ export default function ChatbotScreen() {
     setIsTyping(true);
 
     try {
-      const token = await getToken();
-      const response = await fetch(`${config.apiUrl}/chatbot/sessions/${sessionId}/messages`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: option }),
-      });
-
-      const data = await response.json();
+      // apiPost injects auth header, timeout, and 401 guard automatically.
+      const data = await apiPost(`/chatbot/sessions/${sessionId}/messages`, { text: option });
       if (data.bot_message) {
         setMessages(prev => [...prev, {
           id: data.bot_message.id || `bot-${Date.now()}`,
@@ -128,11 +96,8 @@ export default function ChatbotScreen() {
   const resetChat = async () => {
     if (!sessionId) return;
     try {
-      const token = await getToken();
-      await fetch(`${config.apiUrl}/chatbot/sessions/${sessionId}?mode=reset`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // apiDelete injects auth header, timeout, and 401 guard automatically.
+      await apiDelete(`/chatbot/sessions/${sessionId}?mode=reset`);
       setMessages([]);
       initChat();
     } catch (err) {

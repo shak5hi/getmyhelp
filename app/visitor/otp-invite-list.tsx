@@ -2,15 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { fonts } from "../../constants/tokens";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";

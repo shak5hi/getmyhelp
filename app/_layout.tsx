@@ -3,7 +3,8 @@ import { fonts } from "../constants/tokens";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, TouchableOpacity, View, Text, TextInput } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text, TextInput } from "../components/ui/Text";
 import { setUnauthorizedHandler } from "../src/api/client";
 import { initPushListeners, registerForPush } from "../src/push";
 import {
@@ -30,9 +31,12 @@ import VideoSplash from "../components/VideoSplash";
 import ErrorBoundary from "../components/ErrorBoundary";
 import OfflineBanner from "../components/OfflineBanner";
 import { initSentry, reportError, wrapRoot } from "../src/sentry";
+import { ForceUpdate } from "../components/ui/ForceUpdate";
+import * as SplashScreen from "expo-splash-screen";
 
 // Start crash reporting before anything renders. No-op until a DSN is set.
 initSentry();
+SplashScreen.preventAutoHideAsync();
 
 function ThemedStatusBar() {
   const { theme } = useTheme();
@@ -153,13 +157,14 @@ function RootLayout() {
     PlusJakartaSans_800ExtraBold,
   });
 
+  useEffect(() => {
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
+
   if (!fontsLoaded) return null;
 
-  // Global default typeface for any text that doesn't set its own family.
-  (Text as any).defaultProps = (Text as any).defaultProps || {};
-  (Text as any).defaultProps.style = { fontFamily: "Inter_400Regular" };
-  (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
-  (TextInput as any).defaultProps.style = { fontFamily: "Inter_400Regular" };
+  // Global default typeface removed.
+  // Replaced with custom wrapper components in components/ui/Text.tsx
 
   return (
     // Outermost on purpose: it must be able to catch a render failure in any

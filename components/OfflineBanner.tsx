@@ -1,6 +1,7 @@
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet } from "react-native";
+import { Text } from "./ui/Text";
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 import { useNetworkStatus } from "../src/useNetworkStatus";
 

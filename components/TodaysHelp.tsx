@@ -1,13 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
+import { View, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import { Text } from "./ui/Text";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import {

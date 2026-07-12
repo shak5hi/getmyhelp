@@ -3,16 +3,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fonts } from "../constants/tokens";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ScrollView,
-} from "react-native";
+import { ActivityIndicator, TouchableOpacity, View, ScrollView } from "react-native";
+import { Text, TextInput } from "../components/ui/Text";
 
-import config from "../src/config";
+import { apiGet, apiPost } from "../src/api/client";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
 import { makeTowerStyles } from "../styles/tower.styles";
@@ -45,26 +39,21 @@ export default function TowerScreen() {
   const fetchTowers = async () => {
     try {
       const societyId = await AsyncStorage.getItem("selected_society_id");
-      const token = await getToken();
-
-      if (!societyId || !token) {
+      // apiGet will return an empty/error shape if there's no token — no explicit
+      // check needed here since towers are an optional enhancement.
+      if (!societyId) {
         setFetchingTowers(false);
         return;
       }
 
-      const response = await fetch(`${config.apiUrl}/customer/societies/${societyId}/towers`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        const towersData: Tower[] = (
-          Array.isArray(result) ? result : result?.towers || result?.data || []
-        ).map((t: any) => ({ id: t.id, tower_number: t.tower_number }));
-        setTowers(towersData);
-        // Auto-select if only one tower
-        if (towersData.length === 1) setSelectedTowerId(towersData[0].id);
-      }
+      // apiGet injects auth header and 20s timeout automatically.
+      const result = await apiGet(`/customer/societies/${societyId}/towers`);
+      const towersData: Tower[] = (
+        Array.isArray(result) ? result : result?.towers || result?.data || []
+      ).map((t: any) => ({ id: t.id, tower_number: t.tower_number }));
+      setTowers(towersData);
+      // Auto-select if only one tower
+      if (towersData.length === 1) setSelectedTowerId(towersData[0].id);
     } catch (err) {
       console.log("Error fetching towers:", err);
     } finally {
@@ -83,10 +72,8 @@ export default function TowerScreen() {
       setError("");
 
       const societyId = await AsyncStorage.getItem("selected_society_id");
-      const token = await getToken();
-
-      if (!societyId || !token) {
-        setError("Missing society or token. Please restart onboarding.");
+      if (!societyId) {
+        setError("Missing society. Please restart onboarding.");
         return;
       }
 
@@ -96,19 +83,15 @@ export default function TowerScreen() {
       };
       if (selectedTowerId) body.tower_id = selectedTowerId;
 
-      const response = await fetch(`${config.apiUrl}/customer/enter-flat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        setError(data.message || "Failed to save flat details");
-        return;
+      // apiPost injects auth header, timeout, and 401 guard automatically.
+      const result = await apiPost("/customer/enter-flat", body);
+      // apiPost doesn't throw on non-2xx; check for error in the response body.
+      if (result?.detail || result?.message) {
+        const errMsg = result.detail || result.message;
+        if (typeof errMsg === "string" && !errMsg.toLowerCase().includes("success")) {
+          setError(errMsg || "Failed to save flat details");
+          return;
+        }
       }
 
       await AsyncStorage.setItem("flat_number", flatNumber.trim());

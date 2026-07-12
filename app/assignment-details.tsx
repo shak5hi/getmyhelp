@@ -2,20 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { fonts } from "../constants/tokens";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-} from "react-native";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, View, Pressable } from "react-native";
+import { Text } from "../components/ui/Text";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import config from "../src/config";
 import { useTheme } from "../src/ThemeContext";
 import { Theme } from "../constants/themes";
-import { getToken } from "../src/api/tokenStore";
+import { apiGet } from "../src/api/client";
 
 const DAYS_MAP = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -33,18 +25,9 @@ export default function AssignmentDetailsScreen() {
 
   const fetchAssignmentDetails = async () => {
     try {
-      const token = await getToken();
-      if (!token) return;
-
-      const response = await fetch(`${config.apiUrl}/customer/assignments/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const result = await response.json();
+      // apiGet injects auth header, applies 20s timeout, and handles 401 session expiry.
+      const result = await apiGet(`/customer/assignments/${id}`);
+      if (result?.data) {
         setAssignment(result.data);
       }
     } catch (error) {

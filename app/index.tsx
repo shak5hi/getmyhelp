@@ -1,17 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Image, Text, View, Pressable, Modal } from "react-native";
+import { Image, View, Pressable, Modal, ActivityIndicator } from "react-native";
+import { Text } from "../components/ui/Text";
 import { useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "../src/i18n";
-import config from "../src/config";
 import PrimaryButton from "../components/PrimaryButton";
 import { makeHomeStyles, splash } from "../styles/home.styles";
 import { useTheme } from "../src/ThemeContext";
 import { useRouter } from "expo-router";
 import { getToken } from "../src/api/tokenStore";
-
-const APP_CONFIG = config;
+import { apiGet } from "../src/api/client";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -23,6 +22,7 @@ export default function HomeScreen() {
   const { theme } = useTheme();
   const styles = useMemo(() => makeHomeStyles(theme), [theme]);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [sessionChecking, setSessionChecking] = useState(true);
 
   // 🔹 Check for existing session and onboarding status
   useEffect(() => {
@@ -37,36 +37,36 @@ export default function HomeScreen() {
       const token = await getToken();
       if (token) {
         try {
-          const res = await fetch(`${APP_CONFIG.apiUrl}/customer/profile`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          // apiGet injects auth header, applies 20s timeout, and handles 401 session expiry.
+          const profileResponse = await apiGet("/customer/profile");
+          const profile = profileResponse?.data || profileResponse;
 
-          if (res.ok) {
-            const profileResponse = await res.json();
-            const profile = profileResponse?.data || profileResponse;
+          const hasSociety = profile?.society_id || profile?.societyId;
+          const hasTower = profile?.tower_id || profile?.towerId || profile?.flat_number || profile?.flatNumber;
 
-            const hasSociety = profile?.society_id || profile?.societyId;
-            const hasTower = profile?.tower_id || profile?.towerId || profile?.flat_number || profile?.flatNumber;
+          if (profile && hasSociety && hasTower) {
 
-            if (profile && hasSociety && hasTower) {
+            // Pre-populate storage
+            await AsyncStorage.setItem("selected_society_id", String(hasSociety));
+            if (profile.tower_id || profile.towerId) await AsyncStorage.setItem("selected_tower_id", String(profile.tower_id || profile.towerId));
+            if (profile.flat_number || profile.flatNumber) await AsyncStorage.setItem("flat_number", String(profile.flat_number || profile.flatNumber));
+            if (profile.user_role) await AsyncStorage.setItem("user_role", String(profile.user_role));
 
-              // Pre-populate storage
-              await AsyncStorage.setItem("selected_society_id", String(hasSociety));
-              if (profile.tower_id || profile.towerId) await AsyncStorage.setItem("selected_tower_id", String(profile.tower_id || profile.towerId));
-              if (profile.flat_number || profile.flatNumber) await AsyncStorage.setItem("flat_number", String(profile.flat_number || profile.flatNumber));
-              if (profile.user_role) await AsyncStorage.setItem("user_role", String(profile.user_role));
-
-              const userRole = profile.user_role ?? await AsyncStorage.getItem("user_role");
-              if (userRole === "guard") {
-                router.replace("/(guard-tabs)/visitor-list");
-              } else {
-                router.replace("/(tabs)/dashboard");
-              }
+            const userRole = profile.user_role ?? await AsyncStorage.getItem("user_role");
+            if (userRole === "guard") {
+              router.replace("/(guard-tabs)/visitor-list");
+            } else {
+              router.replace("/(tabs)/dashboard");
             }
+            return;
           }
         } catch (e) {
+          console.warn("Session check failed", e);
         }
       }
+      // Only reached when we are NOT redirecting — the redirect paths above
+      // return early, so the landing page never flashes behind a replace().
+      setSessionChecking(false);
     };
     checkAuth();
   }, []);
@@ -76,6 +76,14 @@ export default function HomeScreen() {
     await AsyncStorage.setItem("LANGUAGE", code);
     setShowLanguageModal(false);
   };
+
+  if (sessionChecking) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={theme.accent} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -166,14 +174,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* The near-white panel, as the splash curves into. Painted over the
-            frame so its bottom border dissolves instead of closing. */}
-        <LinearGradient
-          colors={["transparent", "rgba(244,243,248,0.85)", splash.panel]}
-          locations={[0, 0.5, 0.78]}
-          style={styles.panel}
-          pointerEvents="none"
-        />
+
 
         {/* FOOTER — on the panel, so type flips to violet ink. */}
         <View style={styles.footer}>

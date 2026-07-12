@@ -1,17 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  Modal,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, KeyboardAvoidingView, Platform } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -21,6 +11,7 @@ import {
   requestSubscriptionCancellation,
   requestAbsenceCredit,
 } from "../../src/api/subscriptionApi";
+import { errorMessage } from "../../src/api/client";
 import { makeStyles } from "../../styles/subscriptions.styles";
 import { fonts } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
@@ -96,14 +87,10 @@ export default function SubscriptionsScreen() {
           onPress: async () => {
              try {
                const response = await selectSubscription(planId);
-               if (response.message) {
-                 Alert.alert("Success", response.message);
-                 fetchSubscriptionData(); // Refresh list
-               } else {
-                 Alert.alert("Error", response.detail || "Failed to subscribe");
-               }
+               Alert.alert("Success", response?.message ?? "Subscribed.");
+               fetchSubscriptionData(); // Refresh list
              } catch (err) {
-               Alert.alert("Error", "Network error. Please try again.");
+               Alert.alert("Error", errorMessage(err, "Failed to subscribe"));
              }
           }
         }
@@ -123,14 +110,10 @@ export default function SubscriptionsScreen() {
           onPress: async () => {
             try {
               const response = await requestSubscriptionCancellation(subscriptionId);
-              if (response.message) {
-                Alert.alert("Request Sent", response.message);
-                fetchSubscriptionData(); // Refresh list
-              } else {
-                Alert.alert("Error", response.detail || "Failed to request cancellation");
-              }
+              Alert.alert("Request Sent", response?.message ?? "Cancellation requested.");
+              fetchSubscriptionData(); // Refresh list
             } catch (err) {
-              Alert.alert("Error", "Network error. Please try again.");
+              Alert.alert("Error", errorMessage(err, "Failed to request cancellation"));
             }
           }
         }
@@ -153,15 +136,11 @@ export default function SubscriptionsScreen() {
     setSubmittingAbsence(true);
     try {
       const response = await requestAbsenceCredit(absenceSubId!, days, absenceReason);
-      if (response.message) {
-        closeAbsenceModal();
-        Alert.alert("Request Sent", response.message);
-        fetchSubscriptionData();
-      } else {
-        Alert.alert("Error", response.detail || "Failed to submit request");
-      }
-    } catch {
-      Alert.alert("Error", "Network error. Please try again.");
+      closeAbsenceModal();
+      Alert.alert("Request Sent", response?.message ?? "Request submitted.");
+      fetchSubscriptionData();
+    } catch (err) {
+      Alert.alert("Error", errorMessage(err, "Failed to submit request"));
     } finally {
       setSubmittingAbsence(false);
     }
@@ -190,7 +169,7 @@ export default function SubscriptionsScreen() {
             <Ionicons name="card-outline" size={48} color={theme.textTertiary} />
             <Text style={styles.emptyStateTitle}>No Active Subscriptions</Text>
             <Text style={styles.emptyStateText}>
-              You don't have any ongoing plans. Explore our deals below to get started.
+              You don&apos;t have any ongoing plans. Explore our deals below to get started.
             </Text>
           </View>
         ) : (

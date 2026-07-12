@@ -4,26 +4,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Animated, FlatList, Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthorTag } from "../../components/community/AuthorTag";
 import { EmojiReactionBar, Reaction } from "../../components/community/EmojiReactionBar";
 import { ImageGallery } from "../../components/community/ImageGallery";
+import { ErrorState } from "../../components/ui/ErrorState";
 import { usePostSocket } from "../../hooks/usePostSocket";
 import {
   createReply,
@@ -110,6 +98,7 @@ export default function ForumThread() {
   const [replies, setReplies] = useState<any[]>([]);
   const [postReactions, setPostReactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [replyImages, setReplyImages] = useState<any[]>([]);
   const [sending, setSending] = useState(false);

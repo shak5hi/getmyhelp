@@ -191,8 +191,51 @@ export async function apiRequest<T = any>(
     }
   }
 
+  // Any other non-2xx is an error, and must be raised as one.
+  //
+  // This used to return the parsed body for 4xx, on the theory that screens read
+  // defensively anyway. That theory cost us: three features (account deletion,
+  // reverse geocoding, the version gate) shipped against endpoints that did not
+  // exist, and every one of them 404'd *silently* — the client could not tell
+  // "this route does not exist" from "there is no data". Account deletion went so
+  // far as to log the user out and report success having deleted nothing.
+  //
+  // A 404 must be loud. Callers already have to handle rejections (NetworkError
+  // has always thrown), so this does not add a new failure mode — it closes one.
+  if (res.status < 200 || res.status >= 300) {
+    throw new ApiError(res.status, extractDetail(parsed, res.status), parsed);
+  }
+
   return parsed as T;
 }
+
+/** Pull the server's human-readable message out of an error body. FastAPI puts it
+ *  in `detail`, either as a string or as a list of validation objects. */
+const extractDetail = (parsed: any, status: number): string => {
+  const detail = parsed?.detail;
+  if (typeof detail === "string" && detail) return detail;
+  if (Array.isArray(detail) && detail[0]?.msg) return String(detail[0].msg);
+  if (typeof parsed?.message === "string" && parsed.message) return parsed.message;
+  return `Request failed (${status}).`;
+};
+
+/**
+ * The message to show a user for a failed request. Prefers what the server
+ * actually said (`ApiError.message` carries `detail`), falls back to a
+ * connectivity message for `NetworkError`, then to the caller's fallback.
+ *
+ * Use this in `catch` blocks instead of a hardcoded string, or the server's
+ * "Visitor already exists" becomes a useless "Something went wrong".
+ */
+export const errorMessage = (err: unknown, fallback: string): string => {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof NetworkError) {
+    return err.isTimeout
+      ? "The request timed out. Please try again."
+      : "No connection. Check your network and try again.";
+  }
+  return fallback;
+};
 
 export const apiGet = <T = any>(path: string, options?: ApiRequestOptions) =>
   apiRequest<T>(path, { ...options, method: "GET" });

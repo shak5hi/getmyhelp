@@ -1,0 +1,42 @@
+name: EAS Build
+
+# Manual only. The previous version of this workflow fired a full EAS build on
+# every push and PR to main, which burns build minutes on every doc typo and does
+# not gate anything CI doesn't already gate. Trigger it from the Actions tab when
+# you actually want an artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "EAS build profile"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - preview
+          - production
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build on EAS
+        run: eas build --platform android --profile ${{ inputs.profile }} --non-interactive

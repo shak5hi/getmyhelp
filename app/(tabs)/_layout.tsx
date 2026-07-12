@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import TabBar from "../../components/ui/TabBar";
 import { useFeature } from "../../src/FeatureContext";
+import { useRoleGuard } from "../../src/useRoleGuard";
 import { MODULES } from "../../src/featureRegistry";
 
 // Outline when idle, filled when selected — weight, not just colour, carries
@@ -22,6 +23,7 @@ const icon = (
 const tabHref = (enabled: boolean) => (enabled ? undefined : null);
 
 export default function TabLayout() {
+  useRoleGuard("customer", "/(guard-tabs)/visitor-list");
   const community = useFeature(MODULES.community);
   const visitors = useFeature(MODULES.visitors);
 

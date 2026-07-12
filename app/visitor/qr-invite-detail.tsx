@@ -2,15 +2,8 @@ import * as Sharing from "expo-sharing";
 import { fonts } from "../../constants/tokens";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Share,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Share, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "../../components/ui/Text";
 import QRCode from "react-native-qrcode-svg";
 import ViewShot, { captureRef } from "react-native-view-shot";
 import { SafeAreaView } from "react-native-safe-area-context";

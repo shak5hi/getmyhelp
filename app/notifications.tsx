@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
+import { View, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import { Text } from "../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";

@@ -3,26 +3,14 @@ import { fonts } from "../../constants/tokens";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
-import config from "../../src/config";
 import { createVisitor } from "../../src/api/visitorApi";
-import { getToken } from "../../src/api/tokenStore";
+import { apiGet } from "../../src/api/client";
 
 const PURPOSES = ["delivery", "guest", "domestic", "vendor", "interview", "other"];
 
@@ -57,11 +45,8 @@ export default function NewVisitorScreen() {
       const user = userStr ? JSON.parse(userStr) : null;
       const societyId = user?.guard_society_id;
       if (!societyId) return;
-      const token = await getToken();
-      const res = await fetch(`${config.apiUrl}/customer/societies/${societyId}/towers`, {
-        headers: { Authorization: `Bearer ${token ?? ""}` },
-      });
-      const json = await res.json();
+      // apiGet injects auth header, timeout, and 401 guard automatically.
+      const json = await apiGet(`/customer/societies/${societyId}/towers`);
       const towerList: Tower[] = (json?.data || []).map((t: any) => ({
         id: t.id,
         tower_number: t.tower_number,
@@ -122,7 +107,6 @@ export default function NewVisitorScreen() {
         });
       }
       const res = await createVisitor(formData);
-      if (res.detail) throw new Error(res.detail);
       const visitorId = res.id ?? res.data?.id;
       if (!visitorId) throw new Error("Failed to create visitor");
       // Reset form for next entry

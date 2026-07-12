@@ -1,15 +1,7 @@
 import React, { useState } from "react";
 import { fonts } from "../../constants/tokens";
-import {
-  View,
-  Image,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-  StyleSheet,
-  Dimensions,
-  Text,
-} from "react-native";
+import { View, Image, TouchableOpacity, Modal, FlatList, StyleSheet, Dimensions } from "react-native";
+import { Text } from "../ui/Text";
 import { Ionicons } from "@expo/vector-icons";
 import config from "../../src/config";
 

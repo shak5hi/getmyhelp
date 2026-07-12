@@ -11,26 +11,24 @@ import { fonts, radii, spacing } from "../constants/tokens";
  * identical in light and dark mode — it's a brand moment, not a themed surface.
  */
 export const splash = {
-  /** Field gradient. Like the splash: brightest at the top, deepening to a rich
-   *  indigo at the bottom — not the other way round. Saturated on purpose. */
-  gradient: ["#7C3AED", "#5B21D6", "#3E13A8"] as const,
-  /** The soft bright bloom the splash carries in its top-right corner. */
-  bloom: ["rgba(167,139,250,0.55)", "rgba(139,92,246,0.0)"] as const,
-  /** Type on the violet field. */
-  ink: "#FFFFFF",
-  inkSoft: "#D6C9FB",
-  /** Lilac used for the "My" in the splash wordmark — our accent on violet. */
-  lilac: "#C4B5FD",
-  /** Warm counterpoint in the result line — the only non-violet hue. */
-  warm: "#FFC978",
-  /** The near-white panel the splash curves into at the bottom. */
-  panel: "#F4F3F8",
-  panelInk: "#3B2A6B",
-  panelInkSoft: "#6D5F93",
-  /** Translucent whites for surfaces sitting on the violet field. */
-  frameBorder: "rgba(255,255,255,0.28)",
-  frameFill: "rgba(255,255,255,0.07)",
-  bubbleFill: "rgba(255,255,255,0.16)",
+  /** Field gradient. Soft purple fading to white. */
+  gradient: ["#F3E8FF", "#FFFFFF", "#FFFFFF"] as const,
+  /** Bloom disabled for light theme */
+  bloom: ["transparent", "transparent"] as const,
+  /** Type on the white field. */
+  ink: "#111827",
+  inkSoft: "#6B7280",
+  /** Accent colors */
+  lilac: "#7C3AED",
+  warm: "#EA580C",
+  /** Panel removed/transparent */
+  panel: "transparent",
+  panelInk: "#111827",
+  panelInkSoft: "#6B7280",
+  /** Glass on white */
+  frameBorder: "rgba(0,0,0,0.08)",
+  frameFill: "#FFFFFF",
+  bubbleFill: "#F9FAFB",
 };
 
 export const makeHomeStyles = (_t: Theme) =>
@@ -86,9 +84,9 @@ export const makeHomeStyles = (_t: Theme) =>
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm - 2,
       borderRadius: radii.full,
-      backgroundColor: "rgba(255,255,255,0.14)",
+      backgroundColor: "rgba(0,0,0,0.04)",
       borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.22)",
+      borderColor: "rgba(0,0,0,0.08)",
     },
     langPillText: {
       fontSize: 12,
@@ -157,13 +155,13 @@ export const makeHomeStyles = (_t: Theme) =>
     avatarText: {
       fontSize: 14,
       fontFamily: fonts.displayBold,
-      color: "#5B21B6",
+      color: "#F9FAFB",
     },
 
     dashed: {
       borderBottomWidth: 1,
       borderStyle: "dashed",
-      borderColor: "rgba(255,255,255,0.30)",
+      borderColor: "rgba(0,0,0,0.15)",
       marginTop: spacing.lg,
       marginBottom: spacing.lg,
     },
@@ -188,8 +186,8 @@ export const makeHomeStyles = (_t: Theme) =>
       borderRadius: radii.full,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: splash.ink,
-      shadowColor: "#2E1065",
+      backgroundColor: "#111827",
+      shadowColor: "rgba(0,0,0,0.2)",
       shadowOffset: { width: 0, height: 8 },
       shadowOpacity: 0.35,
       shadowRadius: 14,
@@ -215,7 +213,7 @@ export const makeHomeStyles = (_t: Theme) =>
       fontFamily: fonts.displayBold,
       fontSize: 19,
       lineHeight: 27,
-      color: splash.panelInk,
+      color: splash.ink,
       letterSpacing: -0.3,
       marginBottom: spacing.xl,
     },
@@ -228,7 +226,7 @@ export const makeHomeStyles = (_t: Theme) =>
       textAlign: "center",
       fontSize: 11.5,
       fontFamily: fonts.displayMedium,
-      color: splash.panelInkSoft,
+      color: splash.inkSoft,
     },
     termsLink: {
       fontFamily: fonts.displayBold,

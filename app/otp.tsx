@@ -2,14 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth, signInWithPhoneNumber } from "@react-native-firebase/auth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, Pressable, TouchableOpacity, View, KeyboardAvoidingView, Platform } from "react-native";
+import { Text, TextInput } from "../components/ui/Text"
+import type { TextInputHandle } from "../components/ui/Text";
 import config from "../src/config";
 import i18n from "../src/i18n";
 import { useLanguage } from "../src/LanguageContext";
@@ -19,6 +14,7 @@ import { getConfirmation, setConfirmation } from "../src/firebaseConfirmation";
 import { makeOtpStyles } from "../styles/otp.styles";
 import { useTheme } from "../src/ThemeContext";
 import { setToken } from "../src/api/tokenStore";
+import { apiGet } from "../src/api/client";
 
 export default function OtpScreen() {
   useLanguage();
@@ -27,7 +23,7 @@ export default function OtpScreen() {
   const { theme } = useTheme();
   const styles = useMemo(() => makeOtpStyles(theme), [theme]);
   const { phone } = useLocalSearchParams<{ phone: string }>();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputHandle>(null);
   const refreshFeatures = useRefreshFeatures();
 
   const [otp, setOtp] = useState("");
@@ -85,8 +81,28 @@ export default function OtpScreen() {
         return;
       }
 
-      const credential = await confirmation.confirm(otp);
-      const idToken = await credential.user.getIdToken();
+      let user = getAuth().currentUser;
+      const targetPhone = phone.startsWith("+91") ? phone : `+91${phone}`;
+
+      // If Android auto-retrieved the SMS, the user might already be authenticated in the background.
+      if (!user || user.phoneNumber !== targetPhone) {
+        try {
+          const credential = await confirmation.confirm(otp);
+          user = credential.user;
+        } catch (confirmErr: any) {
+          // Check one more time if auto-verify finished exactly as we clicked verify
+          user = getAuth().currentUser;
+          if (!user || user.phoneNumber !== targetPhone) {
+            throw confirmErr;
+          }
+        }
+      }
+
+      if (!user) {
+        throw new Error("Authentication failed. Please try again.");
+      }
+
+      const idToken = await user.getIdToken();
 
       // 2. Exchange Firebase ID token for app access_token
       const response = await fetch(`${config.apiUrl}/customer/firebase-verify`, {
@@ -138,10 +154,7 @@ export default function OtpScreen() {
       const userToSave = { ...(customer || {}), phone };
       await AsyncStorage.setItem("user", JSON.stringify(userToSave));
 
-      // Save user_role for guard routing
-      if (customer?.user_role) {
-        await AsyncStorage.setItem("user_role", customer.user_role);
-      }
+
 
       // Resolve this society's enabled modules before we navigate, so the tab
       // bar and dashboard render against the real permission set on first paint
@@ -155,12 +168,6 @@ export default function OtpScreen() {
       // hold up (or fail) the login.
       registerForPush();
 
-      // ── Guard: skip onboarding entirely ──
-      if (customer?.user_role === "guard") {
-        cleanupOtpState();
-        router.replace("/(guard-tabs)/visitor-list");
-        return;
-      }
 
       // ── Decide whether to skip onboarding ──
       // The login response now includes society_id, tower_id, flat_number
@@ -183,12 +190,10 @@ export default function OtpScreen() {
         return;
       }
 
-      // Fallback: profile API for accounts created before this change
+      // Fallback: profile API for accounts created before this change.
+      // setToken was already called above, so apiGet picks up the new token automatically.
       try {
-        const profileRes = await fetch(`${config.apiUrl}/customer/profile`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        const profileJson = await profileRes.json();
+        const profileJson = await apiGet("/customer/profile");
         const p = profileJson?.data || profileJson;
 
         const pSociety = p?.society_id ?? p?.societyId;
@@ -201,12 +206,7 @@ export default function OtpScreen() {
           }
           await AsyncStorage.setItem("flat_number", String(pFlat));
           cleanupOtpState();
-          const role = p?.user_role ?? await AsyncStorage.getItem("user_role");
-          if (role === "guard") {
-            router.replace("/(guard-tabs)/visitor-list");
-          } else {
-            router.replace("/(tabs)/dashboard");
-          }
+          router.replace("/(tabs)/dashboard");
           return;
         }
       } catch (profileErr) {
@@ -221,7 +221,7 @@ export default function OtpScreen() {
       if (code.includes("invalid-verification-code")) {
         msg = "Incorrect OTP. Please check the code and try again.";
       } else if (code.includes("session-expired") || code.includes("code-expired")) {
-        msg = "This OTP has expired. Tap Resend to get a new code.";
+        msg = `This OTP has expired (Raw: ${err?.message || code}). Tap Resend.`;
       } else if (code.includes("network-request-failed")) {
         msg = "Can't reach the verification server. Check your internet and try again.";
       } else if (code.includes("too-many-requests")) {
@@ -263,7 +263,7 @@ export default function OtpScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <Text style={styles.title}>{i18n.t("otpTitle")}</Text>
       <Text style={styles.subtitle}>{i18n.t("otpSubtitle")}</Text>
 
@@ -327,6 +327,6 @@ export default function OtpScreen() {
           </Text>
         )}
       </Text>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

@@ -1,16 +1,10 @@
-import { getToken } from "../src/api/tokenStore";
+import { apiGet, apiPost } from "../src/api/client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { Text } from "../components/ui/Text";
 
-import config from "../src/config";
 import { makeSocietyDetectedStyles } from "../styles/societyDetectedStyles";
 import { useTheme } from "../src/ThemeContext";
 
@@ -68,14 +62,10 @@ export default function SocietyDetectedScreen() {
 
         // 3. Fallback: Fetch from general societies API if no location-based data
         console.log("🌐 No location data, fetching from general API...");
-        const token = await getToken();
-        const response = await fetch(`${config.apiUrl}/customer/societies`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          const societiesData = Array.isArray(result) ? result : (result?.societies || result?.data?.societies || []);
+        // apiGet injects auth header, timeout, and 401 guard automatically.
+        const result = await apiGet("/customer/societies");
+        const societiesData = Array.isArray(result) ? result : (result?.societies || result?.data?.societies || []);
+        if (societiesData.length > 0) {
           setSocieties(societiesData);
         } else {
           setError("No societies found in your area");
@@ -95,17 +85,8 @@ export default function SocietyDetectedScreen() {
     if (!selectedSociety) return;
 
     try {
-      const token = await getToken();
-      
-      // Call backend to save selection
-      await fetch(`${config.apiUrl}/customer/select-society`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ society_id: selectedSociety }),
-      });
+      // apiPost injects auth header, timeout, and 401 guard automatically.
+      await apiPost("/customer/select-society", { society_id: selectedSociety });
 
       console.log("✅ API: Selected society saved:", selectedSociety);
       await AsyncStorage.setItem("selected_society_id", selectedSociety);

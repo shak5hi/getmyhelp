@@ -1,27 +1,18 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  TextInput,
-  ActivityIndicator,
-  Image,
-} from "react-native";
+import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, Image } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as WebBrowser from "expo-web-browser";
-import config from "../../src/config";
 import { makeStyles } from "../../styles/society.styles";
 import { useTheme } from "../../src/ThemeContext";
+import config from "../../src/config";
 import { CommentItem } from "../../components/society/CommentItem";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { StatusPill, ticketStatusTone } from "../../components/ui/StatusPill";
-import { getToken } from "../../src/api/tokenStore";
+import { apiGet, apiPost } from "../../src/api/client";
 
 export default function TicketDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -61,23 +52,9 @@ export default function TicketDetailsScreen() {
 
     setLoading(true);
     try {
-      const token = await getToken();
-      const response = await fetch(`${config.apiUrl}/customer/tickets/${ticketId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Ticket details fetch failed (${response.status}):`, errorText.substring(0, 500));
-        throw new Error(`Server responded with ${response.status}`);
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType?.includes("application/json")) {
-        throw new Error("Invalid response format from server");
-      }
-
-      const rawJson = await response.json();
+      // apiGet injects auth header, applies 20s timeout, and handles 401 session expiry.
+      // Non-JSON error pages are returned as a benign shape rather than thrown.
+      const rawJson = await apiGet(`/customer/tickets/${ticketId}`);
       const ticketData = rawJson.data || rawJson;
 
       if (ticketData) {
@@ -96,25 +73,14 @@ export default function TicketDetailsScreen() {
 
     setSending(true);
     try {
-      const token = await getToken();
-      const response = await fetch(`${config.apiUrl}/customer/tickets/${id}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content: newComment }),
-      });
-
-      if (response.ok) {
-        const json = await response.json();
-        const updatedTicket = json.data;
-        if (updatedTicket?.comments) {
-          setComments(updatedTicket.comments);
-        }
-        setNewComment("");
-        setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+      // apiPost injects auth header, timeout, and 401 guard automatically.
+      const json = await apiPost(`/customer/tickets/${id}/comments`, { content: newComment });
+      const updatedTicket = json.data;
+      if (updatedTicket?.comments) {
+        setComments(updatedTicket.comments);
       }
+      setNewComment("");
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (error) {
       console.error("Error sending comment:", error);
     } finally {

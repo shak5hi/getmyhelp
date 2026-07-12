@@ -2,18 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../src/ThemeContext";
@@ -118,7 +108,7 @@ export default function InviteScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Invite a guest</Text>
           <Text style={styles.subtitle}>
-            Pre-clear someone so the guard can let them in. Choose how they'll prove it at the gate.
+            Pre-clear someone so the guard can let them in. Choose how they&apos;ll prove it at the gate.
           </Text>
 
           {/* Method choice — the QR/OTP decision now lives inside one flow */}

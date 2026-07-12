@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-  TextInput,
-} from "react-native";
+import { View, FlatList, TouchableOpacity, RefreshControl } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -606,6 +600,9 @@ export default function CommunityScreen() {
       </View>
 
       <FlatList
+        initialNumToRender={10}
+        windowSize={5}
+        removeClippedSubviews={true}
         data={isLoading ? [] : currentData}
         keyExtractor={(item, index) =>
           item?.id != null ? String(item.id) : `${activeTab}-${index}`

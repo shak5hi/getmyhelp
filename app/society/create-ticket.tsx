@@ -1,27 +1,16 @@
 import React, { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  ActivityIndicator,
-  Image,
-} from "react-native";
+import { View, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, Image } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
-import config from "../../src/config";
 import { makeStyles } from "../../styles/society.styles";
 import { useTheme } from "../../src/ThemeContext";
 import { useFeatureGuard } from "../../src/useFeatureGuard";
 import { MODULES } from "../../src/featureRegistry";
-import { getToken } from "../../src/api/tokenStore";
+import { apiPost } from "../../src/api/client";
 
 const MAX_FILES = 5;
 const MAX_FILE_SIZE_MB = 10;
@@ -109,8 +98,6 @@ export default function CreateTicketScreen() {
 
     setLoading(true);
     try {
-      const token = await getToken();
-
       const formData = new FormData();
       formData.append("title", title.trim());
       formData.append("category", category);
@@ -128,28 +115,24 @@ export default function CreateTicketScreen() {
         } as any);
       });
 
-      const response = await fetch(`${config.apiUrl}/customer/tickets`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      // apiPost detects FormData and skips Content-Type so the runtime sets the
+      // multipart boundary correctly. Auth header is injected automatically.
+      const result = await apiPost("/customer/tickets", formData);
 
-      if (response.ok) {
-        Alert.alert("Ticket Created", "Your support ticket has been raised successfully.", [
-          { text: "Done", onPress: () => router.back() },
-        ]);
-      } else {
-        const error = await response.json().catch(() => ({}));
-        const detail = error.detail || "Failed to create ticket.";
-        const isInvalidCategory = detail.toLowerCase().includes("invalid category");
+      // apiPost doesn't throw on non-2xx — detect errors from the body.
+      if (result?.detail || result?.message) {
+        const detail = result.detail || result.message || "Failed to create ticket.";
+        const isInvalidCategory = String(detail).toLowerCase().includes("invalid category");
         Alert.alert(
           "Error",
           isInvalidCategory
             ? "That category isn't available yet. Please select a different category."
             : detail
         );
+      } else {
+        Alert.alert("Ticket Created", "Your support ticket has been raised successfully.", [
+          { text: "Done", onPress: () => router.back() },
+        ]);
       }
     } catch {
       Alert.alert("Network Error", "Please check your connection and try again.");

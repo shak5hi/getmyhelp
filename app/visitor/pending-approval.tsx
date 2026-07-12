@@ -2,7 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fonts } from "../../constants/tokens";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";
@@ -39,7 +40,7 @@ export default function PendingApprovalScreen() {
     }
   }, [id]);
 
-  useGuardVisitorSocket(guardId, token, (data) => {
+  useGuardVisitorSocket(guardId, (data: any) => {
     if (!data || data.visitor_id !== id) return;
     if (data.event === "visitor_approved") setApprovalStatus("approved");
     else if (data.event === "visitor_rejected") {

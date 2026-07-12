@@ -2,15 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { fonts } from "../../constants/tokens";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";
@@ -104,6 +97,9 @@ export default function GuardVisitorList() {
         <ActivityIndicator style={{ marginTop: 40 }} color={theme.accent} />
       ) : (
         <FlatList
+        initialNumToRender={10}
+        windowSize={5}
+        removeClippedSubviews={true}
           data={visitors}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
