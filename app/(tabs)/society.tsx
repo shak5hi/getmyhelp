@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-  Modal,
-  ScrollView,
-} from "react-native";
+import { View, FlatList, TouchableOpacity, RefreshControl, Modal, ScrollView } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 // NOTE: edges={["bottom"]} — expo-router tab screens already sit below the status bar,
 // so we only need bottom safe area for the home indicator.
@@ -15,9 +8,9 @@ import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import config from "../../src/config";
 import { fonts } from "../../constants/tokens";
 import { makeStyles } from "../../styles/society.styles";
+import config from "../../src/config";
 import { useTheme } from "../../src/ThemeContext";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import { TransactionCard } from "../../components/society/TransactionCard";
@@ -25,6 +18,9 @@ import { TicketCard } from "../../components/society/TicketCard";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorState } from "../../components/ui/ErrorState";
+import { useFeature } from "../../src/FeatureContext";
+import { MODULES } from "../../src/featureRegistry";
+import { apiGet } from "../../src/api/client";
 
 type ActiveTab = "finance" | "tickets";
 type FinanceType = "income" | "expense";
@@ -113,6 +109,13 @@ export default function SocietyScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  // This screen hosts two independent modules. Either can be switched off per
+  // society in admin, so the segments — and which tab we land on — are derived
+  // from the enabled set rather than hard-coded.
+  const financeEnabled = useFeature(MODULES.finance);
+  const ticketsEnabled = useFeature(MODULES.tickets);
+  const noneEnabled = !financeEnabled && !ticketsEnabled;
+
   const [activeTab, setActiveTab] = useState<ActiveTab>("finance");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -120,51 +123,42 @@ export default function SocietyScreen() {
   const [data, setData] = useState<any[]>([]);
   const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
 
+  // Keep the active tab on an enabled module. Covers the initial landing (the
+  // default is "finance", which may be off) and a mid-session module change.
+  useEffect(() => {
+    if (activeTab === "finance" && !financeEnabled && ticketsEnabled) setActiveTab("tickets");
+    else if (activeTab === "tickets" && !ticketsEnabled && financeEnabled) setActiveTab("finance");
+  }, [activeTab, financeEnabled, ticketsEnabled]);
+
   const fetchData = useCallback(async (isRefresh = false) => {
+    // Don't call an endpoint for a module this society has switched off — it
+    // would 403 and surface as an error state for a feature that shouldn't exist.
+    if (noneEnabled) {
+      setLoading(false);
+      setRefreshing(false);
+      setData([]);
+      return;
+    }
+    if (activeTab === "finance" && !financeEnabled) return;
+    if (activeTab === "tickets" && !ticketsEnabled) return;
+
     if (!isRefresh) setLoading(true);
     setError(false);
     try {
-      const token = await AsyncStorage.getItem("access_token");
       const userStr = await AsyncStorage.getItem("user");
       const user = userStr ? JSON.parse(userStr) : null;
-
-      if (!token || !user?.id) {
+      if (!user?.id) {
         setLoading(false);
         setRefreshing(false);
         return;
       }
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-
+      // apiGet injects auth header, applies 20s timeout, and handles 401 session expiry.
       if (activeTab === "finance") {
-        const response = await fetch(`${config.apiUrl}/customer/society/finance`, { headers });
-        
-        if (!response.ok) {
-          throw new Error(`Finance server error: ${response.status}`);
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-           const text = await response.text();
-           console.error("Finance non-JSON response:", text);
-           throw new Error("Invalid finance response format");
-        }
-
-        const json = await response.json();
+        const json = await apiGet("/customer/society/finance");
         setData(extractFinanceRows(json));
       } else {
-        const response = await fetch(`${config.apiUrl}/customer/tickets`, { headers });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`Tickets fetch failed with status ${response.status}:`, errorText.substring(0, 500));
-          throw new Error(`Tickets server error: ${response.status}`);
-        }
-
-        const json = await response.json();
+        const json = await apiGet("/customer/tickets");
 
         let ticketList: any[] = [];
         if (json.data && Array.isArray(json.data.tickets)) ticketList = json.data.tickets;
@@ -183,7 +177,7 @@ export default function SocietyScreen() {
       setRefreshing(false);
     }
 
-  }, [activeTab]);
+  }, [activeTab, financeEnabled, ticketsEnabled, noneEnabled]);
 
   useEffect(() => {
     fetchData();
@@ -208,19 +202,31 @@ export default function SocietyScreen() {
   };
 
   const renderTabs = () => {
+    // Nothing to head the list with when the society has neither module.
+    if (noneEnabled) return null;
+
     // Finance summary totals
     const totalIncome  = activeTab === "finance" ? data.filter((t: any) => t.type === "income").reduce((s: number, t: any) => s + t.amount, 0) : 0;
     const totalExpense = activeTab === "finance" ? data.filter((t: any) => t.type === "expense").reduce((s: number, t: any) => s + t.amount, 0) : 0;
 
+    // Only offer the modules this society actually has. With just one enabled a
+    // two-segment control would be a lie, so it isn't rendered at all.
+    const tabs: { key: ActiveTab; label: string }[] = [
+      financeEnabled && { key: "finance" as const, label: "Finances" },
+      ticketsEnabled && { key: "tickets" as const, label: "Support" },
+    ].filter(Boolean) as { key: ActiveTab; label: string }[];
+
     return (
       <>
-        <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 }}>
-          <SegmentedControl
-            segments={["Finances", "Support"]}
-            value={activeTab === "finance" ? 0 : 1}
-            onChange={(i) => setActiveTab(i === 0 ? "finance" : "tickets")}
-          />
-        </View>
+        {tabs.length > 1 && (
+          <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 }}>
+            <SegmentedControl
+              segments={tabs.map((t) => t.label)}
+              value={tabs.findIndex((t) => t.key === activeTab)}
+              onChange={(i) => setActiveTab(tabs[i].key)}
+            />
+          </View>
+        )}
 
         {/* Make the two distinct mental models explicit: money vs. issues. */}
         <Text style={styles.tabCaption}>
@@ -273,7 +279,21 @@ export default function SocietyScreen() {
     </View>
   );
 
-  const renderEmpty = () => (
+  const renderEmpty = () => {
+    // Both modules off for this society — the tab exists but has no content.
+    if (noneEnabled) {
+      return (
+        <EmptyState
+          title="Nothing here yet"
+          message="Your society hasn't enabled any of these features."
+          icon="business-outline"
+        />
+      );
+    }
+    return renderEmptyForTab();
+  };
+
+  const renderEmptyForTab = () => (
     <EmptyState
       title={activeTab === "finance" ? "No Transactions" : "No Support Tickets"}
       message={activeTab === "finance"
@@ -351,7 +371,7 @@ export default function SocietyScreen() {
         }
       />
 
-      {activeTab === "tickets" && !loading && (
+      {activeTab === "tickets" && ticketsEnabled && !loading && (
         <TouchableOpacity
           style={styles.fab}
           onPress={() => router.push("/society/create-ticket")}

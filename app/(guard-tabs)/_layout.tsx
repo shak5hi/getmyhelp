@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { fonts } from "../../constants/tokens";
 import { Tabs } from "expo-router";
+import { useRoleGuard } from "../../src/useRoleGuard";
 import { useTheme } from "../../src/ThemeContext";
 import { useFeature } from "../../src/FeatureContext";
 import { MODULES } from "../../src/featureRegistry";

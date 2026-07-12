@@ -79,6 +79,9 @@ export default function VisitorHistoryScreen() {
 
   return (
     <FlatList
+        initialNumToRender={10}
+        windowSize={5}
+        removeClippedSubviews={true}
       data={visitors}
       keyExtractor={(item) => item.id}
       refreshControl={
@@ -131,5 +134,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   name: { fontSize: 14, fontFamily: fonts.semibold, color: t.text },
   meta: { fontSize: 12, color: t.textSecondary, marginTop: 1 },
   date: { fontSize: 11, color: t.textTertiary, marginTop: 2 },
-  empty: { textAlign: "center", color: t.textSecondary, marginTop: 40 },
+  empty: { textAlign: "center", color: t.textTertiary, marginTop: 40 },
 });

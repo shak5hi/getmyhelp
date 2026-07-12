@@ -42,7 +42,7 @@ export default function VideoSplash({ onDone }: { onDone: () => void }) {
         style={StyleSheet.absoluteFill}
         contentFit="cover"
         nativeControls={false}
-        allowsFullscreen={false}
+        fullscreenOptions={{ enable: false }}
         allowsPictureInPicture={false}
       />
     </View>

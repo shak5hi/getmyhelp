@@ -7,15 +7,15 @@ import {
   Image,
   Modal,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
   Vibration,
   Platform,
 } from "react-native";
+import { Text, TextInput } from "../ui/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { useNotifications } from "../../src/NotificationContext";
+import { useAudioPlayer } from "expo-audio";
 
 // Repeating alarm vibration: 700ms buzz, 300ms pause, repeat
 const VIBRATION_PATTERN = [0, 700, 300, 700, 300, 700];
@@ -35,8 +35,10 @@ export default function VisitorApprovalModal() {
   const ring2Anim = useRef(new Animated.Value(0)).current;
   const flashAnim = useRef(new Animated.Value(0)).current;
 
-  // Sound ref — loaded dynamically so missing expo-av doesn't crash
-  const soundRef = useRef<any>(null);
+  // The doorbell. Someone is physically at the gate, so this must actually sound —
+  // it is the whole point of the screen. Kept out of a try/require fallback on
+  // purpose: a silent failure here is indistinguishable from working.
+  const player = useAudioPlayer(require("../../assets/sounds/doorbell.wav"));
 
   useEffect(() => {
     if (!pendingApproval) return;
@@ -98,36 +100,23 @@ export default function VisitorApprovalModal() {
     pulse.start();
     flash.start();
 
-    // Load and play alarm sound (requires expo-av + assets/sounds/doorbell.mp3)
-    let mounted = true;
-    (async () => {
-      try {
-        const { Audio } = require("expo-av");
-        const { sound } = await Audio.Sound.createAsync(
-          require("../../assets/sounds/dorbell.wav"),
-          { shouldPlay: true, isLooping: true, volume: 1.0 }
-        );
-        if (mounted) soundRef.current = sound;
-      } catch {
-        // expo-av not installed or sound file missing — silent fallback
-      }
-    })();
+    player.loop = true;
+    player.seekTo(0);
+    player.play();
 
     return () => {
-      mounted = false;
       Vibration.cancel();
       ring1.stop();
       ring2.stop();
       pulse.stop();
       flash.stop();
-      soundRef.current?.unloadAsync().catch(() => {});
-      soundRef.current = null;
+      player.pause();
     };
   }, [pendingApproval]);
 
   const stopAlarm = () => {
     Vibration.cancel();
-    soundRef.current?.stopAsync().catch(() => {});
+    player.pause();
   };
 
   if (!pendingApproval) return null;

@@ -1,10 +1,12 @@
 /**
- * Theme palettes — "Violet & Magenta" (the gh brand).
+ * Theme palettes — "Violet".
  *
- * Matched to the "gh" wordmark: a vivid gradient that runs from electric violet
- * (#7C2AE8) into hot magenta-pink (#E91E8C). One brand gradient, a solid
- * orchid-magenta accent drawn from its midpoint, on cool lilac paper (light) or
- * deep plum-black (dark). One identity, designed twice.
+ * One accent: violet. The magenta half of the old brand gradient is retired —
+ * it fought with `danger` (a pink-red) and made every accent surface read as an
+ * alert. The gradient is now violet → deep violet, so it still reads as a
+ * gradient without introducing a second hue.
+ *
+ * Pink survives only where pink means something: `danger`.
  *
  * Consumed via `useTheme()` (src/ThemeContext). Spacing / radii / fonts remain
  * in constants/tokens (theme-independent).
@@ -51,10 +53,10 @@ export const darkTheme: Theme = {
   text: "#F3ECFA", // soft lilac-white
   textSecondary: "#B6A6C8",
   textTertiary: "#7E6E90",
-  accent: "#D556EE", // fuchsia-violet that glows on a dark canvas
-  accentPressed: "#C23FDD",
-  accentTint: "#2C1838",
-  accentGradient: ["#9A4BF5", "#F23C9A"], // logo violet → magenta (brighter for dark)
+  accent: "#B07CFF", // violet that glows on a dark canvas
+  accentPressed: "#9A5FF0",
+  accentTint: "#2A1A3F",
+  accentGradient: ["#9A4BF5", "#7C3AED"], // violet → deep violet
   onAccent: "#FFFFFF",
   success: "#5FD08A", // mint glow
   successTint: "#14271C",
@@ -83,10 +85,10 @@ export const lightTheme: Theme = {
   text: "#1F1229", // deep plum ink
   textSecondary: "#6B5F7B",
   textTertiary: "#A89BB8",
-  accent: "#A21CAF", // orchid-magenta (the logo's violet↔pink midpoint)
-  accentPressed: "#8A1796",
-  accentTint: "#F7E6FB",
-  accentGradient: ["#7C2AE8", "#E91E8C"], // logo violet → magenta
+  accent: "#7C2AE8", // violet
+  accentPressed: "#6A21CC",
+  accentTint: "#F1E7FE",
+  accentGradient: ["#9A4BF5", "#7C3AED"], // violet → deep violet
   onAccent: "#FFFFFF",
   success: "#2E9E5B", // readable green on tint
   successTint: "#E4F4EA",

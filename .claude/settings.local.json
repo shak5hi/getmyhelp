@@ -11,8 +11,7 @@
       "Bash(npx tsc *)",
       "Bash(git --no-pager diff --stat)",
       "Bash(git --no-pager diff app/\\\\\\(tabs\\\\\\)/visitors.tsx)",
-      "Bash(git --no-pager diff components/PrimaryButton.tsx)",
-      "PowerShell(npm install *)"
+      "Bash(git --no-pager diff components/PrimaryButton.tsx)"
     ]
   }
 }

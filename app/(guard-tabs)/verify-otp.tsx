@@ -2,15 +2,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { fonts } from "../../constants/tokens";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text"
+import type { TextInputHandle } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";
@@ -24,12 +18,12 @@ export default function VerifyOTPScreen() {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [result, setResult] = useState<any>(null);
-  const ref0 = useRef<TextInput>(null);
-  const ref1 = useRef<TextInput>(null);
-  const ref2 = useRef<TextInput>(null);
-  const ref3 = useRef<TextInput>(null);
-  const ref4 = useRef<TextInput>(null);
-  const ref5 = useRef<TextInput>(null);
+  const ref0 = useRef<TextInputHandle>(null);
+  const ref1 = useRef<TextInputHandle>(null);
+  const ref2 = useRef<TextInputHandle>(null);
+  const ref3 = useRef<TextInputHandle>(null);
+  const ref4 = useRef<TextInputHandle>(null);
+  const ref5 = useRef<TextInputHandle>(null);
   const refs = [ref0, ref1, ref2, ref3, ref4, ref5];
 
   const handleChange = (text: string, index: number) => {
@@ -56,7 +50,6 @@ export default function VerifyOTPScreen() {
     setResult(null);
     try {
       const res = await verifyOTP(otpCode);
-      if (res.detail) throw new Error(res.detail);
       setResult(res);
     } catch (e: any) {
       Alert.alert("Invalid OTP", e.message ?? "OTP verification failed. Check the code and try again.");

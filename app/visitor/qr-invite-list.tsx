@@ -1,7 +1,8 @@
 import { useRouter } from "expo-router";
 import { fonts } from "../../constants/tokens";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import { getQRInvites } from "../../src/api/visitorApi";

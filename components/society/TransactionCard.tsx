@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity } from "react-native";
+import { Text } from "../ui/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { makeStyles } from "../../styles/society.styles";
 import { useTheme } from "../../src/ThemeContext";
@@ -15,7 +16,7 @@ interface TransactionProps {
   onPress?: () => void;
 }
 
-export const TransactionCard: React.FC<TransactionProps> = ({
+export const TransactionCard: React.FC<TransactionProps> = React.memo(({
   amount,
   category,
   date,
@@ -73,4 +74,6 @@ export const TransactionCard: React.FC<TransactionProps> = ({
       </View>
     </TouchableOpacity>
   );
-};
+});
+
+TransactionCard.displayName = "TransactionCard";

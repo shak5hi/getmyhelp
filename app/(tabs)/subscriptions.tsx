@@ -1,23 +1,17 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-  Image,
-} from "react-native";
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, KeyboardAvoidingView, Platform } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { 
-  getAvailablePlans, 
-  getMySubscriptions, 
-  selectSubscription, 
-  requestSubscriptionCancellation 
+import {
+  getAvailablePlans,
+  getMySubscriptions,
+  selectSubscription,
+  requestSubscriptionCancellation,
+  requestAbsenceCredit,
 } from "../../src/api/subscriptionApi";
+import { errorMessage } from "../../src/api/client";
 import { makeStyles } from "../../styles/subscriptions.styles";
 import { fonts } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
@@ -31,6 +25,12 @@ export default function SubscriptionsScreen() {
   const [currentSubscriptions, setCurrentSubscriptions] = useState<any[]>([]);
   const [availablePlans, setAvailablePlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Maid-absence credit request modal
+  const [absenceSubId, setAbsenceSubId] = useState<string | null>(null);
+  const [absenceDays, setAbsenceDays] = useState("");
+  const [absenceReason, setAbsenceReason] = useState("");
+  const [submittingAbsence, setSubmittingAbsence] = useState(false);
 
   // Refetch every time the tab gains focus (tab screens stay mounted, so a
   // mount-only effect would keep showing stale data after a backend change).
@@ -87,14 +87,10 @@ export default function SubscriptionsScreen() {
           onPress: async () => {
              try {
                const response = await selectSubscription(planId);
-               if (response.message) {
-                 Alert.alert("Success", response.message);
-                 fetchSubscriptionData(); // Refresh list
-               } else {
-                 Alert.alert("Error", response.detail || "Failed to subscribe");
-               }
+               Alert.alert("Success", response?.message ?? "Subscribed.");
+               fetchSubscriptionData(); // Refresh list
              } catch (err) {
-               Alert.alert("Error", "Network error. Please try again.");
+               Alert.alert("Error", errorMessage(err, "Failed to subscribe"));
              }
           }
         }
@@ -114,19 +110,40 @@ export default function SubscriptionsScreen() {
           onPress: async () => {
             try {
               const response = await requestSubscriptionCancellation(subscriptionId);
-              if (response.message) {
-                Alert.alert("Request Sent", response.message);
-                fetchSubscriptionData(); // Refresh list
-              } else {
-                Alert.alert("Error", response.detail || "Failed to request cancellation");
-              }
+              Alert.alert("Request Sent", response?.message ?? "Cancellation requested.");
+              fetchSubscriptionData(); // Refresh list
             } catch (err) {
-              Alert.alert("Error", "Network error. Please try again.");
+              Alert.alert("Error", errorMessage(err, "Failed to request cancellation"));
             }
           }
         }
       ]
     );
+  };
+
+  const closeAbsenceModal = () => {
+    setAbsenceSubId(null);
+    setAbsenceDays("");
+    setAbsenceReason("");
+  };
+
+  const submitAbsenceCredit = async () => {
+    const days = parseInt(absenceDays, 10);
+    if (!days || days < 1) {
+      Alert.alert("Invalid days", "Please enter how many days the maid was absent.");
+      return;
+    }
+    setSubmittingAbsence(true);
+    try {
+      const response = await requestAbsenceCredit(absenceSubId!, days, absenceReason);
+      closeAbsenceModal();
+      Alert.alert("Request Sent", response?.message ?? "Request submitted.");
+      fetchSubscriptionData();
+    } catch (err) {
+      Alert.alert("Error", errorMessage(err, "Failed to submit request"));
+    } finally {
+      setSubmittingAbsence(false);
+    }
   };
 
   if (loading) {
@@ -152,7 +169,7 @@ export default function SubscriptionsScreen() {
             <Ionicons name="card-outline" size={48} color={theme.textTertiary} />
             <Text style={styles.emptyStateTitle}>No Active Subscriptions</Text>
             <Text style={styles.emptyStateText}>
-              You don't have any ongoing plans. Explore our deals below to get started.
+              You don&apos;t have any ongoing plans. Explore our deals below to get started.
             </Text>
           </View>
         ) : (
@@ -170,9 +187,16 @@ export default function SubscriptionsScreen() {
                 ₹{sub.amount_paid || sub.plan?.base_price || "—"} / month
               </Text>
 
-              <View style={styles.actionRow}>
-                <TouchableOpacity 
-                  style={styles.deleteButton}
+              <View style={[styles.actionRow, { gap: 10 }]}>
+                <TouchableOpacity
+                  style={[styles.deleteButton, { flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6, backgroundColor: theme.surfaceAlt }]}
+                  onPress={() => setAbsenceSubId(sub.id)}
+                >
+                  <Ionicons name="calendar-outline" size={15} color={theme.text} />
+                  <Text style={[styles.deleteButtonText, { color: theme.text }]}>Report Absence</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.deleteButton, { flex: 1 }]}
                   onPress={() => handleCancelRequest(sub.id)}
                 >
                   <Text style={styles.deleteButtonText}>Cancel Plan</Text>
@@ -208,6 +232,73 @@ export default function SubscriptionsScreen() {
           ))
         )}
       </ScrollView>
+
+      {/* Maid-absence credit request modal */}
+      <Modal
+        visible={!!absenceSubId}
+        transparent
+        animationType="fade"
+        onRequestClose={closeAbsenceModal}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.45)", padding: 24 }}
+        >
+          <View style={{ backgroundColor: theme.card, borderRadius: 16, padding: 20 }}>
+            <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: theme.text, marginBottom: 6 }}>
+              Report Maid Absence
+            </Text>
+            <Text style={{ fontSize: 13.5, color: theme.textSecondary, marginBottom: 16, lineHeight: 19 }}>
+              Tell us how many days the maid was absent. The admin will review and, if approved, add those days back to your subscription.
+            </Text>
+
+            <Text style={{ fontSize: 12, fontFamily: fonts.semibold, color: theme.textSecondary, marginBottom: 6 }}>
+              Days absent *
+            </Text>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: theme.text, backgroundColor: theme.bg, marginBottom: 14 }}
+              placeholder="e.g. 3"
+              placeholderTextColor={theme.textTertiary}
+              keyboardType="number-pad"
+              value={absenceDays}
+              onChangeText={setAbsenceDays}
+            />
+
+            <Text style={{ fontSize: 12, fontFamily: fonts.semibold, color: theme.textSecondary, marginBottom: 6 }}>
+              Reason (optional)
+            </Text>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: theme.text, backgroundColor: theme.bg, minHeight: 70, textAlignVertical: "top", marginBottom: 18 }}
+              placeholder="Add any details for the admin..."
+              placeholderTextColor={theme.textTertiary}
+              multiline
+              value={absenceReason}
+              onChangeText={setAbsenceReason}
+            />
+
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 13, borderRadius: 10, alignItems: "center", backgroundColor: theme.surfaceAlt }}
+                onPress={closeAbsenceModal}
+                disabled={submittingAbsence}
+              >
+                <Text style={{ color: theme.text, fontFamily: fonts.semibold, fontSize: 15 }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 13, borderRadius: 10, alignItems: "center", backgroundColor: theme.accent, opacity: submittingAbsence ? 0.7 : 1 }}
+                onPress={submitAbsenceCredit}
+                disabled={submittingAbsence}
+              >
+                {submittingAbsence ? (
+                  <ActivityIndicator color={theme.onAccent ?? "#fff"} />
+                ) : (
+                  <Text style={{ color: theme.onAccent ?? "#fff", fontFamily: fonts.bold, fontSize: 15 }}>Submit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }

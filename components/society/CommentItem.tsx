@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import { Text } from "../ui/Text";
 import { makeStyles } from "../../styles/society.styles";
 import { useTheme } from "../../src/ThemeContext";
 
@@ -10,7 +11,7 @@ interface CommentProps {
   authorName: string;
 }
 
-export const CommentItem: React.FC<CommentProps> = ({
+export const CommentItem: React.FC<CommentProps> = React.memo(({
   text,
   timestamp,
   isMe,
@@ -33,4 +34,6 @@ export const CommentItem: React.FC<CommentProps> = ({
       </Text>
     </View>
   );
-};
+});
+
+CommentItem.displayName = "CommentItem";

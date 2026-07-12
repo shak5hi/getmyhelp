@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import config from "../config";
+import { clearToken, getToken } from "./tokenStore";
 
 /**
  * Central API client.
@@ -16,21 +17,35 @@ import config from "../config";
  * returns the parsed body. Use `res`-level checks in callers that need status.
  */
 
+// Cached {moduleKey: enabled} map (see FeatureContext). Declared here so it can
+// join SESSION_KEYS without FeatureContext ↔ client forming an import cycle.
+export const ENABLED_MODULES_KEY = "enabled_modules";
+
 // Keys cleared when a session ends. Kept in one place so login + logout + the
 // 401 guard all wipe exactly the same state.
+//
+// The access token is NOT here — it lives in SecureStore (see tokenStore) and is
+// cleared separately by clearSession below.
+//
+// ENABLED_MODULES_KEY *must* be in here: the module set is per-society, so a
+// stale cache would otherwise let the next resident to log in on this device
+// see the previous society's features until the network refresh lands.
 const SESSION_KEYS = [
-  "access_token",
   "user",
   "user_role",
   "selected_society_id",
   "selected_tower_id",
   "flat_number",
+  ENABLED_MODULES_KEY,
 ];
 
-export const getToken = () => AsyncStorage.getItem("access_token");
+// Re-exported so callers have one import for the token, and so no screen is
+// tempted to reach into storage directly (which is how the token ended up read
+// from AsyncStorage in 22 different files).
+export { getToken, setToken } from "./tokenStore";
 
 export const clearSession = async () => {
-  await AsyncStorage.multiRemove(SESSION_KEYS);
+  await Promise.all([clearToken(), AsyncStorage.multiRemove(SESSION_KEYS)]);
 };
 
 // ── 401 / session-expiry plumbing ───────────────────────────────────────────
@@ -88,7 +103,29 @@ const parseResponse = async <T>(res: Response, label: string): Promise<T> => {
 
 export interface ApiRequestOptions extends Omit<RequestInit, "body"> {
   body?: BodyInit | object | null;
+  /** Per-request override of the default network timeout, in ms. */
+  timeoutMs?: number;
 }
+
+// A request that never reached the server: no connection, DNS failure, or the
+// timeout below firing. Distinct from an HTTP error — the server said nothing at
+// all — so screens can show "you're offline / try again" rather than a generic
+// failure. `apiRequest` still resolves to the benign empty shape for backward
+// compatibility; callers that want to react to offline can catch this instead.
+export class NetworkError extends Error {
+  isTimeout: boolean;
+  constructor(message: string, isTimeout = false) {
+    super(message);
+    this.name = "NetworkError";
+    this.isTimeout = isTimeout;
+  }
+}
+
+// A stalled request on a flaky mobile connection otherwise hangs forever on a
+// spinner. 20s is generous enough for a cold backend and a slow uplink (the
+// literal use case: a resident on 2 bars in a basement lobby) without trapping
+// the user indefinitely.
+const DEFAULT_TIMEOUT_MS = 20000;
 
 /**
  * Make an authenticated request. `path` is relative to the API root
@@ -100,7 +137,7 @@ export async function apiRequest<T = any>(
   options: ApiRequestOptions = {}
 ): Promise<T> {
   const token = await getToken();
-  const { body, headers: extraHeaders, ...rest } = options;
+  const { body, headers: extraHeaders, timeoutMs, ...rest } = options;
 
   const isForm = typeof FormData !== "undefined" && body instanceof FormData;
   const isPlainObject =
@@ -112,11 +149,28 @@ export async function apiRequest<T = any>(
     ...(extraHeaders as Record<string, string> | undefined),
   };
 
-  const res = await fetch(`${config.apiUrl}${path}`, {
-    ...rest,
-    headers,
-    body: isPlainObject ? JSON.stringify(body) : (body as BodyInit | null | undefined),
-  });
+  // Abort the request if it outlives the timeout, so a dead connection surfaces
+  // as a NetworkError instead of an unresolved promise.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs ?? DEFAULT_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${config.apiUrl}${path}`, {
+      ...rest,
+      headers,
+      body: isPlainObject ? JSON.stringify(body) : (body as BodyInit | null | undefined),
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    // AbortError => our timeout fired; anything else => no connection reached.
+    if (err?.name === "AbortError") {
+      throw new NetworkError(`Request timed out: ${path}`, true);
+    }
+    throw new NetworkError(`Network request failed: ${path}`);
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (res.status === 401) {
     // Only treat as a real session expiry if we actually had a token; a 401 on
@@ -137,8 +191,51 @@ export async function apiRequest<T = any>(
     }
   }
 
+  // Any other non-2xx is an error, and must be raised as one.
+  //
+  // This used to return the parsed body for 4xx, on the theory that screens read
+  // defensively anyway. That theory cost us: three features (account deletion,
+  // reverse geocoding, the version gate) shipped against endpoints that did not
+  // exist, and every one of them 404'd *silently* — the client could not tell
+  // "this route does not exist" from "there is no data". Account deletion went so
+  // far as to log the user out and report success having deleted nothing.
+  //
+  // A 404 must be loud. Callers already have to handle rejections (NetworkError
+  // has always thrown), so this does not add a new failure mode — it closes one.
+  if (res.status < 200 || res.status >= 300) {
+    throw new ApiError(res.status, extractDetail(parsed, res.status), parsed);
+  }
+
   return parsed as T;
 }
+
+/** Pull the server's human-readable message out of an error body. FastAPI puts it
+ *  in `detail`, either as a string or as a list of validation objects. */
+const extractDetail = (parsed: any, status: number): string => {
+  const detail = parsed?.detail;
+  if (typeof detail === "string" && detail) return detail;
+  if (Array.isArray(detail) && detail[0]?.msg) return String(detail[0].msg);
+  if (typeof parsed?.message === "string" && parsed.message) return parsed.message;
+  return `Request failed (${status}).`;
+};
+
+/**
+ * The message to show a user for a failed request. Prefers what the server
+ * actually said (`ApiError.message` carries `detail`), falls back to a
+ * connectivity message for `NetworkError`, then to the caller's fallback.
+ *
+ * Use this in `catch` blocks instead of a hardcoded string, or the server's
+ * "Visitor already exists" becomes a useless "Something went wrong".
+ */
+export const errorMessage = (err: unknown, fallback: string): string => {
+  if (err instanceof ApiError) return err.message;
+  if (err instanceof NetworkError) {
+    return err.isTimeout
+      ? "The request timed out. Please try again."
+      : "No connection. Check your network and try again.";
+  }
+  return fallback;
+};
 
 export const apiGet = <T = any>(path: string, options?: ApiRequestOptions) =>
   apiRequest<T>(path, { ...options, method: "GET" });

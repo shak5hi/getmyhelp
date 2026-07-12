@@ -3,10 +3,11 @@ import { fonts } from "../constants/tokens";
 import { useFonts } from "expo-font";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, TouchableOpacity, View, Text, TextInput } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text, TextInput } from "../components/ui/Text";
 import { setUnauthorizedHandler } from "../src/api/client";
+import { initPushListeners, registerForPush } from "../src/push";
 import { usePushNotifications } from "../hooks/usePushNotifications";
-import "../src/pushBackground";
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -14,6 +15,12 @@ import {
   Inter_700Bold,
   Inter_800ExtraBold,
 } from "@expo-google-fonts/inter";
+import {
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from "@expo-google-fonts/plus-jakarta-sans";
 import { LanguageProvider } from "../src/LanguageContext";
 import { NotificationProvider, useNotifications } from "../src/NotificationContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -22,6 +29,15 @@ import { ThemeProvider, useTheme } from "../src/ThemeContext";
 import { FeatureProvider } from "../src/FeatureContext";
 import VisitorApprovalModal from "../components/visitor/VisitorApprovalModal";
 import VideoSplash from "../components/VideoSplash";
+import ErrorBoundary from "../components/ErrorBoundary";
+import OfflineBanner from "../components/OfflineBanner";
+import { initSentry, reportError, wrapRoot } from "../src/sentry";
+import { ForceUpdate } from "../components/ui/ForceUpdate";
+import * as SplashScreen from "expo-splash-screen";
+
+// Start crash reporting before anything renders. No-op until a DSN is set.
+initSentry();
+SplashScreen.preventAutoHideAsync();
 
 function ThemedStatusBar() {
   const { theme } = useTheme();
@@ -63,6 +79,14 @@ function RootNavigator() {
     setUnauthorizedHandler(() => router.replace("/phone"));
     return () => setUnauthorizedHandler(null);
   }, [router]);
+
+  // Push: re-register this device on every launch (the POST is idempotent and
+  // refreshes last_seen_at) and listen for token rotation + notification taps.
+  // No-ops when logged out, when push is switched off, or for guards.
+  useEffect(() => {
+    registerForPush();
+    return initPushListeners();
+  }, []);
 
   return (
     <Stack
@@ -121,7 +145,7 @@ function RootNavigator() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
   const [fontsLoaded] = useFonts({
     "Newsreader-Regular": require("../assets/fonts/Newsreader-Regular.ttf"),
@@ -131,17 +155,28 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
     Inter_800ExtraBold,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
   });
+
+  useEffect(() => {
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
 
   if (!fontsLoaded) return null;
 
-  // Global default typeface for any text that doesn't set its own family.
-  (Text as any).defaultProps = (Text as any).defaultProps || {};
-  (Text as any).defaultProps.style = { fontFamily: "Inter_400Regular" };
-  (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
-  (TextInput as any).defaultProps.style = { fontFamily: "Inter_400Regular" };
+  // Global default typeface removed.
+  // Replaced with custom wrapper components in components/ui/Text.tsx
 
   return (
+    // Outermost on purpose: it must be able to catch a render failure in any
+    // provider below it, so it cannot live inside them. onError forwards the
+    // caught exception to Sentry (a no-op until a DSN is configured).
+    <ErrorBoundary
+      onError={(error, info) => reportError(error, { componentStack: info.componentStack })}
+    >
     <ThemeProvider>
     <SafeAreaProvider>
       <LanguageProvider>
@@ -150,14 +185,20 @@ export default function RootLayout() {
             <ThemedStatusBar />
             <VisitorApprovalModal />
             <RootNavigator />
+            <OfflineBanner />
             {!splashDone && <VideoSplash onDone={() => setSplashDone(true)} />}
           </NotificationProvider>
         </FeatureProvider>
       </LanguageProvider>
     </SafeAreaProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }
+
+// Wrap so native crashes and unhandled JS errors reach Sentry. Passthrough until
+// a DSN is configured.
+export default wrapRoot(RootLayout);
 
 const styles = StyleSheet.create({
   headerBubble: {

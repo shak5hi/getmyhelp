@@ -1,19 +1,30 @@
 import { apiDelete, apiPost } from "./client";
 
 /**
- * FCM device-token registration (push notifications).
+ * Device-token registry — client side of the backend `device_tokens` table.
  *
- * Mirrors the backend contract in getmyhelp-admin/PUSH_NOTIFICATIONS_CONTRACT.md:
- * register/refresh a token on login + token-refresh, unregister on logout.
- * Both require the customer Bearer JWT (handled by the shared client).
+ * One row per device, keyed by the FCM token. Both endpoints take the ordinary
+ * customer bearer token, which `apiRequest` injects.
+ *
+ * NOTE: these are customer-only on the backend — there is no admin/guard
+ * device-token router yet, so `registerForPush` deliberately skips guards.
  */
 
 export type DevicePlatform = "android" | "ios";
 
-// POST /customer/device-tokens — idempotent (token is globally unique).
+/**
+ * Register (or refresh) this device against the logged-in customer.
+ *
+ * Idempotent by design: `token` is unique server-side, so re-posting an existing
+ * token reassigns it to the current customer and bumps `last_seen_at`. Safe to
+ * call on every launch, every login, and on each FCM token rotation.
+ */
 export const registerDeviceToken = (token: string, platform: DevicePlatform) =>
   apiPost("/customer/device-tokens", { token, platform });
 
-// DELETE /customer/device-tokens/{token} — stop pushes to this device.
+/**
+ * Unregister this device. Must run on logout — otherwise the next person to log
+ * in on this handset keeps receiving the previous user's notifications.
+ */
 export const unregisterDeviceToken = (token: string) =>
   apiDelete(`/customer/device-tokens/${encodeURIComponent(token)}`);

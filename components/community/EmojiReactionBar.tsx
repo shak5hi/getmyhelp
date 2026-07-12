@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { fonts } from "../../constants/tokens";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import { View, TouchableOpacity, Modal, ScrollView, StyleSheet } from "react-native";
+import { Text } from "../ui/Text";
 
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥", "👏", "🎉"];
 

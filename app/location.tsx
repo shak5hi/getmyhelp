@@ -1,15 +1,11 @@
+import { getToken } from "../src/api/tokenStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { clearSession, apiGet, apiPost } from "../src/api/client";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { Text, TextInput } from "../components/ui/Text";
 
 import config from "../src/config";
 import { makeSocietyDetectedStyles } from "../styles/societyDetectedStyles";
@@ -50,22 +46,13 @@ export default function LocationScreen() {
   useEffect(() => {
     const fetchAllSocieties = async () => {
       try {
-        const token = await AsyncStorage.getItem("access_token");
+        const token = await getToken();
         if (!token) {
           router.replace("/phone");
           return;
         }
 
-        const response = await fetch(
-          `${config.apiUrl}/customer/societies`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
+        const data = await apiGet("/customer/societies");
         setSocieties(data?.data?.societies || []);
       } catch (err) {
         console.log("❌ Failed to load societies", err);
@@ -112,32 +99,20 @@ export default function LocationScreen() {
 
       // 3️⃣ Reverse geocoding to get address
       console.log("🌍 Fetching address from coordinates...");
-      const geocodeResponse = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-        {
-          headers: {
-            "User-Agent": "GetMyHelp/1.0",
-          },
-        }
-      );
+      const geocodeData = await apiGet(`/customer/geocode/reverse?lat=${latitude}&lon=${longitude}`);
 
-      if (!geocodeResponse.ok) {
-        throw new Error("Failed to fetch address from coordinates");
-      }
+      const address = geocodeData?.data?.address || geocodeData?.address || geocodeData?.display_name;
 
-      const geocodeData = await geocodeResponse.json();
-
-      if (!geocodeData?.display_name) {
+      if (!address) {
         setError("Unable to detect address from your location");
         setLoadingLocation(false);
         return;
       }
 
-      const address = geocodeData.display_name;
       console.log("🏠 ADDRESS:", address);
 
       // 4️⃣ Get access token from storage
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
 
       if (!token) {
         setError("User not authenticated. Please login again.");
@@ -146,7 +121,6 @@ export default function LocationScreen() {
         return;
       }
 
-      console.log("🔐 USING TOKEN:", token.substring(0, 20) + "...");
 
       // 5️⃣ Send location to backend with correct field names
       console.log("📤 Sending location to backend...");
@@ -160,41 +134,27 @@ export default function LocationScreen() {
 
       console.log("📦 REQUEST BODY:", JSON.stringify(requestBody, null, 2));
 
-      const response = await fetch(
-        `${config.apiUrl}/customer/explore-societies`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
-      console.log("📥 Backend response status:", response.status);
-
-      // Handle response
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({
-          detail: "Unknown error",
-        }));
+      const successData = await apiPost("/customer/explore-societies", requestBody);
+      
+      // Since apiPost attaches `ok` and `status` to the body object
+      if (successData && (successData as any).ok === false) {
+        const errorData = successData;
+        const status = (successData as any).status;
         console.log("❌ Backend error details:", JSON.stringify(errorData, null, 2));
         
-        if (response.status === 401) {
+        if (status === 401) {
           setError("Session expired. Please login again.");
-          await AsyncStorage.removeItem("access_token");
+          await clearSession();
           router.replace("/phone");
-        } else if (response.status === 422) {
+        } else if (status === 422) {
           setError("Invalid data sent to server. Please try again.");
         } else {
-          setError(`Server error: ${response.status}`);
+          setError(`Server error: ${status}`);
         }
         setLoadingLocation(false);
         return;
       }
 
-      const successData = await response.json();
       console.log("✅ Location sent successfully");
       console.log("📊 Response data:", JSON.stringify(successData, null, 2));
 

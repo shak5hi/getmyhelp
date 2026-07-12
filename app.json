@@ -4,6 +4,7 @@
     "slug": "GetMyHelpMobile",
     "version": "1.0.0",
     "orientation": "portrait",
+    "privacyPolicyUrl": "https://admin.getmyhelp.in/privacy-policy",
     "icon": "./assets/images/icon.png",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -11,27 +12,24 @@
       "backgroundColor": "#ffffff"
     },
     "scheme": "getmyhelpmobile",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "updates": {
+      "url": "https://u.expo.dev/89d5a766-ed4e-448a-b07b-862d5e6ed823"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.getmyhelp.mobile",
+      "buildNumber": "1",
       "googleServicesFile": "./GoogleService-Info.plist",
       "entitlements": {
         "aps-environment": "production"
       },
       "infoPlist": {
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true,
-          "NSExceptionDomains": {
-            "31.97.239.190": {
-              "NSExceptionAllowsInsecureHTTPLoads": true,
-              "NSIncludesSubdomains": true
-            }
-          }
-        },
-        "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -42,11 +40,22 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.getmyhelp.mobile",
+      "versionCode": 1,
+      "allowBackup": false,
       "googleServicesFile": "./google-services.json",
+      "notification": {
+        "icon": "./assets/images/notification-icon.png",
+        "color": "#6C47FF"
+      },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -66,13 +75,23 @@
       ],
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
+      "@react-native-firebase/messaging",
       "@react-native-community/datetimepicker",
       [
         "expo-build-properties",
         {
-          "android": {
-            "kotlinVersion": "2.0.21"
+          "ios": {
+            "useFrameworks": "static"
           }
+        }
+      ],
+      "./plugins/withDefaultNotificationChannel",
+      "./plugins/withNotifeeRepo",
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "priya-sharma",
+          "project": "react-native"
         }
       ]
     ],

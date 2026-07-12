@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { fonts } from "../../constants/tokens";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { Text } from "../ui/Text";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 
@@ -9,7 +10,7 @@ type Props = {
   timestamp: string;
 };
 
-export function AuthorTag({ name, timestamp }: Props) {
+export const AuthorTag = React.memo(function AuthorTag({ name, timestamp }: Props) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const initials = name
@@ -39,7 +40,7 @@ export function AuthorTag({ name, timestamp }: Props) {
       </View>
     </View>
   );
-}
+});
 
 const makeStyles = (t: Theme) =>
   StyleSheet.create({

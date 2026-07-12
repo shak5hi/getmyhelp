@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from "react-native";
+import { TouchableOpacity, StyleSheet, ActivityIndicator, View } from "react-native";
+import { Text } from "./ui/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { radii, fonts } from "../constants/tokens";
 import { useTheme } from "../src/ThemeContext";

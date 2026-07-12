@@ -83,6 +83,12 @@ export const fonts = {
   extrabold: "Inter_800ExtraBold",
   serif: "Newsreader-Regular",
   serifSemibold: "Newsreader-SemiBold",
+  /** Display — geometric grotesque with rounder counters than Inter. Used for
+   *  marketing/onboarding moments where Inter reads too utilitarian. */
+  displayMedium: "PlusJakartaSans_500Medium",
+  displaySemibold: "PlusJakartaSans_600SemiBold",
+  displayBold: "PlusJakartaSans_700Bold",
+  displayExtrabold: "PlusJakartaSans_800ExtraBold",
 };
 
 /** 4 / 8 px spacing rhythm. */

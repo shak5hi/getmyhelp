@@ -2,18 +2,13 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { fonts } from "../../constants/tokens";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import {
-  Alert,
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
+import { errorMessage } from "../../src/api/client";
 import { scanQRCode } from "../../src/api/visitorApi";
 
 export default function QRScannerScreen() {
@@ -44,21 +39,12 @@ export default function QRScannerScreen() {
     try {
       const res = await scanQRCode(data);
       const visitorId = res?.id ?? res?.data?.id;
-      if (visitorId) {
-        router.push(`/visitor/exit-entry?id=${visitorId}&qr=1`);
-      } else {
-        const detail = res?.detail;
-        const msg = Array.isArray(detail)
-          ? detail[0]?.msg ?? "Could not verify QR code"
-          : typeof detail === "string"
-          ? detail
-          : "Could not verify QR code";
-        Alert.alert("Invalid QR", msg, [
-          { text: "Try Again", onPress: () => setScanning(true) },
-        ]);
-      }
-    } catch {
-      Alert.alert("Error", "Failed to scan QR code", [
+      if (!visitorId) throw new Error("Could not verify QR code");
+      router.push(`/visitor/exit-entry?id=${visitorId}&qr=1`);
+    } catch (err) {
+      // A rejected QR now arrives as a thrown ApiError carrying the server's
+      // reason ("expired", "already used") — surface it rather than a generic.
+      Alert.alert("Invalid QR", errorMessage(err, "Could not verify QR code"), [
         { text: "Try Again", onPress: () => setScanning(true) },
       ]);
     } finally {

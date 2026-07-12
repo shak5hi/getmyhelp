@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
+import { View, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import { Text } from "../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,9 +14,24 @@ import { radii, shadows, fonts } from "../constants/tokens";
 import { useTheme } from "../src/ThemeContext";
 import { Theme } from "../constants/themes";
 
+/**
+ * The API sends naive UTC timestamps ("2026-07-11T10:30:00") with no offset.
+ * ECMAScript parses a date-time with no timezone as *local*, so in IST every
+ * timestamp read as 5h30m earlier than it was — a notification that just landed
+ * showed as "5h ago". Pin it to UTC when the string carries no zone of its own.
+ */
+const parseServerDate = (s: string): number => {
+  const hasZone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(s.trim());
+  return new Date(hasZone ? s : `${s.trim()}Z`).getTime();
+};
+
 const formatRelative = (s: string) => {
   try {
-    const diff = (Date.now() - new Date(s).getTime()) / 1000;
+    const t = parseServerDate(s);
+    if (!Number.isFinite(t)) return "";
+    // Clock skew between server and phone can make a fresh row look faintly
+    // in the future; clamp so it never renders as a negative age.
+    const diff = Math.max(0, (Date.now() - t) / 1000);
     if (diff < 60) return "just now";
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
@@ -93,6 +102,23 @@ export default function NotificationsScreen() {
       item.type === "visitor_approval_request"
     ) {
       router.push(`/visitor/resident-detail?id=${item.link_id}`);
+    } else if (
+      item.link_type === "subscription" ||
+      item.type === "subscription_request"
+    ) {
+      router.push("/(tabs)/subscriptions");
+    } else if (
+      item.link_type === "provider" ||
+      item.type === "provider_assigned" ||
+      item.type === "provider_reassigned" ||
+      item.type === "provider_substitute" ||
+      item.type === "provider_time_off"
+    ) {
+      // No provider-detail screen exists. The dashboard hosts TodaysHelp, which
+      // answers the question the notification actually raises — who is coming
+      // today. link_id (the ServiceProvider id) is carried on the payload, so
+      // pointing this at a detail screen later is a one-line change.
+      router.push("/(tabs)/dashboard");
     }
   };
 

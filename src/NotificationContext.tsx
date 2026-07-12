@@ -6,6 +6,7 @@ import { useNotificationSocket } from "../hooks/useNotificationSocket";
 import { useFeature } from "./FeatureContext";
 import { MODULES } from "./featureRegistry";
 import config from "./config";
+import { getToken } from "./api/tokenStore";
 
 const toFullUrl = (url: string | null | undefined): string | null => {
   if (!url) return null;
@@ -66,7 +67,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   useEffect(() => {
     (async () => {
       const userStr = await AsyncStorage.getItem("user");
-      const tok = await AsyncStorage.getItem("access_token");
+      const tok = await getToken();
       const role = await AsyncStorage.getItem("user_role");
       const guardFlag = role === "guard";
       setIsGuard(guardFlag);
@@ -84,9 +85,8 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   // Only connect the notification socket after role is confirmed as resident.
   // null = still loading (don't connect), true = guard (don't connect), false = resident (connect).
   const socketCustomerId = isGuard === false ? customerId : null;
-  const socketToken = isGuard === false ? token : null;
 
-  useNotificationSocket(socketCustomerId, socketToken, async (msg) => {
+  useNotificationSocket(socketCustomerId, async (msg: any) => {
     if (!msg) return;
     const ev: string = msg.event ?? msg.type ?? "";
     if (ev === "ping" || ev === "pong" || ev === "heartbeat") return;

@@ -2,7 +2,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fonts } from "../../constants/tokens";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMemo } from "react";
 import { useTheme } from "../../src/ThemeContext";
@@ -11,6 +12,7 @@ import { useGuardVisitorSocket } from "../../hooks/useGuardVisitorSocket";
 import { getVisitorDetail } from "../../src/api/visitorApi";
 import { useFeatureGuard } from "../../src/useFeatureGuard";
 import { MODULES } from "../../src/featureRegistry";
+import { getToken } from "../../src/api/tokenStore";
 
 export default function PendingApprovalScreen() {
   useFeatureGuard(MODULES.visitors);
@@ -26,7 +28,7 @@ export default function PendingApprovalScreen() {
 
   useEffect(() => {
     (async () => {
-      const tok = await AsyncStorage.getItem("access_token");
+      const tok = await getToken();
       const userStr = await AsyncStorage.getItem("user");
       setToken(tok);
       if (userStr) {
@@ -38,7 +40,7 @@ export default function PendingApprovalScreen() {
     }
   }, [id]);
 
-  useGuardVisitorSocket(guardId, token, (data) => {
+  useGuardVisitorSocket(guardId, (data: any) => {
     if (!data || data.visitor_id !== id) return;
     if (data.event === "visitor_approved") setApprovalStatus("approved");
     else if (data.event === "visitor_rejected") {

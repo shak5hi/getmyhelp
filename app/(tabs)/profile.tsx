@@ -1,12 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Switch,
-} from "react-native";
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, Switch, Modal, Alert } from "react-native";
+import { Text, TextInput } from "../../components/ui/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -15,11 +9,13 @@ import config from "../../src/config";
 import { makeStyles } from "../../styles/profile.styles";
 import { useTheme } from "../../src/ThemeContext";
 import { useLanguage } from "../../src/LanguageContext";
-import { clearSession } from "../../src/api/client";
+import { clearSession, apiDelete } from "../../src/api/client";
+import { registerForPush, unregisterForPush } from "../../src/push";
 import { getMyResidence } from "../../src/api/societyApi";
 import { getPushEnabled, setPushEnabled } from "../../src/preferences";
-import { registerForPush, unregisterForPush } from "../../src/push";
+
 import ThemeToggle from "../../components/ThemeToggle";
+import { getToken } from "../../src/api/tokenStore";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -152,6 +148,29 @@ export default function ProfileScreen() {
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [pushEnabled, setPushEnabledState] = useState(true);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText.trim().toUpperCase() !== "DELETE") {
+      Alert.alert("Invalid input", "Please type DELETE to confirm.");
+      return;
+    }
+    setDeleting(true);
+    try {
+      await apiDelete("/customer/account");
+      await unregisterForPush();
+      await clearSession();
+      router.replace("/");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      Alert.alert("Error", "Failed to delete account. Please try again.");
+    } finally {
+      setDeleting(false);
+      setDeleteModalVisible(false);
+    }
+  };
 
   useEffect(() => {
     loadUserData();
@@ -160,15 +179,20 @@ export default function ProfileScreen() {
 
   const togglePush = async (value: boolean) => {
     setPushEnabledState(value);
+    // Persist first: registerForPush reads the preference and bails if it's off.
     await setPushEnabled(value);
-    // Reflect the choice on the backend: (re)register the FCM token or drop it.
-    if (value) await registerForPush();
-    else await unregisterForPush();
+    // Make the toggle actually take effect on the server, rather than only
+    // gating a future launch — turning it off must delete the device token.
+    if (value) {
+      await registerForPush();
+    } else {
+      await unregisterForPush();
+    }
   };
 
   const loadUserData = async () => {
     try {
-      const token = await AsyncStorage.getItem("access_token");
+      const token = await getToken();
       const userStr = await AsyncStorage.getItem("user");
       const userObj = userStr ? JSON.parse(userStr) : null;
       const customerId = userObj?.id;
@@ -221,7 +245,9 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     try {
-      // Stop pushes to this device before the session token is wiped.
+      // Detach this device first — the DELETE needs the bearer token that
+      // clearSession is about to wipe. Without this the next person to log in
+      // on this handset keeps receiving the previous user's notifications.
       await unregisterForPush();
       await clearSession();
       router.replace("/");
@@ -319,10 +345,64 @@ export default function ProfileScreen() {
             isLast
             onPress={handleLogout}
           />
+          <MenuItem
+            icon="trash-outline"
+            title="Delete my account"
+            danger
+            showChevron={false}
+            isLast
+            onPress={() => {
+              setDeleteConfirmText("");
+              setDeleteModalVisible(true);
+            }}
+          />
         </SectionCard>
         
         <View style={styles.bottomPadding} />
       </ScrollView>
+
+      {/* DELETE ACCOUNT MODAL */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", padding: 20 }}>
+          <View style={{ backgroundColor: theme.surface, padding: 24, borderRadius: 12, width: "100%" }}>
+            <Text style={{ fontSize: 18, fontWeight: "600", color: theme.text, marginBottom: 12 }}>Delete Account</Text>
+            <Text style={{ fontSize: 14, color: theme.textSecondary, marginBottom: 20, lineHeight: 20 }}>
+              This action is permanent. All your personal data will be deleted. Visitor logs are retained as society records.
+              Type &quot;DELETE&quot; to confirm.
+            </Text>
+            <TextInput
+              style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 8, padding: 12, color: theme.text, marginBottom: 20 }}
+              placeholder="DELETE"
+              placeholderTextColor={theme.textTertiary}
+              onChangeText={setDeleteConfirmText}
+              value={deleteConfirmText}
+              autoCapitalize="characters"
+            />
+            <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 12 }}>
+              <TouchableOpacity onPress={() => setDeleteModalVisible(false)} style={{ padding: 12 }}>
+                <Text style={{ color: theme.textSecondary, fontWeight: "500" }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDeleteAccount}
+                disabled={deleting}
+                style={{ padding: 12, backgroundColor: theme.danger, borderRadius: 8, marginLeft: 8 }}
+              >
+                {deleting ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={{ color: "#FFF", fontWeight: "600" }}>Delete</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
