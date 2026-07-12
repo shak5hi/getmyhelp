@@ -11,7 +11,7 @@ import { useLanguage } from "../src/LanguageContext";
 import { useRefreshFeatures } from "../src/FeatureContext";
 import { registerForPush } from "../src/push";
 import { getConfirmation, setConfirmation } from "../src/firebaseConfirmation";
-import { registerForPush } from "../src/push";
+
 import { makeOtpStyles } from "../styles/otp.styles";
 import { useTheme } from "../src/ThemeContext";
 import { setToken } from "../src/api/tokenStore";
@@ -166,11 +166,6 @@ export default function OtpScreen() {
       // leaves the provider optimistic until the dashboard retries.
       await refreshFeatures().catch(() => {});
 
-      // Attach this device's FCM token to the account that just logged in. The
-      // POST is idempotent, so it reassigns the token if a different user was
-      // previously signed in on this handset. Fire-and-forget: push must never
-      // hold up (or fail) the login.
-      registerForPush();
 
 
       // ── Decide whether to skip onboarding ──

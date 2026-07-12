@@ -23,9 +23,7 @@ const icon = (
 // setting `href: null` (the same mechanism already used for chatbot/subscriptions).
 const tabHref = (enabled: boolean) => (enabled ? undefined : null);
 
-// A disabled module's tab is removed from the bar and its route blocked by
-// setting `href: null` (the same mechanism already used for chatbot/subscriptions).
-const tabHref = (enabled: boolean) => (enabled ? undefined : null);
+
 
 export default function TabLayout() {
   useRoleGuard("customer", "/(guard-tabs)/visitor-list");

@@ -7,6 +7,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Text, TextInput } from "../components/ui/Text";
 import { setUnauthorizedHandler } from "../src/api/client";
 import { initPushListeners, registerForPush } from "../src/push";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 import {
   Inter_400Regular,
   Inter_500Medium,
