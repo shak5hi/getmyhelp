@@ -1,15 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, FlatList, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { View, FlatList, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Alert } from "react-native";
 import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fonts, radii } from "../../constants/tokens";
+import { useRouter } from "expo-router";
+import { fonts, radii, spacing } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
 import { useFeatureGuard } from "../../src/useFeatureGuard";
 import { MODULES } from "../../src/featureRegistry";
 import { Theme } from "../../constants/themes";
-import { apiGet, apiPost, apiDelete } from "../../src/api/client";
+import { apiGet, apiPost, apiDelete, errorMessage } from "../../src/api/client";
 
 type MessageType = {
   id: string;
@@ -20,10 +21,12 @@ type MessageType = {
 
 export default function ChatbotScreen() {
   useFeatureGuard(MODULES.chatbot);
+  const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList>(null);
@@ -63,6 +66,7 @@ export default function ChatbotScreen() {
       }
     } catch (err) {
       console.error("Chat init error:", err);
+      Alert.alert("Couldn't load chat", errorMessage(err, "Please try again."));
     } finally {
       setLoading(false);
     }
@@ -94,14 +98,23 @@ export default function ChatbotScreen() {
   };
 
   const resetChat = async () => {
-    if (!sessionId) return;
+    if (!sessionId || resetting) return;
+    setResetting(true);
     try {
       // apiDelete injects auth header, timeout, and 401 guard automatically.
+      // Throws on any non-2xx response (see api/client.ts), so a failed reset
+      // lands in the catch below instead of silently leaving the old session
+      // in place — previously that silent failure was the whole bug: tapping
+      // reset (or leaving and reopening the screen) just kept showing the same
+      // conversation with no sign anything had gone wrong.
       await apiDelete(`/chatbot/sessions/${sessionId}?mode=reset`);
+      setSessionId(null);
       setMessages([]);
-      initChat();
+      await initChat();
     } catch (err) {
-      console.error("Reset chat error:", err);
+      Alert.alert("Couldn't reset chat", errorMessage(err, "Please try again."));
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -131,12 +144,19 @@ export default function ChatbotScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={["top", "bottom"]}>
       <View style={styles.chatHeader}>
-        <View>
-          <Text style={styles.chatHeaderTitle}>AI Assistant</Text>
-          <Text style={styles.chatHeaderSubtitle}>Powered by GetMyHelp</Text>
+        <Pressable onPress={() => router.back()} style={styles.headerIconButton} hitSlop={8}>
+          <Ionicons name="chevron-back" size={22} color={theme.text} />
+        </Pressable>
+        <View style={styles.chatHeaderTitleWrap}>
+          <Text style={styles.chatHeaderTitle} numberOfLines={1}>AI Assistant</Text>
+          <Text style={styles.chatHeaderSubtitle} numberOfLines={1}>Powered by GetMyHelp</Text>
         </View>
-        <Pressable onPress={resetChat} style={{ padding: 8 }}>
-          <Ionicons name="refresh-outline" size={24} color={theme.onAccent} />
+        <Pressable onPress={resetChat} disabled={resetting} style={styles.headerIconButton} hitSlop={8}>
+          {resetting ? (
+            <ActivityIndicator size="small" color={theme.accent} />
+          ) : (
+            <Ionicons name="refresh-outline" size={20} color={theme.text} />
+          )}
         </Pressable>
       </View>
 
@@ -175,21 +195,30 @@ const makeStyles = (t: Theme) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: t.bg },
     chatHeader: {
-      backgroundColor: t.accent,
+      backgroundColor: t.bg,
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: 20,
-      paddingTop: 16,
-      paddingBottom: 16,
+      gap: spacing.sm,
+      paddingHorizontal: 12,
+      paddingTop: 12,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: t.border,
     },
-    chatHeaderTitle: { fontFamily: fonts.bold, fontSize: 18, color: t.onAccent },
+    headerIconButton: {
+      width: 36,
+      height: 36,
+      borderRadius: radii.md,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    chatHeaderTitleWrap: { flex: 1 },
+    chatHeaderTitle: { fontFamily: fonts.extrabold, fontSize: 17, color: t.text, letterSpacing: -0.3 },
     chatHeaderSubtitle: {
       fontFamily: fonts.medium,
-      fontSize: 13,
-      color: t.onAccent,
-      opacity: 0.85,
-      marginTop: 2,
+      fontSize: 12.5,
+      color: t.textSecondary,
+      marginTop: 1,
     },
     messagesList: { padding: 20 },
     messageBubble: {
