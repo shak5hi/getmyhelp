@@ -36,6 +36,11 @@ export interface TodayProvider {
   // 0=Sun … 6=Sat — same indexing as JS Date.getDay(). (The comment here used to
   // say 0=Mon; it was wrong, and verified against live data.)
   days_of_week: number[];
+  // Assignment validity window (ISO strings; either may be null = open-ended).
+  // A lapsed assignment must not appear today even if the server still lists it
+  // — see isScheduledToday.
+  start_date?: string | null;
+  end_date?: string | null;
   attendance_id: string | null;
   status: AttendanceStatus | null;
   marked_at: string | null;
