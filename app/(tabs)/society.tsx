@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { View, FlatList, TouchableOpacity, RefreshControl, Modal, ScrollView } from "react-native";
+import { View, FlatList, TouchableOpacity, RefreshControl, ScrollView } from "react-native";
+import BottomSheet from "../../components/ui/BottomSheet";
 import { Text } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 // NOTE: edges={["bottom"]} — expo-router tab screens already sit below the status bar,
@@ -381,99 +382,88 @@ export default function SocietyScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Transaction Detail Modal */}
-      <Modal
+      {/* Transaction Detail Sheet */}
+      <BottomSheet
         visible={!!selectedTransaction}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectedTransaction(null)}
+        onClose={() => setSelectedTransaction(null)}
       >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity 
-            style={{ flex: 1 }} 
-            activeOpacity={1} 
-            onPress={() => setSelectedTransaction(null)} 
-          />
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Transaction Details</Text>
-              <TouchableOpacity onPress={() => setSelectedTransaction(null)}>
-                <Ionicons name="close" size={24} color={theme.textTertiary} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.modalSection}>
-                <Text style={styles.modalLabel}>Category</Text>
-                <Text style={styles.modalValue}>{selectedTransaction?.category}</Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalLabel}>Amount</Text>
-                <Text style={[
-                  styles.modalValue, 
-                  { fontFamily: fonts.bold, fontSize: 24 },
-                  selectedTransaction?.type === "income" ? styles.incomeAmount : styles.expenseAmount
-                ]}>
-                  {selectedTransaction?.type === "income" ? "+" : "-"} ₹{Math.abs(selectedTransaction?.amount || 0).toLocaleString()}
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalLabel}>Date</Text>
-                <Text style={styles.modalValue}>
-                  {selectedTransaction && new Date(selectedTransaction.date).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-              </View>
-
-              {selectedTransaction?.note && (
-                <View style={styles.modalSection}>
-                  <Text style={styles.modalLabel}>Description</Text>
-                  <Text style={styles.modalValue}>{selectedTransaction.note}</Text>
-                </View>
-              )}
-
-              {selectedTransaction?.attachments && selectedTransaction.attachments.length > 0 && (
-                <View style={styles.modalSection}>
-                  <Text style={styles.modalLabel}>Attachments ({selectedTransaction.attachments.length})</Text>
-                  <View style={styles.attachmentList}>
-                    {selectedTransaction.attachments.map((att: any, idx: number) => (
-                      <TouchableOpacity 
-                        key={att.id || idx} 
-                        style={styles.attachmentItem}
-                        onPress={() => openAttachment(att.file_url)}
-                      >
-                        <Ionicons 
-                          name={att.file_type?.includes("pdf") ? "document-text" : "image"} 
-                          size={20} 
-                          color={theme.textSecondary}
-                        />
-                        <Text style={styles.attachmentName} numberOfLines={1}>
-                          {att.original_filename || `Attachment ${idx + 1}`}
-                        </Text>
-                        <Ionicons name="open-outline" size={16} color={theme.textTertiary} />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              <TouchableOpacity 
-                style={styles.closeButton} 
-                onPress={() => setSelectedTransaction(null)}
-              >
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Transaction Details</Text>
+          <TouchableOpacity onPress={() => setSelectedTransaction(null)}>
+            <Ionicons name="close" size={24} color={theme.textTertiary} />
+          </TouchableOpacity>
         </View>
-      </Modal>
+
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.modalSection}>
+            <Text style={styles.modalLabel}>Category</Text>
+            <Text style={styles.modalValue}>{selectedTransaction?.category}</Text>
+          </View>
+
+          <View style={styles.modalSection}>
+            <Text style={styles.modalLabel}>Amount</Text>
+            <Text style={[
+              styles.modalValue,
+              { fontFamily: fonts.bold, fontSize: 24 },
+              selectedTransaction?.type === "income" ? styles.incomeAmount : styles.expenseAmount
+            ]}>
+              {selectedTransaction?.type === "income" ? "+" : "-"} ₹{Math.abs(selectedTransaction?.amount || 0).toLocaleString()}
+            </Text>
+          </View>
+
+          <View style={styles.modalSection}>
+            <Text style={styles.modalLabel}>Date</Text>
+            <Text style={styles.modalValue}>
+              {selectedTransaction && new Date(selectedTransaction.date).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Text>
+          </View>
+
+          {selectedTransaction?.note && (
+            <View style={styles.modalSection}>
+              <Text style={styles.modalLabel}>Description</Text>
+              <Text style={styles.modalValue}>{selectedTransaction.note}</Text>
+            </View>
+          )}
+
+          {selectedTransaction?.attachments && selectedTransaction.attachments.length > 0 && (
+            <View style={styles.modalSection}>
+              <Text style={styles.modalLabel}>Attachments ({selectedTransaction.attachments.length})</Text>
+              <View style={styles.attachmentList}>
+                {selectedTransaction.attachments.map((att: any, idx: number) => (
+                  <TouchableOpacity
+                    key={att.id || idx}
+                    style={styles.attachmentItem}
+                    onPress={() => openAttachment(att.file_url)}
+                  >
+                    <Ionicons
+                      name={att.file_type?.includes("pdf") ? "document-text" : "image"}
+                      size={20}
+                      color={theme.textSecondary}
+                    />
+                    <Text style={styles.attachmentName} numberOfLines={1}>
+                      {att.original_filename || `Attachment ${idx + 1}`}
+                    </Text>
+                    <Ionicons name="open-outline" size={16} color={theme.textTertiary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setSelectedTransaction(null)}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </BottomSheet>
     </SafeAreaView>
   );
 }

@@ -1,7 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { fonts } from "../../constants/tokens";
 import { Tabs } from "expo-router";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import TabBar from "../../components/ui/TabBar";
+import SideNav, { SIDE_NAV_WIDTH } from "../../components/ui/SideNav";
+import { useResponsive } from "../../src/useResponsive";
 import { useFeature } from "../../src/FeatureContext";
 import { useRoleGuard } from "../../src/useRoleGuard";
 import { MODULES } from "../../src/featureRegistry";
@@ -29,14 +32,23 @@ export default function TabLayout() {
   useRoleGuard("customer", "/(guard-tabs)/visitor-list");
   const community = useFeature(MODULES.community);
   const visitors = useFeature(MODULES.visitors);
+  const { breakpoint, isWide } = useResponsive();
+
+  // Presentation lives in components/ui/TabBar (mobile) and SideNav (tablet/
+  // desktop). Routing, feature gating and the `href: null` contract are
+  // untouched — both bars read the same descriptors the default one did.
+  const renderTabBar = (props: BottomTabBarProps) =>
+    isWide ? <SideNav {...props} /> : <TabBar {...props} />;
 
   return (
     <Tabs
-      // Presentation lives in components/ui/TabBar. Routing, feature gating and
-      // the `href: null` contract are untouched — the custom bar reads the same
-      // descriptors the default one did.
-      tabBar={(props) => <TabBar {...props} />}
-      screenOptions={{ headerShown: false }}
+      tabBar={renderTabBar}
+      screenOptions={{
+        headerShown: false,
+        sceneStyle: isWide
+          ? { marginLeft: breakpoint === "desktop" ? SIDE_NAV_WIDTH.desktop : SIDE_NAV_WIDTH.tablet }
+          : undefined,
+      }}
     >
       <Tabs.Screen name="dashboard" options={{ title: "Home", tabBarIcon: icon("home-outline", "home") }} />
       <Tabs.Screen name="society" options={{ title: "Society", tabBarIcon: icon("business-outline", "business") }} />

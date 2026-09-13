@@ -24,6 +24,7 @@ import { EmptyState } from "../../components/ui/EmptyState";
 import { ErrorState } from "../../components/ui/ErrorState";
 import { CategoryBadge } from "../../components/community/CategoryBadge";
 import SegmentedControl from "../../components/ui/SegmentedControl";
+import ExpandableFab, { FabAction } from "../../components/ui/ExpandableFab";
 
 const TABS: ActiveTab[] = ["announcements", "forum", "polls"];
 
@@ -625,13 +626,12 @@ export default function CommunityScreen() {
       />
 
       {activeTab === "forum" && !isLoading && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => router.push("/community/create-post")}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="add" size={32} color={theme.onAccent} />
-        </TouchableOpacity>
+        <ExpandableFab
+          style={{ bottom: 28 }}
+          actions={[
+            { key: "new-post", icon: "add", label: "New Post", onPress: () => router.push("/community/create-post") },
+          ] as FabAction[]}
+        />
       )}
     </SafeAreaView>
   );

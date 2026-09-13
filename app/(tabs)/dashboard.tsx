@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -13,6 +12,9 @@ import { useTheme } from "../../src/ThemeContext";
 import { Theme } from "../../constants/themes";
 import TodaysHelp from "../../components/TodaysHelp";
 import ThemeToggle from "../../components/ThemeToggle";
+import { CardGrid, GridCard } from "../../components/ui/GridCard";
+import ExpandableFab, { FabAction } from "../../components/ui/ExpandableFab";
+import { daysRemainingCopy } from "../../src/subscriptionCopy";
 import { getPendingApprovals } from "../../src/api/visitorApi";
 import { getMyResidence } from "../../src/api/societyApi";
 import { useFeature, useRefreshFeatures } from "../../src/FeatureContext";
@@ -128,6 +130,10 @@ export default function DashboardScreen() {
     attendanceEnabled && { label: "Attendance", icon: "calendar-outline", onPress: () => router.push("/attendance-history") },
   ].filter(Boolean) as { label: string; icon: keyof typeof Ionicons.glyphMap; onPress: () => void }[];
 
+  const fabActions: FabAction[] = [
+    { key: "ask-ai", icon: "sparkles", label: "Ask AI", onPress: () => router.push("/(tabs)/chatbot") },
+  ];
+
   return (
     <View style={s.root}>
       <ScrollView
@@ -228,39 +234,26 @@ export default function DashboardScreen() {
               activeOpacity={0.7}
               onPress={() => router.push("/(tabs)/subscriptions")}
               accessibilityRole="button"
-              accessibilityLabel={`Plan renews in ${daysRemaining} days. Manage subscription.`}
+              accessibilityLabel={`${daysRemainingCopy(daysRemaining)}. Manage subscription.`}
             >
               <View style={s.noticeDot} />
-              <Text style={s.noticeText}>
-                Plan renews in {daysRemaining} {daysRemaining === 1 ? "day" : "days"}
-              </Text>
+              <Text style={s.noticeText}>{daysRemainingCopy(daysRemaining)}</Text>
               <Ionicons name="chevron-forward" size={14} color={theme.textTertiary} />
             </TouchableOpacity>
           </Animated.View>
         )}
 
-        {/* QUICK ACTIONS — flat tiles. No chevrons: the whole tile is the target,
-            and four arrows pointing nowhere in particular is just noise. */}
+        {/* QUICK ACTIONS — rounded grid tiles. No chevrons: the whole tile is
+            the target, and four arrows pointing nowhere in particular is
+            just noise. */}
         {quick.length > 0 && (
           <Animated.View entering={FadeInDown.delay(210).duration(450)} style={s.section}>
             <SectionHeader theme={theme} title="Quick actions" />
-            <View style={s.grid}>
+            <CardGrid>
               {quick.map((q) => (
-                <TouchableOpacity
-                  key={q.label}
-                  style={s.tile}
-                  activeOpacity={0.7}
-                  onPress={q.onPress}
-                  accessibilityRole="button"
-                  accessibilityLabel={q.label}
-                >
-                  <View style={s.tileIcon}>
-                    <Ionicons name={q.icon} size={19} color={theme.accent} />
-                  </View>
-                  <Text style={s.tileLabel} numberOfLines={1}>{q.label}</Text>
-                </TouchableOpacity>
+                <GridCard key={q.label} icon={q.icon} label={q.label} onPress={q.onPress} />
               ))}
-            </View>
+            </CardGrid>
           </Animated.View>
         )}
 
@@ -270,23 +263,10 @@ export default function DashboardScreen() {
 
       {/* AI ASSISTANT — only when the chatbot module is on. */}
       {chatbotEnabled && (
-        <TouchableOpacity
-          style={[s.fabWrap, { bottom: insets.bottom + 88 }]}
-          activeOpacity={0.9}
-          onPress={() => router.push("/(tabs)/chatbot")}
-          accessibilityRole="button"
-          accessibilityLabel="Ask the AI assistant"
-        >
-          <LinearGradient
-            colors={theme.accentGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={s.fab}
-          >
-            <Ionicons name="sparkles" size={16} color={theme.onAccent} />
-            <Text style={s.fabText}>Ask AI</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        <ExpandableFab
+          style={{ bottom: insets.bottom + 88 }}
+          actions={fabActions}
+        />
       )}
     </View>
   );
@@ -500,60 +480,4 @@ const makeStyles = (t: Theme) =>
       letterSpacing: -0.1,
     },
 
-    /* QUICK ACTIONS */
-    grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-    tile: {
-      // Two per row with an 8px gutter, and it degrades gracefully to one wide
-      // tile when a society has a single module enabled.
-      flexBasis: "48%",
-      flexGrow: 1,
-      minWidth: 150,
-      backgroundColor: t.surface,
-      borderWidth: 1,
-      borderColor: t.border,
-      borderRadius: 16,
-      paddingVertical: 16,
-      paddingHorizontal: 14,
-      gap: 12,
-    },
-    tileIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 11,
-      backgroundColor: t.accentTint,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    tileLabel: {
-      fontFamily: fonts.displaySemibold,
-      fontSize: 13.5,
-      color: t.text,
-      letterSpacing: -0.2,
-    },
-
-    /* FAB */
-    fabWrap: {
-      position: "absolute",
-      right: 20,
-      borderRadius: 24,
-      shadowColor: t.accent,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.4,
-      shadowRadius: 14,
-      elevation: 8,
-    },
-    fab: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 7,
-      height: 48,
-      paddingHorizontal: 18,
-      borderRadius: 24,
-    },
-    fabText: {
-      fontFamily: fonts.displayBold,
-      fontSize: 14,
-      color: t.onAccent,
-      letterSpacing: -0.2,
-    },
   });

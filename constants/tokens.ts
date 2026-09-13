@@ -91,6 +91,14 @@ export const fonts = {
   displayExtrabold: "PlusJakartaSans_800ExtraBold",
 };
 
+/** Layout breakpoints (px, shortest window dimension) — mobile is the
+ *  implicit default below `tablet`. Used by src/useResponsive.ts to switch
+ *  the floating tab bar for a persistent side nav on wider viewports. */
+export const breakpoints = {
+  tablet: 768,
+  desktop: 1024,
+};
+
 /** 4 / 8 px spacing rhythm. */
 export const spacing = {
   xs: 4,

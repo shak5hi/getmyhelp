@@ -1,34 +1,31 @@
 import { Ionicons } from "@expo/vector-icons";
-import { fonts } from "../../constants/tokens";
 import { Tabs } from "expo-router";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useRoleGuard } from "../../src/useRoleGuard";
-import { useTheme } from "../../src/ThemeContext";
 import { useFeature } from "../../src/FeatureContext";
 import { MODULES } from "../../src/featureRegistry";
+import TabBar from "../../components/ui/TabBar";
+import SideNav, { SIDE_NAV_WIDTH } from "../../components/ui/SideNav";
+import { useResponsive } from "../../src/useResponsive";
 
 export default function GuardTabLayout() {
-  const { theme } = useTheme();
   // All guard visitor screens hinge on the Visitor Management module.
   const visitorsHref = useFeature(MODULES.visitors) ? undefined : null;
+  const { breakpoint, isWide } = useResponsive();
+
+  // Brings the guard flow to the same rounded floating bar / side-nav chrome
+  // the resident (tabs) flow already uses, instead of the plain default bar.
+  const renderTabBar = (props: BottomTabBarProps) =>
+    isWide ? <SideNav {...props} /> : <TabBar {...props} />;
+
   return (
     <Tabs
+      tabBar={renderTabBar}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.accent,
-        tabBarInactiveTintColor: theme.textSecondary,
-        tabBarStyle: {
-          backgroundColor: theme.surface,
-          borderTopWidth: 1,
-          borderTopColor: theme.border,
-          height: 80,
-          paddingBottom: 12,
-          paddingTop: 10,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontFamily: fonts.semibold,
-          marginTop: 2,
-        },
+        sceneStyle: isWide
+          ? { marginLeft: breakpoint === "desktop" ? SIDE_NAV_WIDTH.desktop : SIDE_NAV_WIDTH.tablet }
+          : undefined,
       }}
     >
       <Tabs.Screen

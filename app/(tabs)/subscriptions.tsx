@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useFocusEffect } from "expo-router";
-import { View, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, KeyboardAvoidingView, Platform } from "react-native";
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { Text, TextInput } from "../../components/ui/Text";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -17,6 +18,7 @@ import { fonts } from "../../constants/tokens";
 import { useTheme } from "../../src/ThemeContext";
 import { useFeatureGuard } from "../../src/useFeatureGuard";
 import { MODULES } from "../../src/featureRegistry";
+import { resolveRenewalInfo, daysRemainingCopy } from "../../src/subscriptionCopy";
 
 export default function SubscriptionsScreen() {
   useFeatureGuard(MODULES.subscriptions);
@@ -173,7 +175,12 @@ export default function SubscriptionsScreen() {
             </Text>
           </View>
         ) : (
-          currentSubscriptions.map((sub, index) => (
+          currentSubscriptions.map((sub, index) => {
+            const renewal = resolveRenewalInfo(sub);
+            const hasRenewalInfo =
+              renewal.endDate != null || renewal.daysRemaining != null || renewal.autoRenew != null;
+
+            return (
             <View key={sub.id || index} style={styles.activeCard}>
               <View style={styles.activeCardHeader}>
                 <View style={styles.activeBadge}>
@@ -181,11 +188,55 @@ export default function SubscriptionsScreen() {
                   <Text style={styles.activeBadgeText}>{sub.status?.toUpperCase() || "ACTIVE"}</Text>
                 </View>
               </View>
-              
+
               <Text style={styles.planName}>{sub.plan?.name || "Custom Plan"}</Text>
               <Text style={styles.planPrice}>
                 ₹{sub.amount_paid || sub.plan?.base_price || "—"} / month
               </Text>
+
+              {/* RENEWAL — when the backend gives us a date/day-count/auto-renew
+                  flag, show it plainly rather than leaving the plan's end date
+                  a mystery. If it gives us none of them, say so instead of
+                  silently showing nothing. */}
+              <View style={{ marginTop: 10, marginBottom: 4, gap: 4 }}>
+                {renewal.endDate && (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <Ionicons name="calendar-outline" size={13} color={theme.textSecondary} />
+                    <Text style={{ fontSize: 12.5, color: theme.textSecondary, fontFamily: fonts.medium }}>
+                      Renews on{" "}
+                      {renewal.endDate.toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </Text>
+                  </View>
+                )}
+                {renewal.daysRemaining != null && (
+                  <Text style={{ fontSize: 12.5, color: theme.textTertiary, fontFamily: fonts.medium }}>
+                    {daysRemainingCopy(renewal.daysRemaining)}
+                  </Text>
+                )}
+                {renewal.autoRenew != null && (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <Ionicons
+                      name={renewal.autoRenew ? "sync-circle" : "sync-circle-outline"}
+                      size={14}
+                      color={renewal.autoRenew ? theme.success : theme.textTertiary}
+                    />
+                    <Text style={{ fontSize: 12.5, color: theme.textSecondary, fontFamily: fonts.medium }}>
+                      {renewal.autoRenew
+                        ? "Renews automatically until you cancel"
+                        : "Won't renew automatically"}
+                    </Text>
+                  </View>
+                )}
+                {!hasRenewalInfo && (
+                  <Text style={{ fontSize: 12, color: theme.textTertiary, fontStyle: "italic" }}>
+                    Renewal date not available — contact support for details.
+                  </Text>
+                )}
+              </View>
 
               <View style={[styles.actionRow, { gap: 10 }]}>
                 <TouchableOpacity
@@ -203,7 +254,8 @@ export default function SubscriptionsScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          ))
+            );
+          })
         )}
 
         {/* --- SECTION: AVAILABLE PLANS --- */}
@@ -233,72 +285,60 @@ export default function SubscriptionsScreen() {
         )}
       </ScrollView>
 
-      {/* Maid-absence credit request modal */}
-      <Modal
-        visible={!!absenceSubId}
-        transparent
-        animationType="fade"
-        onRequestClose={closeAbsenceModal}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{ flex: 1, justifyContent: "center", backgroundColor: "rgba(0,0,0,0.45)", padding: 24 }}
-        >
-          <View style={{ backgroundColor: theme.card, borderRadius: 16, padding: 20 }}>
-            <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: theme.text, marginBottom: 6 }}>
-              Report Maid Absence
-            </Text>
-            <Text style={{ fontSize: 13.5, color: theme.textSecondary, marginBottom: 16, lineHeight: 19 }}>
-              Tell us how many days the maid was absent. The admin will review and, if approved, add those days back to your subscription.
-            </Text>
+      {/* Maid-absence credit request dialog */}
+      <ConfirmDialog visible={!!absenceSubId} onClose={closeAbsenceModal}>
+        <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: theme.text, marginBottom: 6 }}>
+          Report Maid Absence
+        </Text>
+        <Text style={{ fontSize: 13.5, color: theme.textSecondary, marginBottom: 16, lineHeight: 19 }}>
+          Tell us how many days the maid was absent. The admin will review and, if approved, add those days back to your subscription.
+        </Text>
 
-            <Text style={{ fontSize: 12, fontFamily: fonts.semibold, color: theme.textSecondary, marginBottom: 6 }}>
-              Days absent *
-            </Text>
-            <TextInput
-              style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: theme.text, backgroundColor: theme.bg, marginBottom: 14 }}
-              placeholder="e.g. 3"
-              placeholderTextColor={theme.textTertiary}
-              keyboardType="number-pad"
-              value={absenceDays}
-              onChangeText={setAbsenceDays}
-            />
+        <Text style={{ fontSize: 12, fontFamily: fonts.semibold, color: theme.textSecondary, marginBottom: 6 }}>
+          Days absent *
+        </Text>
+        <TextInput
+          style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: theme.text, backgroundColor: theme.bg, marginBottom: 14 }}
+          placeholder="e.g. 3"
+          placeholderTextColor={theme.textTertiary}
+          keyboardType="number-pad"
+          value={absenceDays}
+          onChangeText={setAbsenceDays}
+        />
 
-            <Text style={{ fontSize: 12, fontFamily: fonts.semibold, color: theme.textSecondary, marginBottom: 6 }}>
-              Reason (optional)
-            </Text>
-            <TextInput
-              style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: theme.text, backgroundColor: theme.bg, minHeight: 70, textAlignVertical: "top", marginBottom: 18 }}
-              placeholder="Add any details for the admin..."
-              placeholderTextColor={theme.textTertiary}
-              multiline
-              value={absenceReason}
-              onChangeText={setAbsenceReason}
-            />
+        <Text style={{ fontSize: 12, fontFamily: fonts.semibold, color: theme.textSecondary, marginBottom: 6 }}>
+          Reason (optional)
+        </Text>
+        <TextInput
+          style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: theme.text, backgroundColor: theme.bg, minHeight: 70, textAlignVertical: "top", marginBottom: 18 }}
+          placeholder="Add any details for the admin..."
+          placeholderTextColor={theme.textTertiary}
+          multiline
+          value={absenceReason}
+          onChangeText={setAbsenceReason}
+        />
 
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <TouchableOpacity
-                style={{ flex: 1, paddingVertical: 13, borderRadius: 10, alignItems: "center", backgroundColor: theme.surfaceAlt }}
-                onPress={closeAbsenceModal}
-                disabled={submittingAbsence}
-              >
-                <Text style={{ color: theme.text, fontFamily: fonts.semibold, fontSize: 15 }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{ flex: 1, paddingVertical: 13, borderRadius: 10, alignItems: "center", backgroundColor: theme.accent, opacity: submittingAbsence ? 0.7 : 1 }}
-                onPress={submitAbsenceCredit}
-                disabled={submittingAbsence}
-              >
-                {submittingAbsence ? (
-                  <ActivityIndicator color={theme.onAccent ?? "#fff"} />
-                ) : (
-                  <Text style={{ color: theme.onAccent ?? "#fff", fontFamily: fonts.bold, fontSize: 15 }}>Submit</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <TouchableOpacity
+            style={{ flex: 1, paddingVertical: 13, borderRadius: 10, alignItems: "center", backgroundColor: theme.surfaceAlt }}
+            onPress={closeAbsenceModal}
+            disabled={submittingAbsence}
+          >
+            <Text style={{ color: theme.text, fontFamily: fonts.semibold, fontSize: 15 }}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ flex: 1, paddingVertical: 13, borderRadius: 10, alignItems: "center", backgroundColor: theme.accent, opacity: submittingAbsence ? 0.7 : 1 }}
+            onPress={submitAbsenceCredit}
+            disabled={submittingAbsence}
+          >
+            {submittingAbsence ? (
+              <ActivityIndicator color={theme.onAccent ?? "#fff"} />
+            ) : (
+              <Text style={{ color: theme.onAccent ?? "#fff", fontFamily: fonts.bold, fontSize: 15 }}>Submit</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ConfirmDialog>
     </SafeAreaView>
   );
 }

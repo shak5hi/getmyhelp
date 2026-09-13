@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Animated, FlatList, Image, KeyboardAvoidingView, Modal, Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, FlatList, Image, KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Text, TextInput } from "../../components/ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -12,6 +12,9 @@ import { AuthorTag } from "../../components/community/AuthorTag";
 import { EmojiReactionBar, Reaction } from "../../components/community/EmojiReactionBar";
 import { ImageGallery } from "../../components/community/ImageGallery";
 import { ErrorState } from "../../components/ui/ErrorState";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import BottomSheet from "../../components/ui/BottomSheet";
+import PopoverMenu, { PopoverAction } from "../../components/ui/PopoverMenu";
 import { usePostSocket } from "../../hooks/usePostSocket";
 import {
   createReply,
@@ -558,26 +561,64 @@ export default function ForumThread() {
     );
   };
 
+  const postIsOwn = post ? isMine(post, currentUserId) : false;
+  const postMenuActions: PopoverAction[] = post
+    ? [
+        postIsOwn
+          ? {
+              key: "edit",
+              icon: "pencil-outline" as const,
+              label: "Edit",
+              onPress: () =>
+                setActionModal({
+                  visible: true,
+                  mode: "edit",
+                  type: "post",
+                  id: String(post.id),
+                  content: stripHtml(post.content ?? ""),
+                }),
+            }
+          : {
+              key: "report",
+              icon: "flag-outline" as const,
+              label: "Report",
+              destructive: true,
+              onPress: () =>
+                setActionModal({
+                  visible: true,
+                  mode: "report",
+                  type: "post",
+                  id: String(post.id),
+                  content: "",
+                }),
+            },
+      ]
+    : [];
+
   const ListHeader = (
     <View style={{ padding: 16, paddingBottom: 8 }}>
-      <TouchableOpacity
-        onLongPress={() => post && handleLongPress("post", post)}
-        delayLongPress={500}
-        activeOpacity={1}
-      >
-        {(post?.author_name || post?.author?.name || post?.created_by?.name) && (
-          <View style={{ marginBottom: 12 }}>
-            <AuthorTag
-              name={post.author_name ?? post.author?.name ?? post.created_by?.name}
-              timestamp={post.created_at ?? ""}
-            />
-          </View>
-        )}
-        <Text style={styles.detailBody}>
-          {stripHtml(post?.content ?? post?.body ?? "")}
-        </Text>
-        {postImages.length > 0 && <ImageGallery images={postImages} />}
-      </TouchableOpacity>
+      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <TouchableOpacity
+          style={{ flex: 1 }}
+          onLongPress={() => post && handleLongPress("post", post)}
+          delayLongPress={500}
+          activeOpacity={1}
+        >
+          {(post?.author_name || post?.author?.name || post?.created_by?.name) && (
+            <View style={{ marginBottom: 12 }}>
+              <AuthorTag
+                name={post.author_name ?? post.author?.name ?? post.created_by?.name}
+                timestamp={post.created_at ?? ""}
+              />
+            </View>
+          )}
+          <Text style={styles.detailBody}>
+            {stripHtml(post?.content ?? post?.body ?? "")}
+          </Text>
+          {postImages.length > 0 && <ImageGallery images={postImages} />}
+        </TouchableOpacity>
+        {post && postMenuActions.length > 0 && <PopoverMenu actions={postMenuActions} accessibilityLabel="Post actions" />}
+      </View>
 
       <EmojiReactionBar
         reactions={buildReactions(postReactions)}
@@ -713,83 +754,78 @@ export default function ForumThread() {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Edit / Report modal */}
-      <Modal
-        visible={actionModal?.visible ?? false}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setActionModal(null)}
-      >
-        <View style={modalStyles.overlay}>
-          <View style={modalStyles.sheet}>
-            <Text style={modalStyles.title}>
-              {actionModal?.mode === "edit" ? "Edit" : "Report Content"}
+      {/* Edit / Report dialog */}
+      <ConfirmDialog visible={actionModal?.visible ?? false} onClose={() => setActionModal(null)}>
+        <Text style={{ fontSize: 16, fontFamily: fonts.bold, color: theme.text, marginBottom: 14 }}>
+          {actionModal?.mode === "edit" ? "Edit" : "Report Content"}
+        </Text>
+        <TextInput
+          style={{
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: 10,
+            padding: 12,
+            minHeight: 80,
+            fontSize: 14,
+            color: theme.text,
+            backgroundColor: theme.bg,
+            textAlignVertical: "top",
+          }}
+          value={actionModal?.content ?? ""}
+          onChangeText={(t) =>
+            setActionModal((prev) => (prev ? { ...prev, content: t } : prev))
+          }
+          multiline
+          placeholder={
+            actionModal?.mode === "edit"
+              ? "Edit content…"
+              : "Reason for reporting…"
+          }
+          placeholderTextColor={theme.textTertiary}
+          autoFocus
+        />
+        <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 16, marginTop: 16 }}>
+          <TouchableOpacity style={{ paddingVertical: 4 }} onPress={() => setActionModal(null)}>
+            <Text style={{ fontSize: 14, color: theme.textSecondary, fontFamily: fonts.semibold }}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{ paddingVertical: 4 }} onPress={handleActionSubmit}>
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: fonts.bold,
+                color: actionModal?.mode === "report" ? theme.danger : theme.accent,
+              }}
+            >
+              {actionModal?.mode === "edit" ? "Save" : "Report"}
             </Text>
-            <TextInput
-              style={modalStyles.input}
-              value={actionModal?.content ?? ""}
-              onChangeText={(t) =>
-                setActionModal((prev) => (prev ? { ...prev, content: t } : prev))
-              }
-              multiline
-              placeholder={
-                actionModal?.mode === "edit"
-                  ? "Edit content…"
-                  : "Reason for reporting…"
-              }
-              placeholderTextColor={theme.textTertiary}
-              autoFocus
-            />
-            <View style={modalStyles.row}>
-              <TouchableOpacity
-                style={modalStyles.cancelBtn}
-                onPress={() => setActionModal(null)}
-              >
-                <Text style={modalStyles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  modalStyles.submitBtn,
-                  actionModal?.mode === "report" && modalStyles.submitBtnRed,
-                ]}
-                onPress={handleActionSubmit}
-              >
-                <Text style={modalStyles.submitText}>
-                  {actionModal?.mode === "edit" ? "Save" : "Report"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          </TouchableOpacity>
         </View>
-      </Modal>
-      {/* Emoji picker modal */}
-      <Modal
-        visible={!!emojiPickerTargetId}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setEmojiPickerTargetId(null)}
-      >
-        <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.35)", justifyContent: "flex-end" }}
-          activeOpacity={1}
-          onPress={() => setEmojiPickerTargetId(null)}
-        >
-          <View style={{ backgroundColor: "#fff", padding: 20, flexDirection: "row", flexWrap: "wrap", gap: 10, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
-            {["👍", "❤️", "😂", "😮", "😢", "🔥", "👏", "🎉"].map((emoji) => (
-              <TouchableOpacity
-                key={emoji}
-                onPress={() => {
-                  if (emojiPickerTargetId) handleReplyReact(emojiPickerTargetId, emoji);
-                  setEmojiPickerTargetId(null);
-                }}
-                style={{ width: 52, height: 52, justifyContent: "center", alignItems: "center", backgroundColor: "#F3F4F6", borderRadius: 26 }}
-              >
-                <Text style={{ fontSize: 26 }}>{emoji}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      </ConfirmDialog>
+
+      {/* Emoji picker sheet */}
+      <BottomSheet visible={!!emojiPickerTargetId} onClose={() => setEmojiPickerTargetId(null)}>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+          {["👍", "❤️", "😂", "😮", "😢", "🔥", "👏", "🎉"].map((emoji) => (
+            <TouchableOpacity
+              key={emoji}
+              onPress={() => {
+                if (emojiPickerTargetId) handleReplyReact(emojiPickerTargetId, emoji);
+                setEmojiPickerTargetId(null);
+              }}
+              style={{
+                width: 52,
+                height: 52,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: theme.surfaceAlt,
+                borderRadius: 26,
+              }}
+            >
+              <Text style={{ fontSize: 26 }}>{emoji}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </BottomSheet>
     </SafeAreaView>
   );
 }
@@ -816,43 +852,3 @@ const bannerStyles = StyleSheet.create({
   },
 });
 
-const modalStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "center",
-    padding: 24,
-  },
-  sheet: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-  },
-  title: {
-    fontSize: 16,
-    fontFamily: fonts.bold,
-    color: "#111827",
-    marginBottom: 14,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 10,
-    padding: 12,
-    minHeight: 80,
-    fontSize: 14,
-    color: "#111827",
-    textAlignVertical: "top",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 16,
-    marginTop: 16,
-  },
-  cancelBtn: { paddingVertical: 4 },
-  cancelText: { fontSize: 14, color: "#6B7280", fontFamily: fonts.semibold },
-  submitBtn: { paddingVertical: 4 },
-  submitBtnRed: {},
-  submitText: { fontSize: 14, color: "#1D4ED8", fontFamily: fonts.bold },
-});
