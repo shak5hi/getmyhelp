@@ -21,22 +21,51 @@ import { Theme } from "../constants/themes";
 // (Confirmed against real data: a maid scheduled Saturday comes back as [6].)
 const todayIndex = () => new Date().getDay();
 
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+// Parse an ISO date to local midnight, for calendar-day comparison. Returns
+// null for a missing or unparseable value (caller then ignores that bound).
+const dayFrom = (iso?: string | null): Date | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
 /**
  * Is this assignment actually due today?
  *
- * The endpoint returns the resident's assignments, and each carries the weekdays
- * that maid is scheduled to come. Without this check every assigned provider
- * shows up every day, so you'd be marking attendance for someone who was never
- * due — which is what was happening.
+ * Each assignment carries the weekdays the maid is scheduled to come AND a
+ * [start_date, end_date] validity window. Two independent reasons a provider is
+ * NOT due today:
+ *   1. today's weekday isn't in `days_of_week`
+ *   2. today is outside the assignment's window — the common case, because the
+ *      backend doesn't reliably move `status` off 'active' when an assignment
+ *      lapses, so an engagement that ended weeks ago still comes down the wire.
  *
- * Fail-open on a missing/empty schedule: if the backend can't tell us which days
- * an assignment covers, we'd rather show it than silently hide real work.
+ * Fail-open per-bound: a missing/empty schedule shows every day, and a
+ * missing/unparseable date bound is simply not enforced. The server list stays
+ * authoritative — this is a second line of defence.
  */
 const isScheduledToday = (item: TodayProvider): boolean => {
   if (!item.assignment_id) return false;
+
   const days = item.days_of_week;
-  if (!Array.isArray(days) || days.length === 0) return true;
-  return days.includes(todayIndex());
+  const weekdayOk = !Array.isArray(days) || days.length === 0 || days.includes(todayIndex());
+  if (!weekdayOk) return false;
+
+  const today = startOfToday();
+  const start = dayFrom(item.start_date);
+  if (start && start > today) return false;
+  const end = dayFrom(item.end_date);
+  if (end && end < today) return false;
+
+  return true;
 };
 
 const capturePhoto = async (): Promise<AttendancePhoto | null> => {
