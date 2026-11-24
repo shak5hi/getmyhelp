@@ -77,5 +77,8 @@
     "test-renderer": "^1.2.0",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "browserslist": "^4.28.7"
+  }
 }
